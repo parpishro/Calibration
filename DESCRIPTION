@@ -1,13 +1,12 @@
 Package: KOH
 Type: Package
-Title: Calibration of Simulator Model based on Kennedy and O'Hagan (KOH) Model 
+Title: Kennedy and O'Hagan (KOH) Model - Calibrating simulator with field data
 Version: 0.1.0
 Author: Parham Pishrobat
 Maintainer: The package maintainer <par.pishrobat@gmail.com>
-Description: Bayesian calibration of simulator model based on both field 
+Description: Full Bayesian calibration of simulator model based on both field 
     observations and simulator outputs according to Kennedy O'Hagan (2001) model
-License: What license is it under?
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
-Depends: 
-    R (>= 2.10)
+Depends: R (>= 2.10)
