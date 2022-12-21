@@ -1,4 +1,4 @@
-Package: calibrateKOH
+Package: KOH
 Type: Package
 Title: Calibration of Simulator Model based on Kennedy and O'Hagan (KOH) Model 
 Version: 0.1.0

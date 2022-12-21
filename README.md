@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# calibrateKOH
+# KOH
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -31,7 +31,7 @@ You can install the development version of calibrateKOH like so:
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-library(calibrateKOH)
+library(KOH)
 ## basic example code
 ```
 
