@@ -1,12 +1,8 @@
 #' Compute the augmented covariance matrix
 #'
-#' @param RS_XsT (m * m) correlation matrix between (xs, t)s
-#' @param RS_XsT_XfTheta (m * n) correlation matrix between (xs, t) & (xp, theta)
-#' @param RS_XfTheta (n * n) correlation matrix between (xp, theta)s
-#' @param RB_Xf (m * m) correlation matrix between xp terms
-#' @param vs marginal variance of simulator
-#' @param vb marginal variance of bias correction
-#' @param ve marginal variance of noise
+#' @param sim simulation data
+#' @param field field data
+#' @param phi model parameters/hyperprameters
 #'
 #' @return covariance matrix of augmented data matrix
 #' @export
@@ -14,32 +10,40 @@
 #' @examples
 covariance <- function(sim, field, phi) {
 
-  ns        <- nrow(sim)
-  ks        <- ncol(sim)
-  nf        <- nrow(field)
-  kf        <- ncol(field)
+  m        <- nrow(sim)
+  pq        <- ncol(sim)
+  n       <- nrow(field)
+  p        <- ncol(field)
 
-  Xsim      <- sim[, 2:ks]
-  Ysim      <- sim[, 1]
-  XX        <- field[, 2:kf]
-  Xfield    <- cbind(XX, matrix(replicate(phi[1:(ks - kf)]), nf))
-  Yfield    <- field[, 1]
+  Xs     <- sim[, 2:ks]
+  Ys      <- sim[, 1]
+  Xb       <- field[, 2:p]
+  Xf    <- cbind(Xb, matrix(replicate(phi[1:(pq - p)]), n))
+  Yf    <- field[, 1]
 
 
-  CorFF     <- cor(Xfield)
-  CorFS     <- cor(Xfield, Xsim)
-  CorSF     <- t(CorFS)
-  CorSS     <- cor(Xsim)
-  CorBias   <- cor()
+  s2s     <- phi[len(phi) - 3] # marginal variance of simulator
+  s2b     <- phi[len(phi) - 2] # marginal variance of bias correction
+  s2e     <- phi[len(phi) - 1] # marginal variance of noise (measurement error)
 
-  sig2S     <- phi[len(phi) - 3]
-  sig2B     <- phi[len(phi) - 2]
-  sig2E     <- phi[len(phi) - 1]
 
-  Iff       <- diag(nf)
 
-  CovD <- cbind(rbind((sig2S * CorFF) + (sig2B * XX) + (sig2E * Iff), CorFS),
-                rbind((sig2S * CorSF), (sig2S * CorSS)))
+  # (n * n) correlation matrix between augmented Xf's
+  CorFF     <- correlation(Xfield)
+
+  CorFS     <- correlation(Xfield, Xsim) # (n * m) correlation matrix between Xf's, Xs's
+  CorSF     <- t(CorFS)          # (m * n) correlation matrix between Xs's, Xf's
+  CorSS     <- correlation(Xsim)         # (m * m) correlation matrix between Xs's
+  CorB   <- correlation()                # (n * n) correlation matrix between Xb's
+
+
+
+  Inn       <- diag(n)
+
+  CovD <- cbind(rbind((s2s * CorFF) + (s2b * XX) + (s2e * Inn), CorFS),
+                rbind((s2s * CorSF), (s2s * CorSS)))
 
   return(CovD)
 }
+
+
