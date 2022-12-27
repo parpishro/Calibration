@@ -34,27 +34,27 @@ update_cov <- function(covD, phi, changed, env) {
     CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
     CorFS  <- correlation(Xf, Xs, , scale = phi[scaleS], smooth = phi[smoothS])
     CorSF  <- t(CorFS)
-    CorSS  <- correlation(Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    CorSS  <- correlation(Xs, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     muHat  <- mu_hat(corSS, ys)
     res    <- z - muHat
-    CorB   <- correlation(Xb, scale = phi[scaleB], smooth = phi[smoothB])
+    CorB   <- correlation(Xb, Xb, scale = phi[scaleB], smooth = phi[smoothB])
 
   } else if (changed %in% calib) {
     Xf     <- cbind(Xb, matrix(replicate(phi[calib], n), nrow = n))
-    CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFF  <- correlation(Xf, Xf, scale = phi[scaleS], smooth = phi[smoothS])
     CorFS  <- correlation(Xf, Xs, , scale = phi[scaleS], smooth = phi[smoothS])
     CorSF  <- t(CorFS)
 
   } else if ((changed %in% scaleS) || (changed %in% smoothS)) {
-    CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFF  <- correlation(Xf, Xf, scale = phi[scaleS], smooth = phi[smoothS])
     CorFS  <- correlation(Xf, Xs, , scale = phi[scaleS], smooth = phi[smoothS])
     CorSF  <- t(CorFS)
-    CorSS  <- correlation(Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    CorSS  <- correlation(Xs, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     muHat  <- mu_hat(corSS, ys)
     res    <- z - muHat
 
   } else if ((changed %in% scaleB) || (changed %in% smoothB)) {
-    CorB   <- correlation(Xb, scale = phi[scaleB], smooth = phi[smoothB])
+    CorB   <- correlation(Xb, Xb, scale = phi[scaleB], smooth = phi[smoothB])
 
   } else if (changed %in% sig2S) {
     sig2S  <- phi[sig2S]
