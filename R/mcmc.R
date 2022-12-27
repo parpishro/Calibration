@@ -42,7 +42,7 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
 
   for (i in 2:Nmcmc) {
     for (j in 1:k) {
-      changed      <- proposal(phi[i-1, j]).  #TODO
+      changed      <- proposal(phi[i-1, j])  #TODO
       params       <- c(phi[i, 1:j-1], changed, phi[i-1, j+1:k])
       covD         <- update_cov(covD, phi, changed, env)
       logLik[i]    <- log_lik(covD)
