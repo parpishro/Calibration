@@ -6,15 +6,6 @@
 #' @param mu_y mean of simulator response vector (y)
 #'
 #' @return log likelihood of augmented response given the parameters phi
-log_lik <- function (logLik, phi, chnaged, env) {
-
-  env0             <- environment()
-  parent.env(env0) <- env
-
-  covD             <- update_cov(phi, changed, env)
-
-
-
-  r <- d - mu_hat
-  return (-0.5 * (log(CovD_det) - (r %*% CovD_inv %*% r)))
+log_lik <- function (covD) {
+  return (-0.5 * (covD$logDet) - (covD$res %*% covD$inv %*% covD$res))
 }
