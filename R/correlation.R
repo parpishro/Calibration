@@ -6,7 +6,7 @@
 #               in X (and Y)
 # EFFECTS:
 
-correlation <- function (X, Y = NULL, scale, smoothness) {
+correlation <- function (X, Y, scale, smooth) {
   if (is.null(Y)) Y <- X
   D <- distance(X, Y)
   nx <- nrow(X)
@@ -14,7 +14,7 @@ correlation <- function (X, Y = NULL, scale, smoothness) {
   R <- matrix(nrow = nx, ncol = ny)
   for (i in 1:nx) {
     for (j in 1:ny) {
-      R[i, j] <- prod(exp(-(D[((i - 1) * ny) + j, ] * scale) ^ smoothness))
+      R[i, j] <- prod(exp(-(D[((i - 1) * ny) + j, ] * scale) ^ smooth))
     }
   }
   return(R)
