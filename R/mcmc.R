@@ -33,14 +33,14 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
   phi              <- matrix(nrow = Nmcmc, ncol = k)
   phi[1,]          <- phiInit
 
-  logLik           <- vector("double", Nmcmc)
-  logLik[1]        <- log_lik(phi[1,], env)
+  logLik           <- log_lik(list(), phi[1,], 0, env)
 
 
   for (i in 2:Nmcmc) {
     for (j in 1:k) {
-      param        <- proposal(phi[i-1, j])
-      logLik[i]    <- update_cov(c(phi[i, 1:j-1],param, phi[i-1, j+1:k]), j)
+      changed      <- proposal(phi[i-1, j]).  #TODO
+      params       <- c(phi[i, 1:j-1], changed, phi[i-1, j+1:k])
+      logLik[i]    <- log_lik(logLik[i-1], params, j, env)
 
       if (logLik[i] - logLik[i - 1] > log(unif(1))) {
         phi[i, j]  <- param
