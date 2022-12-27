@@ -4,60 +4,78 @@ update_cov <- function(covD, phi, changed, env) {
   parent.env(env0) <- env
 
   # parameter indices in phi vector
-  calib            <- 1:q
-  scaleS           <- (q+1): (q + (p + q))
-  smoothS          <- (q + (p + q) + 1): (q + (p + q) + (p + q))
-  scaleB           <- (q + (p + q) + (p + q) + 1): (q + (p + q) + (p + q) + p)
-  smoothB          <- (q + (p + q) + (p + q) + p + 1): (k - 4)
-  sigma2S          <- k - 3
-  sigma2B          <- k - 2
-  sigma2E          <- k - 1
-  muHat            <- k
+  calib    <- 1:q
+  scaleS   <- (q+1): (q + (p + q))
+  smoothS  <- (q + (p + q) + 1): (q + (p + q) + (p + q))
+  scaleB   <- (q + (p + q) + (p + q) + 1): (q + (p + q) + (p + q) + p)
+  smoothB  <- (q + (p + q) + (p + q) + p + 1): (k - 4)
+  sig2S    <- k - 3
+  sig2B    <- k - 2
+  sig2E    <- k - 1
+  muHat    <- k
 
 
-
-
-  corFF            <- covD$corFF
-  corFS            <- covD$corFS
-  corSF            <- covD$corSF
-  corSS            <- covD$corSS
-  corB             <- covD$corB
-
+  # corFF : (n * n) correlation matrix of augmented Xf's
+  # corFS : (n * m) correlation matrix between Xf's, Xs's
+  # corSF : (m * n) correlation matrix between Xs's, Xf's
+  # corSS : (m * m) correlation matrix between Xs's
+  # corB  : (n * n) correlation matrix between Xb's
+  Xf       <- covD$Xf
+  CorFF    <- covD$CorFF
+  CorFS    <- covD$CorFS
+  CorSF    <- covD$CorSF
+  CorSS    <- covD$CorSS
+  muHat    <- covD$muHat
+  res      <- covD$res
+  CorB     <- covD$CorB
 
   if (changed == 0) {
-
-    # (n * n) correlation matrix between augmented Xf's
     Xf     <- cbind(Xb, matrix(replicate(phi[calib], n), nrow = n))
     CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
-
-    # (n * m) correlation matrix between Xf's, Xs's
     CorFS  <- correlation(Xf, Xs, , scale = phi[scaleS], smooth = phi[smoothS])
-
-    # (m * n) correlation matrix between Xs's, Xf's
     CorSF  <- t(CorFS)
-
-    # (m * m) correlation matrix between Xs's
     CorSS  <- correlation(Xs, scale = phi[scaleS], smooth = phi[smoothS])
-
-    # (n * n) correlation matrix between Xb's
+    muHat  <- mu_hat(corSS, ys)
+    res    <- z - muHat
     CorB   <- correlation(Xb, scale = phi[scaleB], smooth = phi[smoothB])
 
-  } else if (changed == "omega sim") {
+  } else if (changed %in% calib) {
+    Xf     <- cbind(Xb, matrix(replicate(phi[calib], n), nrow = n))
+    CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFS  <- correlation(Xf, Xs, , scale = phi[scaleS], smooth = phi[smoothS])
+    CorSF  <- t(CorFS)
 
-  } else if (changed == "alpha sim") {
+  } else if ((changed %in% scaleS) || (changed %in% smoothS)) {
+    CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFS  <- correlation(Xf, Xs, , scale = phi[scaleS], smooth = phi[smoothS])
+    CorSF  <- t(CorFS)
+    CorSS  <- correlation(Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    muHat  <- mu_hat(corSS, ys)
+    res    <- z - muHat
 
-  } else if (changed == "omega bias") {
+  } else if ((changed %in% scaleB) || (changed %in% smoothB)) {
+    CorB   <- correlation(Xb, scale = phi[scaleB], smooth = phi[smoothB])
 
-  } else if (changed == "alpha bias") {
+  } else if (changed %in% sig2S) {
+    sig2S  <- phi[sig2S]
 
-  } else if (changed == "variance sim") {
+  } else if (changed %in% sig2B) {
+    sig2B  <- phi[sig2B]
 
-  } else if (changed == "variance bias") {
+  } else if (changed %in% sigma2E) {
+    sig2E  <- phi[sig2E]
 
-  } else if (changed == "variance sim") {
+  } else stop("invalid changed argument!")
 
-  } else if (is.null(changed)) {
+  In.      <- diag(n)
+  AugCov   <- cbind(rbind((sig2S * CorFF) + (sig2B * Xb) + (sig2E * In), CorFS),
+                rbind((sig2S * CorSF), (sig2S * CorSS)))
+  chol     <- chol_cov(AugCov)
+  inv <- chol$inv
+  det <- chol$det
 
-  } else stop("invalid parameter type!")
+  return(list(Xf = Xf, CorFF = CorFF, CorFS = CorFS, CorSF = CorSf,
+              CorSS = CorSS, muHat = muHat, res = res,
+              CorB = CorB, sig2S = sig2S, sig2B = sig2B, sig2E = sig2E))
 
 }
