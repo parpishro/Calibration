@@ -1,11 +1,9 @@
-#' Conditional log likelihood of augmented response vector (d)
+#' Conditional (posterior) log likelihood of augmented response vector (z)
 #'
-#' @param CovD_inv inverse of augmented covariance matrix
-#' @param CovD_det determinant of augmented covariance matrix
-#' @param d augmented response vector which is (yT, zT)T
-#' @param mu_y mean of simulator response vector (y)
+#' @param CovD augmented covariance matrix
 #'
-#' @return log likelihood of augmented response given the parameters phi
+#' @return posterior log likelihood of augmented response given the augmented
+#'            covariance matrix (its inverse and determinant) and residuals
 log_lik <- function (covD) {
   return (-0.5 * (covD$logDet) - (covD$res %*% covD$inv %*% covD$res))
 }
