@@ -78,7 +78,6 @@ calibrate <- function(sim, field,
   Xs        <- sim[, 2:pq]
   ys        <- sim[, 1]
   Xb        <- field[, 2:p]
-  Xf        <- cbind(Xb, matrix(replicate(phi[1:(pq - p)], n), nrow = n))
   yf        <- field[, 1]
   z         <- c(ys, yf)
 

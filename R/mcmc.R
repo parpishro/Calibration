@@ -33,6 +33,9 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
   phi              <- matrix(nrow = Nmcmc, ncol = k)
   phi[1,]          <- phiInit
 
+  covD             <- list(Xf = c(), CorFF = c(), CorFS = c(), CorSF = c(),
+                           CorSS = c(), muHat = 0, res = c(),
+                           CorB = c(), sig2S = 0, sig2B = 0, sig2E = 0)
   covD             <- update_cov(covD, phiInit, 0, env)
   logLik           <- log_lik(covD)
 
