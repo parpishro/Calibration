@@ -32,25 +32,33 @@ mcmc <- function(sim, field,
                  Nmcmc, nBurn, thining,
                  theta_pr, omega_pr, alpha_pr, sigma2_pr,
                  theta0, omega0, alpha0, sigma20) {
-# mcmc <- function(ll_fun, prop_fun, Nmcmc, burnIn, phiInit) {
   p <- ncol(field) - 1         # number of experimental variables
-  q <- ncol(sim) - ncol(field) # number of calibration parameters
-  k <- 1 + q + (2 * (p + q)) + (2 * p) + 1 + 1 + 1  # number of total parameters
-  phi <- matrix(nrow = Nmcmc, ncol = k)
-  phi[1,] <- initialize_phi(k, p, q, theta0, omega0, alpha0, sigma20)
-  ll <- vector("double", Nmcmc)
-  ll[1] <- ll_fun(phi[1,])  # TO DO
+  q <- ncol(sim) - p           # number of calibration parameters
+  # number of total parameters
+  k <- q +          # number of calibration parameters
+      (p + q) +     # number of scale parameters (for simulation data)
+      (p + q) +     # number of smoothness parameters (for simulation data)
+       p +          # number of scale parameters (for field data)
+       p +          # number of smoothness parameters (for field data)
+       1 +          # marginal variance of simulator
+       1 +          # marginal variance of bias correction
+       1 +          # variance of measurement
+       1            # estimate of mean response
+  phi      <- matrix(nrow = Nmcmc, ncol = k)
+  phi[1,]  <- initialize_phi(k, p, q, theta0, omega0, alpha0, sigma20)
+  llPos    <- vector("double", Nmcmc)
+  llPos[1] <- log_lik(phi[1,])  # TO DO
   for (i in 2:Nmcmc) {
     for (j in 1:k) {
-      phi_ij <- prop_fun(phi[i-1, j])
-      ll[i] <- ll_fun(c(phi[i, 1:j-1],phi_ij, phi[i-1, j+1:k]))
+      param    <- proposal(phi[i-1, j])
+      llPos[i] <- update_cov(c(phi[i, 1:j-1],param, phi[i-1, j+1:k]), j)
       u <- unif(1)
-      if (ll[i] - ll[i - 1] > log(u)) {
-        phi[i, j] <- phi_ij
+      if (llPos[i] - llPos[i - 1] > log(u)) {
+        phi[i, j] <- param
       } else {
         phi[i, j] <- phi[i - 1, j]
       }
     }
   }
-  return(list(ll[burnIn:Nmcmc], phi[burnIn:Nmcmc, ]))
+  return(list(llPos[burnIn:Nmcmc], phi[burnIn:Nmcmc, ]))
 }
