@@ -19,8 +19,43 @@
 #             correlation functions hyperparameters, uncertainty hyperparameters
 #             , and MCMC specifications, build a KOH model and run MH MCMC to
 #             find the posterior distribution of parameters, hyperparameters,
-#             and calibrated response.
+#             and and their point estimates and estimated variances.
+#             The function specifies the data and passes its environment to all
+#             child functions for use without needing to pass them as argumnets.
 
+#' calibrate
+#'
+#' @param sim       (m * (1+p+q) matrix) simulation data
+#' @param field     (n * (1+p+) matrix) field data
+#' @param Nmcmc     number of MCMC runs
+#' @param nBurn     number of MCMC burn ins
+#' @param thining   thining rate to de-correlate MCMC results
+#' @param theta_pr  prior function for calibration parameters #TODO
+#' @param omega_pr  prior function for scale parameters #TODO
+#' @param alpha_pr  prior function for smoothness parameters #TODO
+#' @param sigma2_pr prior function for variance parameters #TODO
+#' @param theta0    initial value of calibration parameters (to be given MCMC)
+#' @param omega0    initial value of scale parameters (to be given MCMC)
+#' @param alpha0    initial value of smoothness parameters (to be given MCMC)
+#' @param sigma20   initial value of smoothness parameters (to be given MCMC)
+#'
+#' @return a list containing posterior:
+#'    - (((Nmcmc - nBurn) / thinning) * k) parameters distribution:
+#'        - 1st q columns: distribution of calibration parameters
+#'        - next (p + q) columns: distribution of sim scale parameters
+#'        - next (p + q) columns: distribution of sim smoothness parameters
+#'        - next p columns: distribution of bias scale parameters
+#'        - next p columns: distribution of bias smoothness parameters
+#'        - next column (index: k - 3): distribution of sim variance parameter
+#'        - next column (index: k - 1): distribution of bias variance parameter
+#'        - next column (index: k - 2): distribution of error variance parameter
+#'        - next column (index: k): distribution of mean response parameter
+#'    - a vector (length: k) of parameter estimated variances
+#'    - a vector (length: k) of parameter point estimates
+#'
+#' @export
+#'
+#' @examples
 calibrate <- function(sim, field,
                       Nmcmc = 10000, nBurn = 500, thining = 100,
                       theta_pr = "weak", omega_pr = "logbeta",
@@ -28,24 +63,17 @@ calibrate <- function(sim, field,
                       theta0, omega0, alpha0, sigma20) {
   env      <- environment()
 
-  p <- ncol(field) - 1
-
-  # number of total parameters
-  k <- q +          # number of calibration parameters
-    (p + q) +     # number of scale parameters (for simulation data)
-    (p + q) +     # number of smoothness parameters (for simulation data)
-    p +          # number of scale parameters (for field data)
-    p +          # number of smoothness parameters (for field data)
-    1 +          # marginal variance of simulator
-    1 +          # marginal variance of bias correction
-    1 +          # variance of measurement
-    1            # estimate of mean response
-
   m         <- nrow(sim)               # number of simulation runs
   n         <- nrow(field)             # number of field observations
   p         <- ncol(field) - 1         # number of experimental variables
   q         <- ncol(sim) - p           # number of calibration parameters
   d         <- ncol(sim)               # number of all variables for simulation
+
+  # number of total parameters =
+  #       calibration + sim scale + sim smoothness + bias scale +
+  #       bias smoothness + sim variance + bias variance + error variance
+  k         <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 + 1
+  phiInit   <- initialize_phi(k, p, q, theta0, omega0, alpha0, sigma20)
 
   Xs        <- sim[, 2:pq]
   Ys        <- sim[, 1]
@@ -58,22 +86,11 @@ calibrate <- function(sim, field,
   alpha_pr  <- alpha_pr
   sigma2_pr <- sigma2_pr
 
-  phiInit   <- initialize_phi(k, p, q, theta0, omega0, alpha0, sigma20)
-
   params    <- mcmc(Nmcmc, nBurn, thining, phiInit, environment = env)
-  paramVar  <- apply(clb$mean,2,var) + apply(clb$var,2,mean) # law of total variance
+  paramVar  <- apply(clb$mean,2,var) + apply(clb$var,2,mean) # total variance
   paramMean <- apply(clb$mean,2,mean)
   results   <- list(mean = paramMean, var = paramVar)
   return(results)
 }
 
 
-runBMCMC<-function(nmcmc,burn,thin,x,y,xtest1, lambda.ini, lambda.w.ini, gamma.ini, gamma.w.ini){
-
-  m<-list(pred.y=pred.y, pred.var=pred.var, reasonable.lambda=xxy$reasonable.lambda, accept.lambda=xxy$accept.lambda,
-          mcmc.ma.lambda=xxy$mcmc.ma.lambda,
-          accept.p=xxy$accept.gamma,
-          mcmc.ma.gamma=xxy$mcmc.ma.gamma,
-          mcmc.ma.p=1+1/(1+exp(-(xxy$mcmc.ma.gamma))) )
-  return(m)
-}
