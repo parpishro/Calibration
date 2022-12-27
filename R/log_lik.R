@@ -6,30 +6,13 @@
 #' @param mu_y mean of simulator response vector (y)
 #'
 #' @return log likelihood of augmented response given the parameters phi
-#' @export
-#'
-#' @examples
-log_lik <- function (CovD_inv, CovD_det, d, mu_hat, chnaged = NULL) {
+log_lik <- function (logLik, phi, chnaged, env) {
 
-  if (changed == "calibration") {
+  env0             <- environment()
+  parent.env(env0) <- env
 
-  } else if (changed == "omega sim") {
+  covD             <- update_cov(phi, changed, env)
 
-  } else if (changed == "alpha sim") {
-
-  } else if (changed == "omega bias") {
-
-  } else if (changed == "alpha bias") {
-
-  } else if (changed == "variance sim") {
-
-  } else if (changed == "variance bias") {
-
-  } else if (changed == "variance sim") {
-
-  } else if (is.null(changed)) {
-
-  } else stop("invalid parameter type!")
 
 
   r <- d - mu_hat
