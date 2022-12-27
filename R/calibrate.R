@@ -87,8 +87,10 @@ calibrate <- function(sim, field,
   sigma2_pr <- sigma2_pr
 
   params    <- mcmc(Nmcmc, nBurn, thining, phiInit, environment = env)
-  paramVar  <- apply(clb$mean,2,var) + apply(clb$var,2,mean) # total variance
-  paramMean <- apply(clb$mean,2,mean)
+  mu-hat    <- clb$params[, k]
+  sigma_hat <- clb$params[, (k-1)]
+  paramVar  <- apply(mu-hat, 2, var) + apply(sigma_hat, 2, mean)
+  paramMean <- apply(mu-hat, 2, mean)
   results   <- list(mean = paramMean, var = paramVar)
   return(results)
 }
