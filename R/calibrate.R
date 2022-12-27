@@ -76,10 +76,11 @@ calibrate <- function(sim, field,
   phiInit   <- initialize_phi(k, p, q, theta0, omega0, alpha0, sigma20)
 
   Xs        <- sim[, 2:pq]
-  Ys        <- sim[, 1]
+  ys        <- sim[, 1]
   Xb        <- field[, 2:p]
   Xf        <- cbind(Xb, matrix(replicate(phi[1:(pq - p)], n), nrow = n))
-  Yf        <- field[, 1]
+  yf        <- field[, 1]
+  z         <- c(ys, yf)
 
   theta_pr  <- theta_pr
   omega_pr  <- omega_pr
