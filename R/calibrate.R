@@ -19,6 +19,7 @@
 #             correlation functions hyperparameters, uncertainty hyperparameters
 #             , and MCMC specifications, build a KOH model and run MH MCMC to
 #             find the posterior distribution of parameters, hyperparameters,
+<<<<<<< HEAD
 #             and and their point estimates and estimated variances.
 #             The function specifies the data and passes its environment to all
 #             child functions for use without needing to pass them as argumnets.
@@ -56,11 +57,16 @@
 #' @export
 #'
 #' @examples
+=======
+#             and calibrated response.
+
+>>>>>>> c30f10fc5573bedaea0cf548339a94a466f8a33f
 calibrate <- function(sim, field,
                       Nmcmc = 10000, nBurn = 500, thining = 100,
                       theta_pr = "weak", omega_pr = "logbeta",
                       alpha_pr = "logistic", sigma2_pr = "inverse gamma",
                       theta0, omega0, alpha0, sigma20) {
+<<<<<<< HEAD
   env      <- environment()
 
   m         <- nrow(sim)               # number of simulation runs
@@ -92,7 +98,28 @@ calibrate <- function(sim, field,
   paramVar  <- apply(mu-hat, 2, var) + apply(sigma_hat, 2, mean)
   paramMean <- apply(mu-hat, 2, mean)
   results   <- list(mean = paramMean, var = paramVar)
+=======
+  clb <- mcmc(sim, field,
+              Nmcmc, nBurn, thining,
+              theta_pr, omega_pr, alpha_pr, sigma2_pr,
+              theta0, omega0, alpha0, sigma20)
+  paramVar <- apply(clb$mean,2,var) + apply(clb$var,2,mean) # law of total variance
+  paramMean <- apply(clb$mean,2,mean)
+  results <- list(mean = paramMean, var = paramVar)
+>>>>>>> c30f10fc5573bedaea0cf548339a94a466f8a33f
   return(results)
 }
 
 
+<<<<<<< HEAD
+=======
+runBMCMC<-function(nmcmc,burn,thin,x,y,xtest1, lambda.ini, lambda.w.ini, gamma.ini, gamma.w.ini){
+
+  m<-list(pred.y=pred.y, pred.var=pred.var, reasonable.lambda=xxy$reasonable.lambda, accept.lambda=xxy$accept.lambda,
+          mcmc.ma.lambda=xxy$mcmc.ma.lambda,
+          accept.p=xxy$accept.gamma,
+          mcmc.ma.gamma=xxy$mcmc.ma.gamma,
+          mcmc.ma.p=1+1/(1+exp(-(xxy$mcmc.ma.gamma))) )
+  return(m)
+}
+>>>>>>> c30f10fc5573bedaea0cf548339a94a466f8a33f
