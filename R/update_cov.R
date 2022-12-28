@@ -12,7 +12,7 @@ update_cov <- function(covD, phi, changed, env) {
   sig2S    <- k - 3
   sig2B    <- k - 2
   sig2E    <- k - 1
-  muHat    <- k
+  muHat    <- k #
 
 
   # corFF : (n * n) correlation matrix of augmented Xf's
