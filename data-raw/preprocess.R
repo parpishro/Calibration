@@ -36,4 +36,4 @@ usethis::use_data(toySim)
 
 # parameters
 
-toyParams <- list(theta0 = 9.8, omega0 = , alpha0 = , sigma20 = )
+toyParams <- list(theta0 = 9.8, omega0 = 0.1, alpha0 = 5, sigma20 = 1)

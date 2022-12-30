@@ -22,6 +22,7 @@
 #             and and their point estimates and estimated variances.
 #             The function specifies the data and passes its environment to all
 #             child functions for use without needing to pass them as argumnets.
+# TODO: 1 - change initail values to vector
 
 #' calibrate
 #'
@@ -57,7 +58,7 @@
 #'
 #' @examples
 calibrate <- function(sim, field,
-                      Nmcmc = 10000, nBurn = 500, thining = 100,
+                      Nmcmc = 100, nBurn = 40, thining = 1,
                       theta_pr = "weak", omega_pr = "logbeta",
                       alpha_pr = "logistic", sigma2_pr = "inverse gamma",
                       theta0, omega0, alpha0, sigma20) {
