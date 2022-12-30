@@ -32,3 +32,8 @@ toySim[, 3] <- sim(toySim[, 1:2]) # simulated output (time)
 
 # Save the cleaned data in the required R package location
 usethis::use_data(toySim)
+
+
+# parameters
+
+toyParams <- list(theta0 = 9.8, omega0 = , alpha0 = , sigma20 = )
