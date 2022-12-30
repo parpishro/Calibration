@@ -26,7 +26,7 @@ sim <- function(XT) sqrt(2*XT[, 1]/XT[, 2])
 toySim   <- matrix(nrow = 100, ncol = 3)
 toySim[, 1:2]   <- design_lhs(m      = 100,    # number of simulator runs
                               inputs = 2,      # p+q = 2
-                              ranges = list(h = range(toyField$height),
+                              ranges = list(h = range(toyField[, 'height']),
                                             g = c(6, 14)))
 toySim[, 3] <- sim(toySim[, 1:2]) # simulated output (time)
 
