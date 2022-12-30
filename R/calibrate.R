@@ -19,10 +19,10 @@
 #             correlation functions hyperparameters, uncertainty hyperparameters
 #             , and MCMC specifications, build a KOH model and run MH MCMC to
 #             find the posterior distribution of parameters, hyperparameters,
-<<<<<<< HEAD
 #             and and their point estimates and estimated variances.
 #             The function specifies the data and passes its environment to all
 #             child functions for use without needing to pass them as argumnets.
+# TODO: 1 - change initail values to vector
 
 #' calibrate
 #'
@@ -58,7 +58,7 @@
 #'
 #' @examples
 calibrate <- function(sim, field,
-                      Nmcmc = 10000, nBurn = 500, thining = 100,
+                      Nmcmc = 100, nBurn = 40, thining = 1,
                       theta_pr = "weak", omega_pr = "logbeta",
                       alpha_pr = "logistic", sigma2_pr = "inverse gamma",
                       theta0, omega0, alpha0, sigma20) {
@@ -68,8 +68,8 @@ calibrate <- function(sim, field,
   m         <- nrow(sim)               # number of simulation runs
   n         <- nrow(field)             # number of field observations
   p         <- ncol(field) - 1         # number of experimental variables
-  q         <- ncol(sim) - p           # number of calibration parameters
-  d         <- ncol(sim)               # number of all variables for simulation
+  q         <- ncol(sim) - p - 1       # number of calibration parameters
+  d         <- ncol(sim) - 1           # number of all variables for simulation
 
   # number of total parameters =
   #       calibration + sim scale + sim smoothness + bias scale +
@@ -77,11 +77,11 @@ calibrate <- function(sim, field,
   k         <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 + 1
   phiInit   <- initialize_phi(k, p, q, theta0, omega0, alpha0, sigma20)
 
-  Xs        <- sim[, 2:pq]
-  ys        <- sim[, 1]
-  Xb        <- field[, 2:p]
-  yf        <- field[, 1]
-  z         <- c(ys, yf)
+  Xs        <- sim[, 1:d]
+  ys        <- sim[, d + 1]
+  Xb        <- field[, 1:p]
+  yf        <- field[, P + 1]
+  y         <- c(ys, yf)
 
   theta_pr  <- theta_pr
   omega_pr  <- omega_pr
