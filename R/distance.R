@@ -1,4 +1,4 @@
-# computes the element-by-element distance between rows of a given matrix
+# computes
 
 # REQUIRES: matrix X must have at least two rows and one column. If matrix Y is
 #               provided, it must have the same number of columns as X
@@ -15,11 +15,11 @@ distance    <- function(X, Y = NULL) {
   nx       <- nrow(X)
   ny       <- nrow(Y)
   d        <- ncol(X)
-  distance <- matrix(nrow = nx * ny, ncol = d)
+  D <- matrix(nrow = nx * ny, ncol = d)
   for (i in 1:nx) {
     for (j in 1:ny) {
-      distance[((i - 1) * ny) + j, ] <- abs(X[i, ] - Y[j, ])
+      D[((i - 1) * ny) + j, ] <- abs(X[i, ] - Y[j, ])
     }
   }
-  return(distance)
+  return(D)
 }
