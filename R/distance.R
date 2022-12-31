@@ -12,11 +12,10 @@ distance    <- function(X, Y = NULL) {
   if (is.null(Y)) {
     Y <- X
   }
-  nx <- nrow(X)
-  ny <- nrow(Y)
-  d <- ncol(X)
-  numRow <- nx * ny
-  distance <- matrix(nrow = numRow, ncol = d)
+  nx       <- nrow(X)
+  ny       <- nrow(Y)
+  d        <- ncol(X)
+  distance <- matrix(nrow = nx * ny, ncol = d)
   for (i in 1:nx) {
     for (j in 1:ny) {
       distance[((i - 1) * ny) + j, ] <- abs(X[i, ] - Y[j, ])
