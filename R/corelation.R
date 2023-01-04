@@ -17,7 +17,7 @@ corelation <- function (X, Y = NULL, scale, smooth) {
   R  <- matrix(nrow = nx, ncol = ny)
   for (i in 1:nx) {
     for (j in 1:ny) {
-      R[i, j] <- prod(-exp((D[((i - 1) * ny) + j, ] * scale) ^ smooth))
+      R[i, j] <- prod(exp(- scale * (D[((i - 1) * ny) + j, ] ^ smooth)))
     }
   }
   return(R)
