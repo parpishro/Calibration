@@ -18,11 +18,11 @@ ExpXY   <- matrix(c(-261, -12,
 
 
 
-test_that("distance with self works!", {
+test_that("log_cor with self works!", {
   expect_equal(log_cor(X, scale = scale, smooth = smooth), ExpXX)
 })
 
-test_that("distance of two matrices work!", {
+test_that("log_cor of two matrices work!", {
   expect_equal(log_cor(X, Y, scale = scale, smooth = smooth), ExpXY)
 })
 
