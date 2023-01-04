@@ -8,9 +8,9 @@ Y       <- matrix(c(7, 3, 0,
 scale   <- c(1, 2, 3)
 smooth  <- c(2, 1, 2)
 
-ExpXX   <- matrix(c(0,      -12,  -146,
-                    -12,    0,    -230,
-                    -146,   -230, 0), nrow = 3, byrow = TRUE)
+ExpXX   <- matrix(c(0,  -12,  -146,
+                  -12,    0,    -230,
+                 -146,   -230, 0), nrow = 3, byrow = TRUE)
 
 ExpXY   <- matrix(c(-261, -12,
                     -351, -36,
@@ -26,15 +26,3 @@ test_that("distance of two matrices work!", {
   expect_equal(log_cor(X, Y, scale = scale, smooth = smooth), ExpXY)
 })
 
-
-
-# expect_equal(2*2, 4)       # equality (true)
-# expect_identical(2, 2L)    # exact equivalence (false)
-# expect_error()
-# expect_warning()
-# expect_message()
-# expect_match()
-# expect_length()
-# expect_setequal()
-# expect_true()
-# expect_false()

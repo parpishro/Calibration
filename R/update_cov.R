@@ -31,30 +31,30 @@ update_cov <- function(covD, phi, changed, env) {
 
   if (changed == 0) {
     Xf     <- cbind(Xb, matrix(replicate(phi[calib], n), nrow = n))
-    CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
-    CorFS  <- correlation(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFF  <- log_cor(Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFS  <- log_cor(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     CorSF  <- t(CorFS)
-    CorSS  <- correlation(Xs, Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    CorSS  <- log_cor(Xs, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     muHat  <- mu_hat(corSS, ys)
     res    <- z - muHat
-    CorB   <- correlation(Xb, Xb, scale = phi[scaleB], smooth = phi[smoothB])
+    CorB   <- log_cor(Xb, Xb, scale = phi[scaleB], smooth = phi[smoothB])
 
   } else if (changed %in% calib) {
     Xf     <- cbind(Xb, matrix(replicate(phi[calib], n), nrow = n))
-    CorFF  <- correlation(Xf, Xf, scale = phi[scaleS], smooth = phi[smoothS])
-    CorFS  <- correlation(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFF  <- log_cor(Xf, Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFS  <- log_cor(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     CorSF  <- t(CorFS)
 
   } else if ((changed %in% scaleS) || (changed %in% smoothS)) {
-    CorFF  <- correlation(Xf, Xf, scale = phi[scaleS], smooth = phi[smoothS])
-    CorFS  <- correlation(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFF  <- log_cor(Xf, Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFS  <- log_cor(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     CorSF  <- t(CorFS)
-    CorSS  <- correlation(Xs, Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    CorSS  <- log_cor(Xs, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     muHat  <- mu_hat(corSS, ys)
     res    <- z - muHat
 
   } else if ((changed %in% scaleB) || (changed %in% smoothB)) {
-    CorB   <- correlation(Xb, Xb, scale = phi[scaleB], smooth = phi[smoothB])
+    CorB   <- log_cor(Xb, Xb, scale = phi[scaleB], smooth = phi[smoothB])
 
   } else if (changed %in% sig2S) {
     sig2S  <- phi[sig2S]
@@ -67,12 +67,12 @@ update_cov <- function(covD, phi, changed, env) {
 
   } else stop("invalid changed argument!")
 
-  In.      <- diag(n)
+  In       <- diag(n)
   AugCov   <- cbind(rbind((sig2S * CorFF) + (sig2B * Xb) + (sig2E * In), CorFS),
                 rbind((sig2S * CorSF), (sig2S * CorSS)))
   chol     <- chol_cov(AugCov)
-  inv <- chol$inv
-  det <- chol$det
+  inv      <- chol$inv
+  det      <- chol$det
 
   return(list(Xf = Xf, CorFF = CorFF, CorFS = CorFS, CorSF = CorSf,
               CorSS = CorSS, muHat = muHat, res = res,
