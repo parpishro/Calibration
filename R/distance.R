@@ -8,10 +8,7 @@
 #             between row j and i), it will only compute it (nx * ny) times
 #             distance vector
 
-distance    <- function(X, Y = NULL) {
-  if (is.null(Y)) {
-    Y <- X
-  }
+distance    <- function(X, Y) {
   nx       <- nrow(X)
   ny       <- nrow(Y)
   d        <- ncol(X)

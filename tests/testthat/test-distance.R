@@ -24,7 +24,7 @@ ExpXY <- matrix(c(6, 0, 5,
 
 
 test_that("distance with self works!", {
-  expect_equal(distance(X), ExpXX)
+  expect_equal(distance(X, X), ExpXX)
 })
 
 test_that("distance of two matrices work!", {
