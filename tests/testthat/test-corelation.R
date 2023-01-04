@@ -8,12 +8,6 @@ Y       <- matrix(c(7, 3, 0,
 scale   <- c(1, 2, 3)
 smooth  <- c(2, 1, 2)
 
-DXY <- matrix(c(6, 0, 5,
-                1, 1, 1,
-                5, 1, 6,
-                0, 0, 2,
-                6, 1, 1,
-                1, 2, 3), nrow = 6, byrow = TRUE)
 
 ExpXX   <- matrix(c(1,         exp(-6),   exp(-50),
                     exp(-6),   1,         exp(-80),
@@ -25,11 +19,11 @@ ExpXY   <- matrix(c(exp(-111), exp(-6),
 
 
 
-test_that("log_cor with self works!", {
+test_that("corelation with self works!", {
   expect_equal(corelation(X, scale = scale, smooth = smooth), ExpXX)
 })
 
-test_that("log_cor of two matrices work!", {
+test_that("corelation of two matrices work!", {
   expect_equal(corelation(X, Y, scale = scale, smooth = smooth), ExpXY)
 })
 
