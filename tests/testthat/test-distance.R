@@ -33,13 +33,3 @@ test_that("distance of two matrices work!", {
 
 
 
-# expect_equal(2*2, 4)       # equality (true)
-# expect_identical(2, 2L)    # exact equivalence (false)
-# expect_error()
-# expect_warning()
-# expect_message()
-# expect_match()
-# expect_length()
-# expect_setequal()
-# expect_true()
-# expect_false()
