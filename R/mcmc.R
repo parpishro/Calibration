@@ -61,7 +61,7 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
     for (j in 1:k) {
       changed      <- proposal(Phi[1:(i-1) ,j])
       params       <- c(Phi[i, 1:j-1], changed, Phi[i-1, j+1:k])
-      chol         <- update_cov(covD, Phi, changed, env)
+      chol         <- update_cov(Phi, changed, env)
       ind          <- ((i-2) * k) + j + 1
       logPost[ind] <- log_prior(Phi[i, calib],
                                 Phi[i, c(scaleS, scaleB)],
