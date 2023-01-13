@@ -37,7 +37,11 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
                            CorSS = c(), muHat = 0, res = c(),
                            CorB = c(), sig2S = 0, sig2B = 0, sig2E = 0)
   covD             <- update_cov(covD, phiInit, 0, env)
-  logLik           <- log_lik(covD)
+  logPost          <- log_prior(phiInit[calib],
+                                phiInit[c(scaleS, scaleB)],
+                                phiInit[c(smoothS, smoothB)],
+                                phiInit[c(sig2S, sig2B, sig2E)])
+                      - log_lik(covD)
 
 
   for (i in 2:Nmcmc) {
@@ -45,9 +49,13 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
       changed      <- proposal(phi[1:(i-1) ,j])  #TODO
       params       <- c(phi[i, 1:j-1], changed, phi[i-1, j+1:k])
       covD         <- update_cov(covD, phi, changed, env)
-      logLik[i]    <- log_lik(covD)
+      logPost[i]   <- log_prior(phi[i, calib],
+                                phi[i, c(scaleS, scaleB)],
+                                phi[i, c(smoothS, smoothB)],
+                                phi[i, c(sig2S, sig2B, sig2E)])
+                      - log_lik(covD)
 
-      if (logLik[i] - logLik[i - 1] > log(unif(1))) {
+      if (logPost[i] - logPost[i - 1] > log(unif(1))) {
         phi[i, j]  <- param
 
       } else {

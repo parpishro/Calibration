@@ -4,15 +4,7 @@ update_cov <- function(covD, phi, changed, env) {
   parent.env(env0) <- env
 
   # parameter indices in phi vector
-  calib    <- 1:q
-  scaleS   <- (q+1): (q + (p + q))
-  smoothS  <- (q + (p + q) + 1): (q + (p + q) + (p + q))
-  scaleB   <- (q + (p + q) + (p + q) + 1): (q + (p + q) + (p + q) + p)
-  smoothB  <- (q + (p + q) + (p + q) + p + 1): (k - 4)
-  sig2S    <- k - 3
-  sig2B    <- k - 2
-  sig2E    <- k - 1
-  muHat    <- k #
+
 
 
   # corFF : (n * n) correlation matrix of augmented Xf's
