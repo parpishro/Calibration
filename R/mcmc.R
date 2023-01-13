@@ -46,7 +46,7 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
 
   for (i in 2:Nmcmc) {
     for (j in 1:k) {
-      changed      <- proposal(phi[1:(i-1) ,j])  #TODO
+      changed      <- proposal(phi[1:(i-1) ,j])
       params       <- c(phi[i, 1:j-1], changed, phi[i-1, j+1:k])
       covD         <- update_cov(covD, phi, changed, env)
       logPost[i]   <- log_prior(phi[i, calib],
@@ -63,7 +63,7 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
       }
     }
   }
-  indices          <- seq(burnIn:Nmcmc, by = thinning)
+  indices <- seq(burnIn:Nmcmc, by = thinning)
 
-  return(list(logLik = logLik[indices], params = phi[indices, ]))
+  return(list(logPost = logPost[indices], params = phi[indices, ]))
 }
