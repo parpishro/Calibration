@@ -4,6 +4,8 @@
 #'
 #' @return posterior log likelihood of augmented response given the augmented
 #'            covariance matrix (its inverse and determinant) and residuals
-log_lik <- function (covD) {
-  return (-0.5 * (covD$logDet) - (covD$res %*% covD$inv %*% covD$res))
+log_lik <- function (chol, res) {
+  return (-0.5 * (chol$logDet) - (res %*% chol$inv %*% res))
 }
+
+

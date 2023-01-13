@@ -14,9 +14,9 @@ chol_cov <- function(env) {
   parent.env(env0) <- env
 
 
+  #TODO
 
-
-  return(CovD)
+  return(list(inv = chol$inv, det = chol$det))
 }
 
 
