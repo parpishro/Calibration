@@ -34,12 +34,12 @@
 #' @param nBurn     number of MCMC burn ins
 #' @param thining   thining rate to de-correlate MCMC results
 #' @param theta_pr  prior function for calibration parameters #TODO
-#' @param omega_pr  prior function for scale parameters #TODO
-#' @param alpha_pr  prior function for smoothness parameters #TODO
+#' @param lambda_pr  prior function for scale parameters #TODO
+#' @param gamma_pr  prior function for smoothness parameters #TODO
 #' @param sigma2_pr prior function for variance parameters #TODO
 #' @param theta0    initial value of calibration parameters (to be given MCMC)
-#' @param omega0    initial value of scale parameters (to be given MCMC)
-#' @param alpha0    initial value of smoothness parameters (to be given MCMC)
+#' @param lambda0    initial value of scale parameters (to be given MCMC)
+#' @param gamma0    initial value of smoothness parameters (to be given MCMC)
 #' @param sigma20   initial value of smoothness parameters (to be given MCMC)
 #'
 #' @return a list containing posterior:
@@ -74,6 +74,7 @@ calibrate <- function(sim, field,
   d         <- ncol(sim) - 1           # number of all variables for simulation
   k         <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 + 1
 
+  # indices for parameters in phi
   calib     <- 1:q
   scaleS    <- (q+1): (q + (p + q))
   smoothS   <- (q + (p + q) + 1): (q + (p + q) + (p + q))
@@ -95,11 +96,6 @@ calibrate <- function(sim, field,
   Xb        <- field[, 1:p]
   yf        <- field[, P + 1]
   y         <- (y - mean(ys)) / sd(ys)
-
-  theta_pr  <- theta_pr
-  lambda_pr <- lambda_pr
-  gamma_pr  <- gamma_pr
-  sigma2_pr <- sigma2_pr
 
   params    <- mcmc(Nmcmc, nBurn, thining, phiInit, environment = env)
 
