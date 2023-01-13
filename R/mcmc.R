@@ -30,32 +30,54 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
   env0             <- environment()
   parent.env(env0) <- env
 
-  phi              <- matrix(nrow = Nmcmc, ncol = k)
-  phi[1,]          <- phiInit
+  Phi      <- matrix(nrow = Nmcmc, ncol = k)
+  Phi[1, ] <- phiInit
 
-  covD             <- list(Xf = c(), CorFF = c(), CorFS = c(), CorSF = c(),
-                           CorSS = c(), muHat = 0, res = c(),
-                           CorB = c(), sig2S = 0, sig2B = 0, sig2E = 0)
-  covD             <- update_cov(covD, phiInit, 0, env)
-  logLik           <- log_lik(covD)
+  Xf    <- cbind(Xb, matrix(replicate(Phi[1, calib], n), nrow = n))
+  CorFF <- correlation(Xf, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
+  CorFS <- correlation(Xf, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
+  CorSF <- t(CorFS)
+  CorSS <- correlation(Xs, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
+  muHat <- mu_hat(corSS, ys)
+  res   <- y - muHat
+  CorB  <- correlation(Xb, Xb, scale = Phi[1, scaleB], smooth = Phi[1, smoothB])
+  sig2S <- Phi[1, sig2S]
+  sig2B <- Phi[1, sig2B]
+  sig2E <- Phi[1, sig2E]
+
+
+  I         <- diag(n)
+  AugCov    <- cbind(rbind((sig2S * CorFF) + (sig2B * Xb) + (sig2E * I), CorFS),
+                     rbind((sig2S * CorSF), (sig2S * CorSS)))
+  logPost   <- double(((Nmcmc - 1) * k) + 1)
+  logPost[1]<- log_prior(Phi[1, calib],
+                         Phi[1, c(scaleS, scaleB)],
+                         Phi[1, c(smoothS, smoothB)],
+                         Phi[1, c(sig2S, sig2B, sig2E)])
+                - log_lik(chol_cov(AugCov), res)
 
 
   for (i in 2:Nmcmc) {
     for (j in 1:k) {
-      changed      <- proposal(phi[1:(i-1) ,j])  #TODO
-      params       <- c(phi[i, 1:j-1], changed, phi[i-1, j+1:k])
-      covD         <- update_cov(covD, phi, changed, env)
-      logLik[i]    <- log_lik(covD)
+      changed      <- proposal(Phi[1:(i-1) ,j])
+      params       <- c(Phi[i, 1:j-1], changed, Phi[i-1, j+1:k])
+      chol         <- update_cov(Phi, changed, env)
+      ind          <- ((i-2) * k) + j + 1
+      logPost[ind] <- log_prior(Phi[i, calib],
+                                Phi[i, c(scaleS, scaleB)],
+                                Phi[i, c(smoothS, smoothB)],
+                                Phi[i, c(sig2S, sig2B, sig2E)])
+                      - log_lik(chol, res)
 
-      if (logLik[i] - logLik[i - 1] > log(unif(1))) {
-        phi[i, j]  <- param
+      if (logPost[i] - logPost[i - 1] > log(unif(1))) {
+        Phi[i, j]  <- param
 
       } else {
-        phi[i, j]  <- phi[i - 1, j]
+        Phi[i, j]  <- Phi[i - 1, j]
       }
     }
   }
-  indices          <- seq(burnIn:Nmcmc, by = thinning)
+  indices <- seq(burnIn:Nmcmc, by = thinning)
 
-  return(list(logLik = logLik[indices], params = phi[indices, ]))
+  return(list(logPost = logPost[indices], params = Phi[indices, ]))
 }
