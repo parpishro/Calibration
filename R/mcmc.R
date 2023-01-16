@@ -30,9 +30,6 @@ mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
   env0             <- environment()
   parent.env(env0) <- env
 
-  Phi      <- matrix(nrow = Nmcmc, ncol = k)
-  Phi[1, ] <- phiInit
-
   Xf    <- cbind(Xb, matrix(replicate(Phi[1, calib], n), nrow = n))
   CorFF <- correlation(Xf, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
   CorFS <- correlation(Xf, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])

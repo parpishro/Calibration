@@ -37,10 +37,6 @@
 #' @param lambda_pr  prior function for scale parameters #TODO
 #' @param gamma_pr  prior function for smoothness parameters #TODO
 #' @param sigma2_pr prior function for variance parameters #TODO
-#' @param theta0    initial value of calibration parameters (to be given MCMC)
-#' @param lambda0    initial value of scale parameters (to be given MCMC)
-#' @param gamma0    initial value of smoothness parameters (to be given MCMC)
-#' @param sigma20   initial value of smoothness parameters (to be given MCMC)
 #'
 #' @return a list containing posterior:
 #'    - (((Nmcmc - nBurn) / thinning) * k) parameters distribution:
@@ -62,8 +58,7 @@
 calibrate <- function(sim, field,
                       Nmcmc = 100, nBurn = 40, thining = 1,
                       theta_pr = "uniform", lambda_pr = "logbeta",
-                      gamma_pr = "logistic", sigma2_pr = "inverse gamma",
-                      theta0, lambda0, gamma0, sigma20) {
+                      gamma_pr = "logistic", sigma2_pr = "inverse gamma") {
 
   env      <- environment()
 
@@ -89,7 +84,7 @@ calibrate <- function(sim, field,
   #       calibration + sim scale + sim smoothness + bias scale +
   #       bias smoothness + sim variance + bias variance + error variance
 
-  phiInit   <- initialize_phi(k, p, q, theta0, lambda0, gamma0, sigma20)
+
 
   Xs        <- sim[, 1:d]
   ys        <- sim[, d + 1]
@@ -97,7 +92,10 @@ calibrate <- function(sim, field,
   yf        <- field[, P + 1]
   y         <- (y - mean(ys)) / sd(ys)
 
-  params    <- mcmc(Nmcmc, nBurn, thining, phiInit, environment = env)
+  Phi       <- matrix(nrow = Nmcmc, ncol = k)
+  Phi[1, ]  <- initialize_phi(env)
+
+  params    <- mcmc(Nmcmc, nBurn, thining, environment = env)
 
   paramMean <- apply(params, 2, mean)
   paramVar  <- apply(params, 2, var) + apply(sigma_hat, 2, mean)
