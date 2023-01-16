@@ -2,19 +2,22 @@
 # MCMC algorithm
 initialize_phi <- function(env) {
 
+  env0             <- environment()
+  parent.env(env0) <- env
+
   # TODO: generalize prior mean computation
   phiInit          <- double(k)
-  phiInit[calib]   <- apply(Xs[, calib], 2, mean)
-  phiInit[scaleS]  <- double(scaleS) + 1
-  phiInit[smoothS] <- double(smoothS) + 1.8
-  phiInit[scaleB]  <- double(scaleB) + 1
-  phiInit[smoothB] <- double(smoothB) + 1.8
+  phiInit[calib]   <- apply(Xs[, calib, drop = FALSE], 2, mean)
+  phiInit[scaleS]  <- double(length(scaleS)) + 1
+  phiInit[smoothS] <- double(length(smoothS)) + 1.8
+  phiInit[scaleB]  <- double(length(scaleB)) + 1
+  phiInit[smoothB] <- double(length(smoothB)) + 1.8
   phiInit[sig2S]   <- 1
   phiInit[sig2B]   <- 1
   phiInit[sig2E]   <- 1
 
-  CorSim           <- correlation(X = Xs, phiInit[scaleS], phiInit[smoothS])
-  phiInit[muHat]  <- mu_hat(ys, CorSim)
+  CorSim           <- corelation(Xs, Xs, phiInit[scaleS], phiInit[smoothS])
+  phiInit[muHat]  <- mu_hat(CorSim, ys)
 
   return(phiInit)
 }

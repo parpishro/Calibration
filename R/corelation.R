@@ -6,10 +6,7 @@
 #               in X (and Y)
 # EFFECTS:
 
-corelation <- function (X, Y = NULL, scale, smooth) {
-  if (is.null(Y)) {
-    Y <- X
-  }
+corelation <- function (X, Y, scale, smooth) {
   D  <- distance(X, Y)
   nx <- nrow(X)
   ny <- nrow(Y)

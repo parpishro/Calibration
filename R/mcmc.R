@@ -20,54 +20,57 @@
 #' @param Nmcmc    an integer representing total number of MCMC runs
 #' @param nBurn    an integer representing number of burn-in runs
 #' @param thining  an integer representing number of burn-in runs
-#' @param phiInit  a double vector of initial values for all parameters
 #' @param env      an environment of the calibrate function to be set as parent
 #'
 #' @return a KOH object that includes a matrix of all parameters' distribution
 #'            and a vector of log likelihood updates of each usable MCMC runs
-mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
+mcmc <- function(Nmcmc, nBurn, thining, env) {
 
   env0             <- environment()
   parent.env(env0) <- env
 
-  Xf    <- cbind(Xb, matrix(replicate(Phi[1, calib], n), nrow = n))
-  CorFF <- correlation(Xf, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
-  CorFS <- correlation(Xf, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
+  Xf    <- cbind(Xb, replicate(n, Phi[1, calib], n))
+  CorFF <- corelation(Xf, Xf, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
+  CorFS <- corelation(Xf, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
   CorSF <- t(CorFS)
-  CorSS <- correlation(Xs, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
-  muHat <- mu_hat(corSS, ys)
+  CorSS <- corelation(Xs, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
+  CorB  <- corelation(Xb, Xb, scale = Phi[1, scaleB], smooth = Phi[1, smoothB])
+  muHat <- mu_hat(CorSS, ys)
   res   <- y - muHat
-  CorB  <- correlation(Xb, Xb, scale = Phi[1, scaleB], smooth = Phi[1, smoothB])
+
+
+
   sig2S <- Phi[1, sig2S]
   sig2B <- Phi[1, sig2B]
   sig2E <- Phi[1, sig2E]
 
 
   I         <- diag(n)
-  AugCov    <- cbind(rbind((sig2S * CorFF) + (sig2B * Xb) + (sig2E * I), CorFS),
-                     rbind((sig2S * CorSF), (sig2S * CorSS)))
+  AugCov    <- rbind(cbind(((sig2S * CorFF) + (sig2B * CorB) + (sig2E * I)), (sig2S * CorFS)),
+                     cbind((sig2S * CorSF), (sig2S * CorSS)))
   logPost   <- double(((Nmcmc - 1) * k) + 1)
   logPost[1]<- log_prior(Phi[1, calib],
                          Phi[1, c(scaleS, scaleB)],
                          Phi[1, c(smoothS, smoothB)],
                          Phi[1, c(sig2S, sig2B, sig2E)])
-                - log_lik(chol_cov(AugCov), res)
+                - log_lik(chol_cov(env0), res)
 
 
   for (i in 2:Nmcmc) {
     for (j in 1:k) {
+      print(j)
       changed      <- proposal(Phi[1:(i-1) ,j])
-      params       <- c(Phi[i, 1:j-1], changed, Phi[i-1, j+1:k])
-      chol         <- update_cov(Phi, changed, env)
+      params       <- c(Phi[i, 1:j-1], changed, Phi[i-1, min(k, (j+1)):k])
+      chol         <- update_cov(params, j, env0)
       ind          <- ((i-2) * k) + j + 1
-      logPost[ind] <- log_prior(Phi[i, calib],
-                                Phi[i, c(scaleS, scaleB)],
-                                Phi[i, c(smoothS, smoothB)],
-                                Phi[i, c(sig2S, sig2B, sig2E)])
+      logPost[ind] <- log_prior(params[calib],
+                                params[c(scaleS, scaleB)],
+                                params[c(smoothS, smoothB)],
+                                params[c(sig2S, sig2B, sig2E)])
                       - log_lik(chol, res)
 
-      if (logPost[i] - logPost[i - 1] > log(unif(1))) {
-        Phi[i, j]  <- param
+      if ((logPost[i] - logPost[i - 1]) > log(runif(1))) {
+        Phi[i, j]  <- changed
 
       } else {
         Phi[i, j]  <- Phi[i - 1, j]

@@ -14,9 +14,10 @@ chol_cov <- function(env) {
   parent.env(env0) <- env
 
 
-  #TODO
+  inv <- chol2inv(chol(AugCov, pivot = TRUE))
+  det <- det(AugCov)
 
-  return(list(inv = chol$inv, det = chol$det))
+  return(list(inv = inv, det = det))
 }
 
 

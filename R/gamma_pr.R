@@ -1,4 +1,4 @@
-gamma_pr <- function(gamma, type) {
+gamma_pr <- function(gamma, type = "uniform") {
   if (type=="uniform") {
     return(0.025)
   }

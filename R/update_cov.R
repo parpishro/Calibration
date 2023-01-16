@@ -14,21 +14,21 @@ update_cov <- function(phi, changed, env) {
   # corB  : (n * n) correlation matrix between Xb's
 
   if (changed %in% calib) {
-    Xf     <- cbind(Xb, matrix(replicate(phi[calib], n), nrow = n))
-    CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
-    CorFS  <- correlation(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    Xf     <- cbind(Xb, replicate(n, phi[calib], n))
+    CorFF  <- corelation(Xf, Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFS  <- corelation(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     CorSF  <- t(CorFS)
 
   } else if ((changed %in% scaleS) || (changed %in% smoothS)) {
-    CorFF  <- correlation(Xf, scale = phi[scaleS], smooth = phi[smoothS])
-    CorFS  <- correlation(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFF  <- corelation(Xf, Xf, scale = phi[scaleS], smooth = phi[smoothS])
+    CorFS  <- corelation(Xf, Xs, scale = phi[scaleS], smooth = phi[smoothS])
     CorSF  <- t(CorFS)
-    CorSS  <- correlation(Xs, Xs, scale = phi[scaleS], smooth = phi[smoothS])
-    muHat  <- mu_hat(corSS, ys)
+    CorSS  <- corelation(Xs, Xs, scale = phi[scaleS], smooth = phi[smoothS])
+    muHat  <- mu_hat(CorSS, ys)
     res    <- y - muHat
 
   } else if ((changed %in% scaleB) || (changed %in% smoothB)) {
-    CorB   <- correlation(Xb, Xb, scale = phi[scaleB], smooth = phi[smoothB])
+    CorB   <- corelation(Xb, Xb, scale = phi[scaleB], smooth = phi[smoothB])
 
   } else if (changed %in% sig2S) {
     sig2S  <- phi[sig2S]
@@ -36,15 +36,15 @@ update_cov <- function(phi, changed, env) {
   } else if (changed %in% sig2B) {
     sig2B  <- phi[sig2B]
 
-  } else if (changed %in% sigma2E) {
+  } else if (changed %in% sig2E) {
     sig2E  <- phi[sig2E]
 
   } else stop("invalid changed argument!")
 
   I        <- diag(n)
-  AugCov   <- cbind(rbind((sig2S * CorFF) + (sig2B * Xb) + (sig2E * I), CorFS),
-                rbind((sig2S * CorSF), (sig2S * CorSS)))
+  AugCov   <- rbind(cbind(((sig2S * CorFF) + (sig2B * CorB) + (sig2E * I)), (sig2S * CorFS)),
+                    cbind((sig2S * CorSF), (sig2S * CorSS)))
 
-  return(chol_cov(AugCov))
+  return(chol_cov(env0))
 
 }

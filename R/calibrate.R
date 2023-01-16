@@ -88,14 +88,14 @@ calibrate <- function(sim, field,
 
   Xs        <- sim[, 1:d]
   ys        <- sim[, d + 1]
-  Xb        <- field[, 1:p]
-  yf        <- field[, P + 1]
-  y         <- (y - mean(ys)) / sd(ys)
+  Xb        <- field[, 1:p, drop = FALSE]
+  yf        <- field[, p + 1]
+  y         <- (c(ys, yf) - mean(ys)) / sd(ys)
 
   Phi       <- matrix(nrow = Nmcmc, ncol = k)
   Phi[1, ]  <- initialize_phi(env)
 
-  params    <- mcmc(Nmcmc, nBurn, thining, environment = env)
+  params    <- mcmc(Nmcmc, nBurn, thining, env)
 
   paramMean <- apply(params, 2, mean)
   paramVar  <- apply(params, 2, var) + apply(sigma_hat, 2, mean)
