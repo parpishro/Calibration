@@ -33,10 +33,10 @@
 #' @param Nmcmc     number of MCMC runs
 #' @param nBurn     number of MCMC burn ins
 #' @param thining   thining rate to de-correlate MCMC results
-#' @param theta_pr  prior function for calibration parameters #TODO
-#' @param lambda_pr  prior function for scale parameters #TODO
-#' @param gamma_pr  prior function for smoothness parameters #TODO
-#' @param sigma2_pr prior function for variance parameters #TODO
+#' @param theta_pr  prior function for calibration parameters
+#' @param lambda_pr  prior function for scale parameters
+#' @param gamma_pr  prior function for smoothness parameters
+#' @param sigma2_pr prior function for variance parameters
 #'
 #' @return a list containing posterior:
 #'    - (((Nmcmc - nBurn) / thinning) * k) parameters distribution:
@@ -60,30 +60,25 @@ calibrate <- function(sim, field,
                       theta_pr = "uniform", lambda_pr = "logbeta",
                       gamma_pr = "logistic", sigma2_pr = "inverse gamma") {
 
-  env      <- environment()
+  env <- environment()
 
-  m         <- nrow(sim)               # number of simulation runs
-  n         <- nrow(field)             # number of field observations
-  p         <- ncol(field) - 1         # number of experimental variables
-  q         <- ncol(sim) - p - 1       # number of calibration parameters
-  d         <- ncol(sim) - 1           # number of all variables for simulation
-  k         <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 + 1
+  m   <- nrow(sim)               # number of simulation runs
+  n   <- nrow(field)             # number of field observations
+  p   <- ncol(field) - 1         # number of experimental variables
+  q   <- ncol(sim) - p - 1       # number of calibration parameters
+  d   <- ncol(sim) - 1           # number of all variables for simulation
+  k   <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 + 1
 
-  # indices for parameters in phi
-  calib     <- 1:q
-  scaleS    <- (q+1): (q + (p + q))
-  smoothS   <- (q + (p + q) + 1): (q + (p + q) + (p + q))
-  scaleB    <- (q + (p + q) + (p + q) + 1): (q + (p + q) + (p + q) + p)
-  smoothB   <- (q + (p + q) + (p + q) + p + 1): (k - 4)
-  sig2S     <- k - 3
-  sig2B     <- k - 2
-  sig2E     <- k - 1
-  muHat     <- k #
 
-  # number of total parameters =
-  #       calibration + sim scale + sim smoothness + bias scale +
-  #       bias smoothness + sim variance + bias variance + error variance
-
+  calib   <- 1:q    # calibration
+  scaleS  <- (q+1): (q + (p + q))                       # sim scale
+  smoothS <- (q + (p + q) + 1): (q + (p + q) + (p + q)) # sim smoothness
+  scaleB  <- (q + (p + q) + (p + q) + 1): (q + (p + q) + (p + q) + p)#bias scale
+  smoothB <- (q + (p + q) + (p + q) + p + 1): (k - 4)   #  bias smoothness
+  sig2S   <- k - 3  # sim variance
+  sig2B   <- k - 2  # bias variance
+  sig2E   <- k - 1  # error variance
+  muHat   <- k      # number of total parameters
 
 
   Xs        <- sim[, 1:d]

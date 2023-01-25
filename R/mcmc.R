@@ -29,6 +29,17 @@ mcmc <- function(Nmcmc, nBurn, thining, env) {
   env0             <- environment()
   parent.env(env0) <- env
 
+  # indices for parameters in phi
+  calib     <- 1:q
+  scaleS    <- (q+1): (q + (p + q))
+  smoothS   <- (q + (p + q) + 1): (q + (p + q) + (p + q))
+  scaleB    <- (q + (p + q) + (p + q) + 1): (q + (p + q) + (p + q) + p)
+  smoothB   <- (q + (p + q) + (p + q) + p + 1): (k - 4)
+  sig2S     <- k - 3
+  sig2B     <- k - 2
+  sig2E     <- k - 1
+  muHat     <- k #
+
   Xf    <- cbind(Xb, replicate(n, Phi[1, calib], n))
   CorFF <- corelation(Xf, Xf, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
   CorFS <- corelation(Xf, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
