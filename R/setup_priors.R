@@ -1,4 +1,4 @@
-check_priors <- function(t, o, a, s) {
+setup_priors <- function(t, o, a, s) {
   if (is.na(t) || is.na(o) || is.na(a) || is.na(s))
     stop("at least one prior distribution is missing!")
   if (t == -1 || o == -1 || a == -1 || s == -1)

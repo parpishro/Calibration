@@ -1,4 +1,4 @@
-setupCache <- function(sim, field) {
+setup_cache <- function(sim, field) {
 
   # scalers
   m   <- nrow(sim)               # number of simulation runs
@@ -41,30 +41,30 @@ setupCache <- function(sim, field) {
   Phi[1, mu]    <- mu_hat(CorSS, ys)
 
   # setting cache environment: TO BE ACCESSED/MODIFIED BY ALL PACKAGE FUNCTIONS
-  assign('m', m, envir = cacheEnv)    # number of simulation runs
-  assign('n', n, envir = cacheEnv)    # number of field observations
-  assign('p', p, envir = cacheEnv)    # number of experimental variables
-  assign('q', q, envir = cacheEnv)    # number of calibration parameters
-  assign('d', d, envir = cacheEnv)    # number of all variables for simulation
-  assign('k', k, envir = cacheEnv)
+  assign('m', m, envir = cache)    # number of simulation runs
+  assign('n', n, envir = cache)    # number of field observations
+  assign('p', p, envir = cache)    # number of experimental variables
+  assign('q', q, envir = cache)    # number of calibration parameters
+  assign('d', d, envir = cache)    # number of all variables for simulation
+  assign('k', k, envir = cache)
 
-  assign('theta',   theta ,  envir = cacheEnv)     # calibration
-  assign('omegaS',  omegaS,  envir = cacheEnv)     # sim scale
-  assign('alphaS',  alphaS,  envir = cacheEnv)     # sim smoothness
-  assign('omegaB',  omegaB,  envir = cacheEnv)     # bias scale
-  assign('alphaB',  alphaB,  envir = cacheEnv)     # bias smoothness
-  assign('sigma2S', sigma2S, envir = cacheEnv)     # sim variance
-  assign('sigma2B', sigma2B, envir = cacheEnv)     # bias variance
-  assign('sigma2E', sigma2E, envir = cacheEnv)     # error variance
-  assign('mu',      mu,      envir = cacheEnv)     # number of total parameters
+  assign('theta',   theta ,  envir = cache)     # calibration
+  assign('omegaS',  omegaS,  envir = cache)     # sim scale
+  assign('alphaS',  alphaS,  envir = cache)     # sim smoothness
+  assign('omegaB',  omegaB,  envir = cache)     # bias scale
+  assign('alphaB',  alphaB,  envir = cache)     # bias smoothness
+  assign('sigma2S', sigma2S, envir = cache)     # sim variance
+  assign('sigma2B', sigma2B, envir = cache)     # bias variance
+  assign('sigma2E', sigma2E, envir = cache)     # error variance
+  assign('mu',      mu,      envir = cache)     # number of total parameters
 
-  assign('Xs', Xs, envir = cacheEnv)
-  assign('ys', ys, envir = cacheEnv)
-  assign('Xb', Xb, envir = cacheEnv)
-  assign('yf', yf, envir = cacheEnv)
-  assign('y',  y,  envir = cacheEnv)
+  assign('Xs', Xs, envir = cache)
+  assign('ys', ys, envir = cache)
+  assign('Xb', Xb, envir = cache)
+  assign('yf', yf, envir = cache)
+  assign('y',  y,  envir = cache)
 
-  assign('Phi',   Phi,    envir = cacheEnv)
-  assign('CorSS', CorSS,  envir = cacheEnv)
+  assign('Phi',   Phi,    envir = cache)
+  assign('CorSS', CorSS,  envir = cache)
 
 }
