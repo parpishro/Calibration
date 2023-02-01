@@ -56,46 +56,25 @@
 #'
 #' @examples
 calibrate <- function(sim, field,
-                      Nmcmc = 100, nBurn = 40, thining = 1,
-                      theta_pr = "uniform", lambda_pr = "logbeta",
-                      gamma_pr = "logistic", sigma2_pr = "inverse gamma") {
+                      Nmcmc  = 100, nBurn = 40, thining = 2,
+                      theta  = "uniform", t1, t2,
+                      omega  = "logbeta", o1, o2,
+                      alpha  = "logistic", a1, a2,
+                      sigma2 = "inverse gamma", s1, s2) {
 
-  env <- environment()
+  thetaPr  <- setup_prior(theta,  t1, t2)
+  omegaPr  <- setup_prior(omega,  o1, o2)
+  alphaPr  <- setup_prior(alpha,  a1, a2)
+  sigma2Pr <- setup_prior(sigma2, s1, s2)
 
-  m   <- nrow(sim)               # number of simulation runs
-  n   <- nrow(field)             # number of field observations
-  p   <- ncol(field) - 1         # number of experimental variables
-  q   <- ncol(sim) - p - 1       # number of calibration parameters
-  d   <- ncol(sim) - 1           # number of all variables for simulation
-  k   <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 + 1
+  setup_cache(thetaPr, omegaPr, alphaPr, sigma2Pr)
 
-
-  calib   <- 1:q    # calibration
-  scaleS  <- (q+1): (q + (p + q))                       # sim scale
-  smoothS <- (q + (p + q) + 1): (q + (p + q) + (p + q)) # sim smoothness
-  scaleB  <- (q + (p + q) + (p + q) + 1): (q + (p + q) + (p + q) + p)#bias scale
-  smoothB <- (q + (p + q) + (p + q) + p + 1): (k - 4)   #  bias smoothness
-  sig2S   <- k - 3  # sim variance
-  sig2B   <- k - 2  # bias variance
-  sig2E   <- k - 1  # error variance
-  muHat   <- k      # number of total parameters
-
-
-  Xs        <- sim[, 1:d]
-  ys        <- sim[, d + 1]
-  Xb        <- field[, 1:p, drop = FALSE]
-  yf        <- field[, p + 1]
-  y         <- (c(ys, yf) - mean(ys)) / sd(ys)
-
-  Phi       <- matrix(nrow = Nmcmc, ncol = k)
-  Phi[1, ]  <- initialize_phi(env)
-
-  params    <- mcmc(Nmcmc, nBurn, thining, env)
+  params    <- mcmc(Nmcmc, nBurn, thining)
 
   paramMean <- apply(params, 2, mean)
   paramVar  <- apply(params, 2, var) + apply(sigma_hat, 2, mean)
 
-  results   <- list(mean = paramMean, var = paramVar, distribution = params)
+  return(list(mean = paramMean, var = paramVar, distribution = params))
 }
 
 
