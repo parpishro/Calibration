@@ -25,29 +25,29 @@ setup_prior <- function(pr, p1, p2) {
     mean <- (p1 + p2) / 2
   }
 
-  if (prior == 'Inverse Gamma') {  # TODO
-    fun  <- function(x) 0
-    mean <- 0
+  if (prior == 'Inverse Gamma') {  # REQUIRE: p1 > 0, x > 0
+    fun  <- function(x) log(p1^p2) - lgamma(x) - ((p1+1) * log(x)) - (p2 / x)
+    mean <- p2 / (p1 - 1)
   }
 
-  if (prior == 'Gaussian') {      # TODO
-    fun  <- function(x) 0
-    mean <- 0
+  if (prior == 'Gaussian') {
+    fun  <- function(x) -log(sqrt(2*p2*pi)) - (((x - p1)^2)/ (2*p2))
+    mean <- p1
   }
 
-  if (prior == 'Beta') {          # TODO
-    fun  <- function(x) 0
-    mean <- 0
+  if (prior == 'Beta') {
+    fun  <- function(x) ((p1-1) * log(x)) + ((p2-1) * (1-x)) - lbeta(p1, p2)
+    mean <- p1 / (p1+p2)
   }
 
-  if (prior == 'Gamma') {         # TODO
-    fun  <- function(x) 0
-    mean <- 0
+  if (prior == 'Gamma') {
+    fun  <- function(x) log(p2^p1) + ((p1-1)*log(x)) - (p2*x) - lgamma(p1)
+    mean <- p1 / p2
   }
 
-  if (prior == 'Exponential') {   # TODO
-    fun  <- function(x) 0
-    mean <- 0
+  if (prior == 'Exponential') {
+    fun  <- function(x) log(p1) - (p1*x)
+    mean <- 1/p2
   }
 
   if (prior == 'Log Beta') {      # TODO
