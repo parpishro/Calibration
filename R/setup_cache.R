@@ -1,4 +1,4 @@
-setup_cache <- function(sim, field) {
+setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
 
   # scalers
   m   <- nrow(sim)               # number of simulation runs
@@ -26,16 +26,23 @@ setup_cache <- function(sim, field) {
   yf      <- field[, p + 1]
   y       <- (c(ys, yf) - mean(ys)) / sd(ys)
 
+  # set up prior functions
+  assign('theta_pr',  thetaPr$fun,  envir = cache)
+  assign('omega_pr',  omegaPr$fun,  envir = cache)
+  assign('alpha_pr',  alphaPr$fun,  envir = cache)
+  assign('sigma2_pr', sigma2Pr$fun, envir = cache)
+
+
   # parameters (initialize first row of Phi matrix)
   Phi              <- matrix(nrow = Nmcmc, ncol = k)
-  Phi[1, theta]    <- apply(Xs[, theta, drop = FALSE], 2, mean)
-  Phi[1, omegaS]   <- double(length(omegaS)) + 1
-  Phi[1, alphaS]   <- double(length(alphaS)) + 1.8
-  Phi[1, omegaB]   <- double(length(omegaB)) + 1
-  Phi[1, alphaB]   <- double(length(alphaB)) + 1.8
-  Phi[1, sigma2S]  <- 1
-  Phi[1, sigma2B]  <- 1
-  Phi[1, sigma2E]  <- 1
+  Phi[1, theta]    <- double(length(omegaS)) + thetaPr$mean
+  Phi[1, omegaS]   <- double(length(omegaS)) + omegaPr$mean
+  Phi[1, alphaS]   <- double(length(alphaS)) + alphaPr$mean
+  Phi[1, omegaB]   <- double(length(omegaB)) + omegaPr$mean
+  Phi[1, alphaB]   <- double(length(alphaB)) + alphaPr$mean
+  Phi[1, sigma2S]  <- sigma2Pr$mean
+  Phi[1, sigma2B]  <- sigma2Pr$mean
+  Phi[1, sigma2E]  <- sigma2Pr$mean
 
   CorSS            <- correlation(Xs, Phi[1, omegaS], Phi[1, alphaS])
   Phi[1, mu]    <- mu_hat(CorSS, ys)

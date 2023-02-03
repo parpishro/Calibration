@@ -67,7 +67,7 @@ calibrate <- function(sim, field,
   alphaPr  <- setup_prior(alpha,  a1, a2)
   sigma2Pr <- setup_prior(sigma2, s1, s2)
 
-  setup_cache(thetaPr, omegaPr, alphaPr, sigma2Pr)
+  setup_cache(sim, field, thetaPr, omegaPr, alphaPr, sigma2Pr)
 
   params    <- mcmc(Nmcmc, nBurn, thining)
 

@@ -1,6 +1,6 @@
 #' setup_prior: based on a given prior type, parameters, branches out to builds
-#'              up and return a prior function and its distribution mean (to be
-#'              used as initial value) in a list
+#'              up and return a log prior function and its distribution mean (to
+#'              be used as initial value) in a list
 #'
 #' @param pr (String)  type of the prior to be used
 #' @param p1 (numeric) first parameter of the prior distribution
