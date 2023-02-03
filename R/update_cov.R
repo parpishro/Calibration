@@ -34,15 +34,13 @@ update_cov <- function(phi, changed) {
     CorFS  <- corelation(cache$Xf, cache$Xs, phi[iOmegaS], phi[iAlphaS])
     CorSF  <- t(CorFS)
     CorSS  <- corelation(cache$Xs, scale = phi[iOmegaS], smooth = phi[iAlphaS])
-    muHat  <- mu_hat(cache$InvCov, cache$y)
-    res    <- cache$y - muHat
+    muHat  <- mu_hat()
 
     assign('CorSS', CorSS, envir = cache)
     assign('CorFF', CorFF, envir = cache)
     assign('CorFS', CorFS, envir = cache)
     assign('CorSF', CorSF, envir = cache)
     assign('muHat', muHat, envir = cache)
-    assign('res',   res,   envir = cache)
 
   } else if ((changed %in% iOmegaB) || (changed %in% iAlphaB)) {
     CorB   <- corelation(cache$Xb, scale = phi[iOmegaB], smooth = phi[iAlphaB])
@@ -70,9 +68,8 @@ update_cov <- function(phi, changed) {
   CholCov   <- chol(AugCov)
   InvCov    <- chol2inv(CholCov)
   logDetCov <- sum(2*log(diag(CholCov)))
-  InvCor    <- InvCov * exp(logDetCov)
 
-  assign('InvCor', InvCor, envir = cache)
+  assign('Chol', CholCov, envir = cache)
 
   return(list(InvCov = InvCov, logDetCov = logDetCov))
 

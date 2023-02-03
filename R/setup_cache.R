@@ -110,10 +110,10 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   InvCov      <- chol2inv(CholCov)
   logDetCov   <- sum(2*log(diag(CholCov)))
 
-  InvCor      <- InvCov * exp(logDetCov)
+  assign('Chol',  CholCov,  envir = cache)
   muHat       <- update_mu()
-  phi[iMuHat] <- mu_hat(CorSS, ys)
-  assign('InvCor',  InvCor,  envir = cache)
+  phi[iMuHat] <- muHat
+
   assign('muHat',   muHat,   envir = cache)
   assign('res',     res,     envir = cache)
 
