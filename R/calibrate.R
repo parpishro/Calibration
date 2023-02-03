@@ -33,14 +33,10 @@
 #' @param Nmcmc     number of MCMC runs
 #' @param nBurn     number of MCMC burn ins
 #' @param thining   thining rate to de-correlate MCMC results
-#' @param theta_pr  prior function for calibration parameters #TODO
-#' @param lambda_pr  prior function for scale parameters #TODO
-#' @param gamma_pr  prior function for smoothness parameters #TODO
-#' @param sigma2_pr prior function for variance parameters #TODO
-#' @param theta0    initial value of calibration parameters (to be given MCMC)
-#' @param lambda0    initial value of scale parameters (to be given MCMC)
-#' @param gamma0    initial value of smoothness parameters (to be given MCMC)
-#' @param sigma20   initial value of smoothness parameters (to be given MCMC)
+#' @param theta_pr  prior function for calibration parameters
+#' @param lambda_pr  prior function for scale parameters
+#' @param gamma_pr  prior function for smoothness parameters
+#' @param sigma2_pr prior function for variance parameters
 #'
 #' @return a list containing posterior:
 #'    - (((Nmcmc - nBurn) / thinning) * k) parameters distribution:
@@ -60,49 +56,25 @@
 #'
 #' @examples
 calibrate <- function(sim, field,
-                      Nmcmc = 100, nBurn = 40, thining = 1,
-                      theta_pr = "uniform", lambda_pr = "logbeta",
-                      gamma_pr = "logistic", sigma2_pr = "inverse gamma",
-                      theta0, lambda0, gamma0, sigma20) {
+                      Nmcmc  = 100, nBurn = 40, thining = 2,
+                      theta  = "uniform", t1, t2,
+                      omega  = "logbeta", o1, o2,
+                      alpha  = "logistic", a1, a2,
+                      sigma2 = "inverse gamma", s1, s2) {
 
-  env      <- environment()
+  thetaPr    <- setup_prior(theta,  t1, t2)
+  omegaPr    <- setup_prior(omega,  o1, o2)
+  alphaPr    <- setup_prior(alpha,  a1, a2)
+  sigma2Pr   <- setup_prior(sigma2, s1, s2)
 
-  m         <- nrow(sim)               # number of simulation runs
-  n         <- nrow(field)             # number of field observations
-  p         <- ncol(field) - 1         # number of experimental variables
-  q         <- ncol(sim) - p - 1       # number of calibration parameters
-  d         <- ncol(sim) - 1           # number of all variables for simulation
-  k         <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 + 1
-
-  # indices for parameters in phi
-  calib     <- 1:q
-  scaleS    <- (q+1): (q + (p + q))
-  smoothS   <- (q + (p + q) + 1): (q + (p + q) + (p + q))
-  scaleB    <- (q + (p + q) + (p + q) + 1): (q + (p + q) + (p + q) + p)
-  smoothB   <- (q + (p + q) + (p + q) + p + 1): (k - 4)
-  sig2S     <- k - 3
-  sig2B     <- k - 2
-  sig2E     <- k - 1
-  muHat     <- k #
-
-  # number of total parameters =
-  #       calibration + sim scale + sim smoothness + bias scale +
-  #       bias smoothness + sim variance + bias variance + error variance
-
-  phiInit   <- initialize_phi(k, p, q, theta0, lambda0, gamma0, sigma20)
-
-  Xs        <- sim[, 1:d]
-  ys        <- sim[, d + 1]
-  Xb        <- field[, 1:p]
-  yf        <- field[, P + 1]
-  y         <- (y - mean(ys)) / sd(ys)
-
-  params    <- mcmc(Nmcmc, nBurn, thining, phiInit, environment = env)
+  init       <- setup_cache(sim, field, thetaPr, omegaPr, alphaPr, sigma2Pr)
+  params     <- mcmc(Nmcmc, nBurn, thining, init,
+                     thetaPr, omegaPr, alphaPr, sigma2Pr)
 
   paramMean <- apply(params, 2, mean)
   paramVar  <- apply(params, 2, var) + apply(sigma_hat, 2, mean)
 
-  results   <- list(mean = paramMean, var = paramVar, distribution = params)
+  return(list(mean = paramMean, var = paramVar, distribution = params))
 }
 
 

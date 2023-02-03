@@ -20,64 +20,52 @@
 #' @param Nmcmc    an integer representing total number of MCMC runs
 #' @param nBurn    an integer representing number of burn-in runs
 #' @param thining  an integer representing number of burn-in runs
-#' @param phiInit  a double vector of initial values for all parameters
-#' @param env      an environment of the calibrate function to be set as parent
 #'
 #' @return a KOH object that includes a matrix of all parameters' distribution
 #'            and a vector of log likelihood updates of each usable MCMC runs
-mcmc <- function(Nmcmc, nBurn, thining, phiInit, env) {
-
-  env0             <- environment()
-  parent.env(env0) <- env
-
-  Phi      <- matrix(nrow = Nmcmc, ncol = k)
-  Phi[1, ] <- phiInit
-
-  Xf    <- cbind(Xb, matrix(replicate(Phi[1, calib], n), nrow = n))
-  CorFF <- correlation(Xf, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
-  CorFS <- correlation(Xf, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
-  CorSF <- t(CorFS)
-  CorSS <- correlation(Xs, Xs, scale = Phi[1, scaleS], smooth = Phi[1, smoothS])
-  muHat <- mu_hat(corSS, ys)
-  res   <- y - muHat
-  CorB  <- correlation(Xb, Xb, scale = Phi[1, scaleB], smooth = Phi[1, smoothB])
-  sig2S <- Phi[1, sig2S]
-  sig2B <- Phi[1, sig2B]
-  sig2E <- Phi[1, sig2E]
+mcmc <- function(Nmcmc, nBurn, thining, init,
+                 thetaPr, omegaPr, alphaPr, sigma2Pr) {
 
 
-  I         <- diag(n)
-  AugCov    <- cbind(rbind((sig2S * CorFF) + (sig2B * Xb) + (sig2E * I), CorFS),
-                     rbind((sig2S * CorSF), (sig2S * CorSS)))
-  logPost   <- double(((Nmcmc - 1) * k) + 1)
-  logPost[1]<- log_prior(Phi[1, calib],
-                         Phi[1, c(scaleS, scaleB)],
-                         Phi[1, c(smoothS, smoothB)],
-                         Phi[1, c(sig2S, sig2B, sig2E)])
-                - log_lik(chol_cov(AugCov), res)
+  # indices for parameters in phi
+  iTheta     <- get('iTheta',   envir = cache)
+  iOmegaS    <- get('iOmegaS',  envir = cache)
+  iAlphaS    <- get('iAlphaS',  envir = cache)
+  iOmegaB    <- get('iOmegaB',  envir = cache)
+  iAlphaB    <- get('iAlphaB',  envir = cache)
+  iSigma2S   <- get('iSigma2S', envir = cache)
+  iSigma2B   <- get('iSigma2B', envir = cache)
+  iSigma2E   <- get('iSigma2E', envir = cache)
+  iMuHat     <- get('iMuHat',   envir = cache)
 
+  # parameters (initialize first row of Phi matrix)
+  Phi        <- matrix(nrow = Nmcmc, ncol = k)
+  Phi[1]     <- init$phi
+  logPost    <- double(Nmcmc)
+  logPost[1] <- init$logPost
 
   for (i in 2:Nmcmc) {
+    lPost <- logPost[i-1]
     for (j in 1:k) {
-      changed      <- proposal(Phi[1:(i-1) ,j])
-      params       <- c(Phi[i, 1:j-1], changed, Phi[i-1, j+1:k])
-      chol         <- update_cov(Phi, changed, env)
-      ind          <- ((i-2) * k) + j + 1
-      logPost[ind] <- log_prior(Phi[i, calib],
-                                Phi[i, c(scaleS, scaleB)],
-                                Phi[i, c(smoothS, smoothB)],
-                                Phi[i, c(sig2S, sig2B, sig2E)])
-                      - log_lik(chol, res)
+      changed <- proposal(Phi[1:(i-1) ,j])
+      params  <- c(Phi[i, 1:j-1], changed, Phi[i-1, min(k, (j+1)):k])
+      chol    <- update_cov(params, j)
+      lPost   <- sum(sapply(params[iTheta],              thetaPr$fun)  +
+                     sapply(params[c(iOmegaS, iOmegaB)], omegaPr$fun)  +
+                     sapply(params[c(iAlphaS, iAlphaB)], alphaPr$fun)  +
+                     sapply(params[iSigma2S:iSigma2E],   sigma2Pr$fun)) -
+                ((chol$logDetCov - (cache$res %*% chol$InvCov %*% cache$res))/2)
 
-      if (logPost[i] - logPost[i - 1] > log(unif(1))) {
-        Phi[i, j]  <- param
-
-      } else {
+      if ((lPost - logPost[i-1]) > log(runif(1)))
+        Phi[i, j]  <- changed
+      else
         Phi[i, j]  <- Phi[i - 1, j]
-      }
     }
+    logPost[i] <- lPost
   }
-  indices <- seq(burnIn:Nmcmc, by = thinning)
 
-  return(list(logPost = logPost[indices], params = Phi[indices, ]))
+  indices <- seq(burnIn:Nmcmc, by = thinning)
+  Params  <- Phi[indices, ]
+
+  return(list(Params = Params, logPost = logPost))
 }
