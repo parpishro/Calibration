@@ -62,14 +62,14 @@ calibrate <- function(sim, field,
                       alpha  = "logistic", a1, a2,
                       sigma2 = "inverse gamma", s1, s2) {
 
-  thetaPr  <- setup_prior(theta,  t1, t2)
-  omegaPr  <- setup_prior(omega,  o1, o2)
-  alphaPr  <- setup_prior(alpha,  a1, a2)
-  sigma2Pr <- setup_prior(sigma2, s1, s2)
+  thetaPr    <- setup_prior(theta,  t1, t2)
+  omegaPr    <- setup_prior(omega,  o1, o2)
+  alphaPr    <- setup_prior(alpha,  a1, a2)
+  sigma2Pr   <- setup_prior(sigma2, s1, s2)
 
-  setup_cache(sim, field, thetaPr, omegaPr, alphaPr, sigma2Pr)
-
-  params    <- mcmc(Nmcmc, nBurn, thining)
+  init       <- setup_cache(sim, field, thetaPr, omegaPr, alphaPr, sigma2Pr)
+  params     <- mcmc(Nmcmc, nBurn, thining, init,
+                     thetaPr, omegaPr, alphaPr, sigma2Pr)
 
   paramMean <- apply(params, 2, mean)
   paramVar  <- apply(params, 2, var) + apply(sigma_hat, 2, mean)
