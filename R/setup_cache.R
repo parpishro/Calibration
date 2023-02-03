@@ -73,8 +73,6 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   phi[iSigma2S]  <- sigma2Pr$mean
   phi[iSigma2B]  <- sigma2Pr$mean
   phi[iSigma2E]  <- sigma2Pr$mean
-  CorSS          <- correlation(Xs, Phi[1, iOmegaS], Phi[1, iAlphaS])
-  phi[iMuHat]    <- mu_hat(CorSS, ys)
 
 
   # set up first correlation matrices and load them into cache
@@ -84,8 +82,8 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   CorSF   <- t(CorFS)
   CorSS   <- corelation(Xs,     scale = phi[iOmegaS], smooth = phi[iAlphaS])
   CorB    <- corelation(Xb,     scale = phi[iOmegaB], smooth = phi[iAlphaB])
-  muHat   <- mu_hat(CorSS, ys)
-  res     <- y - muHat
+
+
   sigma2S <- phi[iSigma2S]
   sigma2B <- phi[iSigma2B]
   sigma2E <- phi[iSigma2E]
@@ -100,23 +98,30 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   assign('sigma2S', sigma2S, envir = cache)
   assign('sigma2B', sigma2B, envir = cache)
   assign('sigma2E', sigma2E, envir = cache)
-  assign('muHat',   muHat,   envir = cache)
-  assign('res',     res,     envir = cache)
 
 
   # compute the first log likelihood by forming the augmented covariance matrix
   #   and load both augmented covariance matirx and log likelihood into cache
-  Inn       <- diag(n)
-  AugCov    <- rbind(cbind(((sigma2S*CorFF) + (sigma2B*CorB) + (sigma2E*Inn)),
-                           (sigma2S*CorFS)),
-                     cbind((sigma2S*CorSF), (sigma2S*CorSS)))
-  CholCov   <- chol(AugCov)
-  InvCov    <- chol2inv(CholCov)
-  logDetCov <- sum(2*log(diag(CholCov)))
+  Inn         <- diag(n)
+  AugCov      <- rbind(cbind(((sigma2S*CorFF) + (sigma2B*CorB) + (sigma2E*Inn)),
+                             (sigma2S*CorFS)),
+                       cbind((sigma2S*CorSF), (sigma2S*CorSS)))
+  CholCov     <- chol(AugCov)
+  InvCov      <- chol2inv(CholCov)
+  logDetCov   <- sum(2*log(diag(CholCov)))
+
+  InvCor      <- InvCov * exp(logDetCov)
+  muHat       <- update_mu()
+  phi[iMuHat] <- mu_hat(CorSS, ys)
+  assign('InvCor',  InvCor,  envir = cache)
+  assign('muHat',   muHat,   envir = cache)
+  assign('res',     res,     envir = cache)
+
+
 
   # computes posterior log likelihood of augmented response given the augmented
   #   covariance matrix (its inverse and determinant) and residuals
-  lPost     <- sum(log(phi)) - (0.5*logDetCov) - (0.5 * (res%*%InvCov%*%res))
+  lPost <- sum(log(phi)) - (0.5*logDetCov) - (0.5 * (res%*%InvCov%*%res))
 
   return(list(phi = phi, logPost = lPost))
 

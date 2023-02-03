@@ -54,7 +54,7 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
                      sapply(params[c(iOmegaS, iOmegaB)], omegaPr$fun)  +
                      sapply(params[c(iAlphaS, iAlphaB)], alphaPr$fun)  +
                      sapply(params[iSigma2S:iSigma2E],   sigma2Pr$fun)) -
-                (0.5*(chol$logDetCov - (res%*%chol$InvCov%*%res)))
+                ((chol$logDetCov - (cache$res %*% chol$InvCov %*% cache$res))/2)
 
       if ((lPost - logPost[i-1]) > log(runif(1)))
         Phi[i, j]  <- changed

@@ -1,9 +1,13 @@
 # compute the mu_hat based on current (last update) correlation function
 # parameters
 
-mu_hat <- function(R, y) {
+mu_hat <- function() {
 
-  f    <- double(length(y)) + 1
-  invR <- chol2inv(chol(R, pivot = TRUE))
-  return((crossprod(f, invR) %*% y) / chol2inv(chol(crossprod(f, invR) %*% f, pivot = TRUE)))
+  f     <- double(length(cache$y)) + 1
+  uf    <- backsolve(cache$Chol, f, transpose = TRUE)
+  ftrf  <- crossprod(uf)
+  uy    <- backsolve(cache$Chol, cache$y, transpose = TRUE)
+  ftry  <- crossprod(uf, uy)
+  muHat <- solve(ftrf, ftry)
+  return(muHat)
 }
