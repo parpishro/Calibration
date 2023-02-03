@@ -114,6 +114,8 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   InvCov    <- chol2inv(CholCov)
   logDetCov <- sum(2*log(diag(CholCov)))
 
+  # computes posterior log likelihood of augmented response given the augmented
+  #   covariance matrix (its inverse and determinant) and residuals
   lPost     <- sum(log(phi)) - (0.5*logDetCov) - (0.5 * (res%*%InvCov%*%res))
 
   return(list(phi = phi, logPost = lPost))

@@ -47,15 +47,14 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
   for (i in 2:Nmcmc) {
     lPost <- logPost[i-1]
     for (j in 1:k) {
-      changed      <- proposal(Phi[1:(i-1) ,j])
-      params       <- c(Phi[i, 1:j-1], changed, Phi[i-1, min(k, (j+1)):k])
-      chol         <- update_cov(params, j)
-      lPost <- sum(sapply(params[iTheta],              thetaPr$fun)  +
-                          sapply(params[c(iOmegaS, iOmegaB)], omegaPr$fun)  +
-                          sapply(params[c(iAlphaS, iAlphaB)], alphaPr$fun)  +
-                          sapply(params[iSigma2S:iSigma2E],   sigma2Pr$fun)) -
-                          (0.5*(chol$logDetCov - (res%*%chol$InvCov%*%res)))
-
+      changed <- proposal(Phi[1:(i-1) ,j])
+      params  <- c(Phi[i, 1:j-1], changed, Phi[i-1, min(k, (j+1)):k])
+      chol    <- update_cov(params, j)
+      lPost   <- sum(sapply(params[iTheta],              thetaPr$fun)  +
+                     sapply(params[c(iOmegaS, iOmegaB)], omegaPr$fun)  +
+                     sapply(params[c(iAlphaS, iAlphaB)], alphaPr$fun)  +
+                     sapply(params[iSigma2S:iSigma2E],   sigma2Pr$fun)) -
+                (0.5*(chol$logDetCov - (res%*%chol$InvCov%*%res)))
 
       if ((lPost - logPost[i-1]) > log(runif(1)))
         Phi[i, j]  <- changed
