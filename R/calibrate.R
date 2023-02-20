@@ -28,6 +28,9 @@
 
 #' calibrate
 #'
+#' @description  Calibrates the simulator using both simulator and field data and returns the
+#  MCMCM distribution of calibration parameters and hyperparameters of the model
+#'
 #' @param sim       (m * (1+p+q) matrix) simulation data
 #' @param field     (n * (1+p+) matrix) field data
 #' @param Nmcmc     number of MCMC runs
