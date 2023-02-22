@@ -65,6 +65,7 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
 
   # parameters (initialize first row of Phi matrix)
   phi            <- double(k)
+  print(thetaPr$mean)
   phi[iTheta]    <- double(length(iTheta))  + thetaPr$mean
   phi[iOmegaS]   <- double(length(iOmegaS)) + omegaPr$mean
   phi[iAlphaS]   <- double(length(iAlphaS)) + alphaPr$mean
@@ -77,11 +78,11 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
 
   # set up first correlation matrices and load them into cache
   Xf      <- cbind(Xb, replicate(n, phi[iTheta], n))
-  CorFF   <- corelation(Xf,     scale = phi[iOmegaS], smooth = phi[iAlphaS])
-  CorFS   <- corelation(Xf, Xs, scale = phi[iOmegaS], smooth = phi[iAlphaS])
+  CorFF   <- correlation(Xf,     scale = phi[iOmegaS], smooth = phi[iAlphaS])
+  CorFS   <- correlation(Xf, Xs, scale = phi[iOmegaS], smooth = phi[iAlphaS])
   CorSF   <- t(CorFS)
-  CorSS   <- corelation(Xs,     scale = phi[iOmegaS], smooth = phi[iAlphaS])
-  CorB    <- corelation(Xb,     scale = phi[iOmegaB], smooth = phi[iAlphaB])
+  CorSS   <- correlation(Xs,     scale = phi[iOmegaS], smooth = phi[iAlphaS])
+  CorB    <- correlation(Xb,     scale = phi[iOmegaB], smooth = phi[iAlphaB])
 
 
   sigma2S <- phi[iSigma2S]
@@ -106,6 +107,7 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   AugCov      <- rbind(cbind(((sigma2S*CorFF) + (sigma2B*CorB) + (sigma2E*Inn)),
                              (sigma2S*CorFS)),
                        cbind((sigma2S*CorSF), (sigma2S*CorSS)))
+  print(AugCov)
   CholCov     <- chol(AugCov)
   InvCov      <- chol2inv(CholCov)
   logDetCov   <- sum(2*log(diag(CholCov)))

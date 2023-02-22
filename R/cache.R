@@ -1,3 +1,3 @@
-cacheEnv <- new.env()
+cache <- new.env()
 
 
