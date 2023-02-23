@@ -24,19 +24,19 @@
 #' @return a KOH object that includes a matrix of all parameters' distribution
 #'            and a vector of log likelihood updates of each usable MCMC runs
 mcmc <- function(Nmcmc, nBurn, thining, init,
-                 thetaPr, omegaPr, alphaPr, sigma2Pr) {
+                 thetaPr, lambdaPr, gammaPr, sigma2Pr) {
 
 
   # indices for parameters in phi
-  iTheta     <- get('iTheta',   envir = cache)
-  iOmegaS    <- get('iOmegaS',  envir = cache)
-  iAlphaS    <- get('iAlphaS',  envir = cache)
-  iOmegaB    <- get('iOmegaB',  envir = cache)
-  iAlphaB    <- get('iAlphaB',  envir = cache)
-  iSigma2S   <- get('iSigma2S', envir = cache)
-  iSigma2B   <- get('iSigma2B', envir = cache)
-  iSigma2E   <- get('iSigma2E', envir = cache)
-  iMuHat     <- get('iMuHat',   envir = cache)
+  itheta     <- get('itheta',   envir = cache)
+  ilambdaS    <- get('ilambdaS',  envir = cache)
+  igammaS    <- get('igammaS',  envir = cache)
+  ilambdaB    <- get('ilambdaB',  envir = cache)
+  igammaB    <- get('igammaB',  envir = cache)
+  isigma2S   <- get('isigma2S', envir = cache)
+  isigma2B   <- get('isigma2B', envir = cache)
+  isigma2E   <- get('isigma2E', envir = cache)
+  imuHat     <- get('imuHat',   envir = cache)
 
   # parameters (initialize first row of Phi matrix)
   Phi        <- matrix(nrow = Nmcmc, ncol = k)
@@ -50,10 +50,10 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
       changed <- proposal(Phi[1:(i-1) ,j])
       params  <- c(Phi[i, 1:j-1], changed, Phi[i-1, min(k, (j+1)):k])
       chol    <- update_cov(params, j)
-      lPost   <- sum(sapply(params[iTheta],              thetaPr$fun)  +
-                     sapply(params[c(iOmegaS, iOmegaB)], omegaPr$fun)  +
-                     sapply(params[c(iAlphaS, iAlphaB)], alphaPr$fun)  +
-                     sapply(params[iSigma2S:iSigma2E],   sigma2Pr$fun)) -
+      lPost   <- sum(sapply(params[itheta],              thetaPr$fun)  +
+                     sapply(params[c(ilambdaS, ilambdaB)], lambdaPr$fun)  +
+                     sapply(params[c(igammaS, igammaB)], gammaPr$fun)  +
+                     sapply(params[isigma2S:isigma2E],   sigma2Pr$fun)) -
                 ((chol$logDetCov - (cache$res %*% chol$InvCov %*% cache$res))/2)
 
       if ((lPost - logPost[i-1]) > log(runif(1)))
