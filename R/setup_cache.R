@@ -123,8 +123,11 @@ setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
 
   # computes posterior log likelihood of augmented response given the augmented
   #   covariance matrix (its inverse and determinant) and residuals
-  lPost <- sum(log(phi)) - (0.5*logDetCov) - (0.5 * (res%*%InvCov%*%res))
-
+  lPost <- sum(sapply(phi[itheta],                thetaPr$fun)  +
+               sapply(phi[c(ilambdaS, ilambdaB)], lambdaPr$fun)  +
+               sapply(phi[c(igammaS, igammaB)],   gammaPr$fun)  +
+               sapply(phi[isigma2S:isigma2E],     sigma2Pr$fun)) -
+    (0.5*logDetCov) - (0.5 * drop(res%*%InvCov%*%res))
   return(list(phi = phi, logPost = lPost))
 
 }

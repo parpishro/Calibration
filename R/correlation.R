@@ -16,7 +16,7 @@
 
 correlation <- function (X, Y = NULL, lambda, gamma) {
   nx    <- nrow(X)
-  rho   <- lambda
+  rho   <- 1 - 1/(1+exp(lambda))
   alpha <- 1 + 1/(1+exp(-gamma))
   if (is.null(Y)) {
     R <- matrix(0, nrow = nx, ncol = nx)

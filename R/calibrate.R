@@ -81,13 +81,13 @@ calibrate <- function(sim, field,
 
 
   init       <- setup_cache(sim, field, thetaPr, lambdaPr, gammaPr, sigma2Pr)
-  params     <- mcmc(Nmcmc, nBurn, thining, init,
+  Result     <- mcmc(Nmcmc, nBurn, thining, init,
                      thetaPr, lambdaPr, gammaPr, sigma2Pr)
 
-  paramMean <- apply(params, 2, mean)
-  paramVar  <- apply(params, 2, var) + apply(sigma_hat, 2, mean)
+  #paramMean <- apply(Result$Params, 2, mean)
+  #paramVar  <- apply(Result$Params, 2, var) + apply(sigma_hat, 2, mean)
 
-  return(list(mean = paramMean, var = paramVar, distribution = params))
+  return(list(distributions = Result$Params, logPost = Result$logPost))
 }
 
 

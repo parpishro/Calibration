@@ -4,9 +4,9 @@ update_cov <- function(phi, changed) {
   # indices for parameters in phi
   # indices for parameters in phi
   itheta    <- get('itheta',   envir = cache)
-  ilambdaS   <- get('ilambdaS',  envir = cache)
+  ilambdaS  <- get('ilambdaS', envir = cache)
   igammaS   <- get('igammaS',  envir = cache)
-  ilambdaB   <- get('ilambdaB',  envir = cache)
+  ilambdaB  <- get('ilambdaB', envir = cache)
   igammaB   <- get('igammaB',  envir = cache)
   isigma2S  <- get('isigma2S', envir = cache)
   isigma2B  <- get('isigma2B', envir = cache)
@@ -55,7 +55,6 @@ update_cov <- function(phi, changed) {
   } else if (changed %in% isigma2E) {
     assign('sigma2E', phi[isigma2E], envir = cache)
 
-
   } else stop("invalid changed argument!")
 
   Inn       <- diag(cache$n)
@@ -65,7 +64,10 @@ update_cov <- function(phi, changed) {
                            (cache$sigma2S * cache$CorFS)),
                      cbind((cache$sigma2S * cache$CorSF),
                            (cache$sigma2S * cache$CorSS)))
-  print((AugCov))
+  CholCov        <- try(chol(AugCov), silent=T)
+  if (length(class(CholCov)) == 1 && class(CholCov) == "try-error") {
+    return(NULL)
+  }
   CholCov   <- chol(AugCov)
   InvCov    <- chol2inv(CholCov)
   logDetCov <- sum(2*log(diag(CholCov)))
