@@ -3,14 +3,14 @@ update_cov <- function(phi, changed) {
 
   # indices for parameters in phi
   # indices for parameters in phi
-  iTheta    <- get('iTheta',   envir = cache)
-  iOmegaS   <- get('iOmegaS',  envir = cache)
-  iAlphaS   <- get('iAlphaS',  envir = cache)
-  iOmegaB   <- get('iOmegaB',  envir = cache)
-  iAlphaB   <- get('iAlphaB',  envir = cache)
-  iSigma2S  <- get('iSigma2S', envir = cache)
-  iSigma2B  <- get('iSigma2B', envir = cache)
-  iSigma2E  <- get('iSigma2E', envir = cache)
+  itheta    <- get('itheta',   envir = cache)
+  ilambdaS   <- get('ilambdaS',  envir = cache)
+  igammaS   <- get('igammaS',  envir = cache)
+  ilambdaB   <- get('ilambdaB',  envir = cache)
+  igammaB   <- get('igammaB',  envir = cache)
+  isigma2S  <- get('isigma2S', envir = cache)
+  isigma2B  <- get('isigma2B', envir = cache)
+  isigma2E  <- get('isigma2E', envir = cache)
 
   # corFF : (n * n) correlation matrix of augmented Xf's
   # corFS : (n * m) correlation matrix between Xf's, Xs's
@@ -18,10 +18,10 @@ update_cov <- function(phi, changed) {
   # corSS : (m * m) correlation matrix between Xs's
   # corB  : (n * n) correlation matrix between Xb's
 
-  if (changed %in% iTheta) {
-    Xf     <- cbind(cache$Xb, replicate(n, phi[iTheta], n))
-    CorFF  <- corelation(cache$Xf, scale = phi[iOmegaS], smooth = phi[iAlphaS])
-    CorFS  <- corelation(cache$Xf, cache$Xs, phi[iOmegaS], phi[iAlphaS])
+  if (changed %in% itheta) {
+    Xf     <- cbind(cache$Xb, replicate(n, phi[itheta], n))
+    CorFF  <- correlation(cache$Xf, lambda = phi[ilambdaS], gamma = phi[igammaS])
+    CorFS  <- correlation(cache$Xf, cache$Xs, phi[ilambdaS], phi[igammaS])
     CorSF  <- t(CorFS)
 
     assign('Xf',    Xf,    envir = cache)
@@ -29,11 +29,11 @@ update_cov <- function(phi, changed) {
     assign('CorFS', CorFS, envir = cache)
     assign('CorSF', CorSF, envir = cache)
 
-  } else if ((changed %in% iOmegaS) || (changed %in% iAlphaS)) {
-    CorFF  <- corelation(cache$Xf, scale = phi[iOmegaS], smooth = phi[iAlphaS])
-    CorFS  <- corelation(cache$Xf, cache$Xs, phi[iOmegaS], phi[iAlphaS])
+  } else if ((changed %in% ilambdaS) || (changed %in% igammaS)) {
+    CorFF  <- correlation(cache$Xf, lambda = phi[ilambdaS], gamma = phi[igammaS])
+    CorFS  <- correlation(cache$Xf, cache$Xs, phi[ilambdaS], phi[igammaS])
     CorSF  <- t(CorFS)
-    CorSS  <- corelation(cache$Xs, scale = phi[iOmegaS], smooth = phi[iAlphaS])
+    CorSS  <- correlation(cache$Xs, lambda = phi[ilambdaS], gamma = phi[igammaS])
     muHat  <- mu_hat()
 
     assign('CorSS', CorSS, envir = cache)
@@ -42,18 +42,18 @@ update_cov <- function(phi, changed) {
     assign('CorSF', CorSF, envir = cache)
     assign('muHat', muHat, envir = cache)
 
-  } else if ((changed %in% iOmegaB) || (changed %in% iAlphaB)) {
-    CorB   <- corelation(cache$Xb, scale = phi[iOmegaB], smooth = phi[iAlphaB])
+  } else if ((changed %in% ilambdaB) || (changed %in% igammaB)) {
+    CorB   <- correlation(cache$Xb, lambda = phi[ilambdaB], gamma = phi[igammaB])
     assign('CorB', CorB, envir = cache)
 
-  } else if (changed %in% iSigma2S) {
-    assign('sigma2S', phi[iSigma2S], envir = cache)
+  } else if (changed %in% isigma2S) {
+    assign('sigma2S', phi[isigma2S], envir = cache)
 
-  } else if (changed %in% iSigma2B) {
-    assign('sigma2B', phi[iSigma2B], envir = cache)
+  } else if (changed %in% isigma2B) {
+    assign('sigma2B', phi[isigma2B], envir = cache)
 
-  } else if (changed %in% iSigma2E) {
-    assign('sigma2E', phi[iSigma2E], envir = cache)
+  } else if (changed %in% isigma2E) {
+    assign('sigma2E', phi[isigma2E], envir = cache)
 
 
   } else stop("invalid changed argument!")
