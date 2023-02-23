@@ -47,7 +47,7 @@ setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
   assign('isigma2S', isigma2S, envir = cache)     # sim variance
   assign('isigma2B', isigma2B, envir = cache)     # bias variance
   assign('isigma2E', isigma2E, envir = cache)     # error variance
-  assign('iMuHatu',  imuHat,   envir = cache)     # number of total parameters
+  assign('imuHat',   imuHat,   envir = cache)     # number of total parameters
 
   # data matrices and vectors
   Xs      <- sim[, 1:d]
@@ -55,7 +55,6 @@ setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
   Xb      <- field[, 1:p, drop = FALSE]
   yf      <- field[, p + 1]
   y       <- (c(ys, yf) - mean(ys)) / sd(ys)
-  print(length(y))
 
   assign('Xs', Xs, envir = cache)
   assign('ys', ys, envir = cache)

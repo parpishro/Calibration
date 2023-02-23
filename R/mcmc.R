@@ -29,9 +29,9 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
 
   # indices for parameters in phi
   itheta     <- get('itheta',   envir = cache)
-  ilambdaS    <- get('ilambdaS',  envir = cache)
+  ilambdaS   <- get('ilambdaS',  envir = cache)
   igammaS    <- get('igammaS',  envir = cache)
-  ilambdaB    <- get('ilambdaB',  envir = cache)
+  ilambdaB   <- get('ilambdaB',  envir = cache)
   igammaB    <- get('igammaB',  envir = cache)
   isigma2S   <- get('isigma2S', envir = cache)
   isigma2B   <- get('isigma2B', envir = cache)
@@ -39,16 +39,16 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
   imuHat     <- get('imuHat',   envir = cache)
 
   # parameters (initialize first row of Phi matrix)
-  Phi        <- matrix(nrow = Nmcmc, ncol = k)
-  Phi[1]     <- init$phi
+  Phi        <- matrix(nrow = Nmcmc, ncol = cache$k)
+  Phi[1, ]     <- init$phi
   logPost    <- double(Nmcmc)
   logPost[1] <- init$logPost
 
   for (i in 2:Nmcmc) {
     lPost <- logPost[i-1]
-    for (j in 1:k) {
+    for (j in 1:cache$k) {
       changed <- proposal(Phi[1:(i-1) ,j])
-      params  <- c(Phi[i, 1:j-1], changed, Phi[i-1, min(k, (j+1)):k])
+      params  <- c(Phi[i, 1:j-1], changed, Phi[i-1, min(cache$k, (j+1)):cache$k])
       chol    <- update_cov(params, j)
       lPost   <- sum(sapply(params[itheta],              thetaPr$fun)  +
                      sapply(params[c(ilambdaS, ilambdaB)], lambdaPr$fun)  +

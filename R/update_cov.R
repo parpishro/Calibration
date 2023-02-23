@@ -19,7 +19,7 @@ update_cov <- function(phi, changed) {
   # corB  : (n * n) correlation matrix between Xb's
 
   if (changed %in% itheta) {
-    Xf     <- cbind(cache$Xb, replicate(n, phi[itheta], n))
+    Xf     <- cbind(cache$Xb, replicate(cache$n, phi[itheta], cache$n))
     CorFF  <- correlation(cache$Xf, lambda = phi[ilambdaS], gamma = phi[igammaS])
     CorFS  <- correlation(cache$Xf, cache$Xs, phi[ilambdaS], phi[igammaS])
     CorSF  <- t(CorFS)
@@ -34,7 +34,7 @@ update_cov <- function(phi, changed) {
     CorFS  <- correlation(cache$Xf, cache$Xs, phi[ilambdaS], phi[igammaS])
     CorSF  <- t(CorFS)
     CorSS  <- correlation(cache$Xs, lambda = phi[ilambdaS], gamma = phi[igammaS])
-    muHat  <- mu_hat()
+    muHat  <- update_mu()
 
     assign('CorSS', CorSS, envir = cache)
     assign('CorFF', CorFF, envir = cache)
@@ -58,13 +58,14 @@ update_cov <- function(phi, changed) {
 
   } else stop("invalid changed argument!")
 
-  Inn       <- diag(n)
+  Inn       <- diag(cache$n)
   AugCov    <- rbind(cbind(((cache$sigma2S * cache$CorFF) +
                             (cache$sigma2B * cache$CorB) +
                             (cache$sigma2E * Inn)),
                            (cache$sigma2S * cache$CorFS)),
                      cbind((cache$sigma2S * cache$CorSF),
                            (cache$sigma2S * cache$CorSS)))
+  print((AugCov))
   CholCov   <- chol(AugCov)
   InvCov    <- chol2inv(CholCov)
   logDetCov <- sum(2*log(diag(CholCov)))
