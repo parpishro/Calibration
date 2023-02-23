@@ -4,12 +4,12 @@
 #' @param sim
 #' @param field
 #' @param thetaPr
-#' @param omegaPr
-#' @param alphaPr
+#' @param lambdaPr
+#' @param gammaPr
 #' @param sigma2Pr
 #'
 #' @return
-setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
+setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
 
   # setting cache environment: TO BE ACCESSED/MODIFIED BY ALL PACKAGE FUNCTIONS
   # scalers
@@ -29,25 +29,25 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   assign('k', k, envir = cache)
 
   # indices for parameters in phi
-  iTheta     <- 1:q                                             # calibration
-  iOmegaS    <- (q+1): (q + (p+q))                              # sim scale
-  iAlphaS    <- (q + (p+q) + 1): (q + (p+q) + (p+q))            # sim smooth
-  iOmegaB    <- (q + (p+q) + (p+q) + 1): (q + (p+q) + (p+q) + p)# bias scale
-  iAlphaB    <- (q + (p+q) + (p+q) + p + 1): (k-4)              # bias smooth
-  iSigma2S   <- k-3                                             # sim variance
-  iSigma2B   <- k-2                                             # bias variance
-  iSigma2E   <- k-1                                             # error variance
-  iMuHat     <- k                                               # estimated mean
+  itheta     <- 1:q                                             # calibration
+  ilambdaS   <- (q+1): (q + (p+q))                              # sim scale
+  igammaS    <- (q + (p+q) + 1): (q + (p+q) + (p+q))            # sim smooth
+  ilambdaB   <- (q + (p+q) + (p+q) + 1): (q + (p+q) + (p+q) + p)# bias scale
+  igammaB    <- (q + (p+q) + (p+q) + p + 1): (k-4)              # bias smooth
+  isigma2S   <- k-3                                             # sim variance
+  isigma2B   <- k-2                                             # bias variance
+  isigma2E   <- k-1                                             # error variance
+  imuHat     <- k                                               # estimated mean
 
-  assign('iTheta',   iTheta ,  envir = cache)     # calibration
-  assign('iOmegaS',  iOmegaS,  envir = cache)     # sim scale
-  assign('iAlphaS',  iAlphaS,  envir = cache)     # sim smoothness
-  assign('iOmegaB',  iOmegaB,  envir = cache)     # bias scale
-  assign('iAlphaB',  iAlphaB,  envir = cache)     # bias smoothness
-  assign('iSigma2S', iSigma2S, envir = cache)     # sim variance
-  assign('iSigma2B', iSigma2B, envir = cache)     # bias variance
-  assign('iSigma2E', iSigma2E, envir = cache)     # error variance
-  assign('iMuHatu',  iMuHat,   envir = cache)     # number of total parameters
+  assign('itheta',   itheta ,  envir = cache)     # calibration
+  assign('ilambdaS', ilambdaS, envir = cache)     # sim scale
+  assign('igammaS',  igammaS,  envir = cache)     # sim smoothness
+  assign('ilambdaB', ilambdaB, envir = cache)     # bias scale
+  assign('igammaB',  igammaB,  envir = cache)     # bias smoothness
+  assign('isigma2S', isigma2S, envir = cache)     # sim variance
+  assign('isigma2B', isigma2B, envir = cache)     # bias variance
+  assign('isigma2E', isigma2E, envir = cache)     # error variance
+  assign('iMuHatu',  imuHat,   envir = cache)     # number of total parameters
 
   # data matrices and vectors
   Xs      <- sim[, 1:d]
@@ -55,6 +55,7 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   Xb      <- field[, 1:p, drop = FALSE]
   yf      <- field[, p + 1]
   y       <- (c(ys, yf) - mean(ys)) / sd(ys)
+  print(length(y))
 
   assign('Xs', Xs, envir = cache)
   assign('ys', ys, envir = cache)
@@ -65,29 +66,29 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
 
   # parameters (initialize first row of Phi matrix)
   phi            <- double(k)
-  print(thetaPr$mean)
-  phi[iTheta]    <- double(length(iTheta))  + thetaPr$mean
-  phi[iOmegaS]   <- double(length(iOmegaS)) + omegaPr$mean
-  phi[iAlphaS]   <- double(length(iAlphaS)) + alphaPr$mean
-  phi[iOmegaB]   <- double(length(iOmegaB)) + omegaPr$mean
-  phi[iAlphaB]   <- double(length(iAlphaB)) + alphaPr$mean
-  phi[iSigma2S]  <- sigma2Pr$mean
-  phi[iSigma2B]  <- sigma2Pr$mean
-  phi[iSigma2E]  <- sigma2Pr$mean
+  phi[itheta]    <- double(length(itheta))  + thetaPr$mean
+  phi[ilambdaS]  <- double(length(ilambdaS)) + lambdaPr$mean
+  phi[igammaS]   <- double(length(igammaS)) + gammaPr$mean
+  phi[ilambdaB]  <- double(length(ilambdaB)) + lambdaPr$mean
+  phi[igammaB]   <- double(length(igammaB)) + gammaPr$mean
+  phi[isigma2S]  <- sigma2Pr$mean
+  phi[isigma2B]  <- sigma2Pr$mean
+  phi[isigma2E]  <- sigma2Pr$mean
+
 
 
   # set up first correlation matrices and load them into cache
-  Xf      <- cbind(Xb, replicate(n, phi[iTheta], n))
-  CorFF   <- correlation(Xf,     scale = phi[iOmegaS], smooth = phi[iAlphaS])
-  CorFS   <- correlation(Xf, Xs, scale = phi[iOmegaS], smooth = phi[iAlphaS])
+  Xf      <- cbind(Xb, replicate(n, phi[itheta], n))
+  CorFF   <- correlation(Xf,     lambda = phi[ilambdaS], gamma = phi[igammaS])
+  CorFS   <- correlation(Xf, Xs, lambda = phi[ilambdaS], gamma = phi[igammaS])
   CorSF   <- t(CorFS)
-  CorSS   <- correlation(Xs,     scale = phi[iOmegaS], smooth = phi[iAlphaS])
-  CorB    <- correlation(Xb,     scale = phi[iOmegaB], smooth = phi[iAlphaB])
+  CorSS   <- correlation(Xs,     lambda = phi[ilambdaS], gamma = phi[igammaS])
+  CorB    <- correlation(Xb,     lambda = phi[ilambdaB], gamma = phi[igammaB])
 
 
-  sigma2S <- phi[iSigma2S]
-  sigma2B <- phi[iSigma2B]
-  sigma2E <- phi[iSigma2E]
+  sigma2S <- phi[isigma2S]
+  sigma2B <- phi[isigma2B]
+  sigma2E <- phi[isigma2E]
 
 
   assign('Xf',      Xf,      envir = cache)
@@ -104,17 +105,17 @@ setup_cache <- function(sim, field, thetaPr,omegaPr, alphaPr, sigma2Pr) {
   # compute the first log likelihood by forming the augmented covariance matrix
   #   and load both augmented covariance matirx and log likelihood into cache
   Inn         <- diag(n)
-  AugCov      <- rbind(cbind(((sigma2S*CorFF) + (sigma2B*CorB) + (sigma2E*Inn)),
-                             (sigma2S*CorFS)),
+  AugCov      <- rbind(cbind(sigma2S*CorFF + sigma2B*CorB + sigma2E*Inn,
+                             sigma2S*CorFS),
                        cbind((sigma2S*CorSF), (sigma2S*CorSS)))
-  print(AugCov)
   CholCov     <- chol(AugCov)
   InvCov      <- chol2inv(CholCov)
   logDetCov   <- sum(2*log(diag(CholCov)))
 
   assign('Chol',  CholCov,  envir = cache)
   muHat       <- update_mu()
-  phi[iMuHat] <- muHat
+  res         <- y - muHat
+  phi[imuHat] <- muHat
 
   assign('muHat',   muHat,   envir = cache)
   assign('res',     res,     envir = cache)
