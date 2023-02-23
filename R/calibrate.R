@@ -11,9 +11,9 @@
 #             variable, followed by experimental input columns.
 #          prior for calibration parameter (theta_pr) is assumed to be "uniform"
 #          prior for lambda (lambda_pr), the scale parameter of correlation
-#             functions (omega) is assumed to be "logistic"
+#             functions (lambda) is assumed to be "logistic"
 #          prior for gamma (gamma_pr), the transformed smoothness parameter in
-#             correlation functions (alpha), is assumed to be "uniform"
+#             correlation functions (gamma), is assumed to be "uniform"
 #
 #          prior for uncertainty (sigma2_pr) assumed to be "inverse gamma"
 # EFFECT: given simulation data, field data, priors for calibration parameters,
@@ -71,13 +71,14 @@ calibrate <- function(sim, field,
                       theta  = "uniform",      t1 = 0,   t2 = 20,
                       lambda = "chen",         l1 = NA,  l2 = NA,
                       gamma  = "uniform",      g1 = -20, g2 = 20,
-                      sigma2 = "inversegamma", s1 = 1,   s2 = 2) {
+                      sigma2 = "inversegamma", s1 = 2,   s2 = 1) {
 
   thetaPr    <- setup_prior(theta,  t1, t2)
   # parameters l1, l2 are already factored in 'chen' prior and will not be used
   lambdaPr   <- setup_prior(lambda, l1, l2)
   gammaPr    <- setup_prior(gamma,  g1, g2)
   sigma2Pr   <- setup_prior(sigma2, s1, s2)
+
 
   init       <- setup_cache(sim, field, thetaPr, lambdaPr, gammaPr, sigma2Pr)
   params     <- mcmc(Nmcmc, nBurn, thining, init,
