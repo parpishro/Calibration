@@ -14,13 +14,15 @@
 #             parameters are computed element-by-element, When Y is null, a
 #             branch makes the computation easier (R is symmetric).
 
-correlation <- function (X, Y = NULL, scale, smooth) {
-  nx <- nrow(X)
+correlation <- function (X, Y = NULL, lambda, gamma) {
+  nx    <- nrow(X)
+  rho   <- lambda
+  alpha <- 1 + 1/(1+exp(-gamma))
   if (is.null(Y)) {
-    R  <- matrix(0, nrow = nx, ncol = nx)
+    R <- matrix(0, nrow = nx, ncol = nx)
     for (i in 1:nx-1) {
       for (j in (i+1):nx) {
-        R[i, j] <- exp(- sum(scale %*% (abs(X[i, ] - X[j, ]) ^ smooth)))
+        R[i, j] <- prod(rho) * exp(-sum(abs(X[i, ] - X[j, ]) ^ alpha))
       }
     }
     R <- R + t(R) + diag(1, nrow = nx, ncol = nx)
@@ -29,7 +31,7 @@ correlation <- function (X, Y = NULL, scale, smooth) {
     R  <- matrix(0, nrow = nx, ncol = ny)
     for (i in 1:nx) {
       for (j in 1:ny) {
-        R[i, j] <- exp(- sum(scale %*% (abs(X[i, ] - Y[j, ]) ^ smooth)))
+        R[i, j] <- prod(rho) * exp(-sum(abs(X[i, ] - Y[j, ]) ^ alpha))
       }
     }
   }
