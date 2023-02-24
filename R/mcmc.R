@@ -24,47 +24,57 @@
 #' @return a KOH object that includes a matrix of all parameters' distribution
 #'            and a vector of log likelihood updates of each usable MCMC runs
 mcmc <- function(Nmcmc, nBurn, thining, init,
-                 thetaPr, omegaPr, alphaPr, sigma2Pr) {
+                 thetaPr, lambdaPr, gammaPr, sigma2Pr) {
 
 
   # indices for parameters in phi
-  iTheta     <- get('iTheta',   envir = cache)
-  iOmegaS    <- get('iOmegaS',  envir = cache)
-  iAlphaS    <- get('iAlphaS',  envir = cache)
-  iOmegaB    <- get('iOmegaB',  envir = cache)
-  iAlphaB    <- get('iAlphaB',  envir = cache)
-  iSigma2S   <- get('iSigma2S', envir = cache)
-  iSigma2B   <- get('iSigma2B', envir = cache)
-  iSigma2E   <- get('iSigma2E', envir = cache)
-  iMuHat     <- get('iMuHat',   envir = cache)
+  itheta     <- get('itheta',   envir = cache)
+  ilambdaS   <- get('ilambdaS',  envir = cache)
+  igammaS    <- get('igammaS',  envir = cache)
+  ilambdaB   <- get('ilambdaB',  envir = cache)
+  igammaB    <- get('igammaB',  envir = cache)
+  isigma2S   <- get('isigma2S', envir = cache)
+  isigma2B   <- get('isigma2B', envir = cache)
+  isigma2E   <- get('isigma2E', envir = cache)
+  imuHat     <- get('imuHat',   envir = cache)
 
   # parameters (initialize first row of Phi matrix)
-  Phi        <- matrix(nrow = Nmcmc, ncol = k)
-  Phi[1]     <- init$phi
+  Phi        <- matrix(nrow = Nmcmc, ncol = cache$k)
+  Phi[1, ]   <- init$phi
   logPost    <- double(Nmcmc)
   logPost[1] <- init$logPost
 
   for (i in 2:Nmcmc) {
     lPost <- logPost[i-1]
-    for (j in 1:k) {
+    for (j in 1:(cache$k-1)) {
       changed <- proposal(Phi[1:(i-1) ,j])
-      params  <- c(Phi[i, 1:j-1], changed, Phi[i-1, min(k, (j+1)):k])
-      chol    <- update_cov(params, j)
-      lPost   <- sum(sapply(params[iTheta],              thetaPr$fun)  +
-                     sapply(params[c(iOmegaS, iOmegaB)], omegaPr$fun)  +
-                     sapply(params[c(iAlphaS, iAlphaB)], alphaPr$fun)  +
-                     sapply(params[iSigma2S:iSigma2E],   sigma2Pr$fun)) -
-                ((chol$logDetCov - (cache$res %*% chol$InvCov %*% cache$res))/2)
-
-      if ((lPost - logPost[i-1]) > log(runif(1)))
-        Phi[i, j]  <- changed
+      if (j == 1)
+        params  <- c(changed, Phi[i-1, 2:cache$k])
       else
+        params  <- c(Phi[i, 1:j-1], changed, Phi[i-1, (j+1):cache$k])
+      chol    <- update_cov(params, j)
+      if (is.null(chol)) {
+        lPost <- -.Machine$double.xmax
+      } else {
+        lPost   <- sum(sapply(params[itheta],                thetaPr$fun)  +
+                       sapply(params[c(ilambdaS, ilambdaB)], lambdaPr$fun)  +
+                       sapply(params[c(igammaS, igammaB)],   gammaPr$fun)  +
+                       sapply(params[isigma2S:isigma2E],     sigma2Pr$fun)) -
+          ((chol$logDetCov - drop(cache$res %*% chol$InvCov %*% cache$res))/2)
+      }
+
+      if (lPost - logPost[i-1] > log(runif(1))) {
+        Phi[i, j]  <- changed
+        logPost[i] <- lPost
+      } else {
         Phi[i, j]  <- Phi[i - 1, j]
+        logPost[i] <- logPost[i-1]
+      }
     }
-    logPost[i] <- lPost
+
   }
 
-  indices <- seq(burnIn:Nmcmc, by = thinning)
+  indices <- seq(nBurn, Nmcmc, by = thining)
   Params  <- Phi[indices, ]
 
   return(list(Params = Params, logPost = logPost))

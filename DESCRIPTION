@@ -1,7 +1,7 @@
 Package: KOH
 Type: Package
 Title: Kennedy and O'Hagan (KOH) Model - Calibrating simulator with field data
-Version: 0.2.0
+Version: 0.5.0
 Author: Parham Pishrobat
 Maintainer: The package maintainer <par.pishrobat@gmail.com>
 Description: Full Bayesian calibration of simulator model based on both field 

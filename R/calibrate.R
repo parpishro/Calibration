@@ -11,9 +11,9 @@
 #             variable, followed by experimental input columns.
 #          prior for calibration parameter (theta_pr) is assumed to be "uniform"
 #          prior for lambda (lambda_pr), the scale parameter of correlation
-#             functions (omega) is assumed to be "logistic"
+#             functions (lambda) is assumed to be "logistic"
 #          prior for gamma (gamma_pr), the transformed smoothness parameter in
-#             correlation functions (alpha), is assumed to be "uniform"
+#             correlation functions (gamma), is assumed to be "uniform"
 #
 #          prior for uncertainty (sigma2_pr) assumed to be "inverse gamma"
 # EFFECT: given simulation data, field data, priors for calibration parameters,
@@ -28,15 +28,26 @@
 
 #' calibrate
 #'
+#' @description  Calibrates the simulator using both simulator and field data and returns the
+#   MCMCM distribution of calibration parameters and hyperparameters of the model
+#'
 #' @param sim       (m * (1+p+q) matrix) simulation data
 #' @param field     (n * (1+p+) matrix) field data
 #' @param Nmcmc     number of MCMC runs
 #' @param nBurn     number of MCMC burn ins
 #' @param thining   thining rate to de-correlate MCMC results
-#' @param theta_pr  prior function for calibration parameters
-#' @param lambda_pr  prior function for scale parameters
-#' @param gamma_pr  prior function for smoothness parameters
-#' @param sigma2_pr prior function for variance parameters
+#' @param theta     prior type for calibration parameters
+#' @param t1        first parameter of the chosen theta prior distribution
+#' @param t2        second parameter of the chosen theta prior distribution
+#' @param lambda    prior type for scale parameters
+#' @param l1        first parameter of the chosen rho prior distribution
+#' @param l2        second parameter of the chosen rho prior distribution
+#' @param gamma     prior type for smoothness parameters
+#' @param g1        first parameter of the chosen nu prior distribution
+#' @param g2        second parameter of the chosen nu prior distribution
+#' @param sigma2    prior type for variance parameters
+#' @param s1        first parameter of the chosen sigma2 prior distribution
+#' @param s2        second parameter of the chosen sigma2 prior distribution
 #'
 #' @return a list containing posterior:
 #'    - (((Nmcmc - nBurn) / thinning) * k) parameters distribution:
@@ -56,25 +67,29 @@
 #'
 #' @examples
 calibrate <- function(sim, field,
-                      Nmcmc  = 100, nBurn = 40, thining = 2,
-                      theta  = "uniform", t1, t2,
-                      omega  = "logbeta", o1, o2,
-                      alpha  = "logistic", a1, a2,
-                      sigma2 = "inverse gamma", s1, s2) {
+                      Nmcmc  = 10000, nBurn = 500, thining = 100,
+                      theta  = "uniform",      t1 = 0,   t2 = 20,
+                      lambda = "chen",         l1 = NA,  l2 = NA,
+                      gamma  = "uniform",      g1 = -20, g2 = 20,
+                      sigma2 = "inversegamma", s1 = 2,   s2 = 1) {
 
   thetaPr    <- setup_prior(theta,  t1, t2)
-  omegaPr    <- setup_prior(omega,  o1, o2)
-  alphaPr    <- setup_prior(alpha,  a1, a2)
+  # parameters l1, l2 are already factored in 'chen' prior and will not be used
+  lambdaPr   <- setup_prior(lambda, l1, l2)
+  gammaPr    <- setup_prior(gamma,  g1, g2)
   sigma2Pr   <- setup_prior(sigma2, s1, s2)
 
-  init       <- setup_cache(sim, field, thetaPr, omegaPr, alphaPr, sigma2Pr)
-  params     <- mcmc(Nmcmc, nBurn, thining, init,
-                     thetaPr, omegaPr, alphaPr, sigma2Pr)
 
-  paramMean <- apply(params, 2, mean)
-  paramVar  <- apply(params, 2, var) + apply(sigma_hat, 2, mean)
+  init       <- setup_cache(sim, field, thetaPr, lambdaPr, gammaPr, sigma2Pr)
+  Result     <- mcmc(Nmcmc, nBurn, thining, init,
+                     thetaPr, lambdaPr, gammaPr, sigma2Pr)
 
-  return(list(mean = paramMean, var = paramVar, distribution = params))
+  #paramMean <- apply(Result$Params, 2, mean)
+  #paramVar  <- apply(Result$Params, 2, var) + apply(sigma_hat, 2, mean)
+
+  #Resul$distribution[, 2] = 1 - 1/(1+exp(Resul$distribution[, 2]))
+
+  return(list(distributions = Result$Params, logPost = Result$logPost))
 }
 
 
