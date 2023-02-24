@@ -23,7 +23,7 @@ setup_prior <- function(pr, p1, p2) {
     m    <- (p1 + p2) / 2
   } else if (prior == 2) { # inversegamma
     # REQUIRE: p1 > 0, x > 0
-    fun  <- function(x) p1*log(p2) - lgamma(p1) - (p1+1)*log(x) - p2/(x)
+    fun  <- function(x) p1*log(p2) - lgamma(p1) - (p1+1)*log(abs(x)) - p2/(abs(x))
     m    <- p2 / (p1 - 1)
   } else if (prior == 3) { # gaussian
     fun  <- function(x) -log(sqrt(2*p2*pi)) - (((x - p1)^2)/ (2*p2))

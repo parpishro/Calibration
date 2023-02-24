@@ -67,7 +67,7 @@
 #'
 #' @examples
 calibrate <- function(sim, field,
-                      Nmcmc  = 100, nBurn = 40, thining = 2,
+                      Nmcmc  = 10000, nBurn = 500, thining = 100,
                       theta  = "uniform",      t1 = 0,   t2 = 20,
                       lambda = "chen",         l1 = NA,  l2 = NA,
                       gamma  = "uniform",      g1 = -20, g2 = 20,
@@ -86,6 +86,8 @@ calibrate <- function(sim, field,
 
   #paramMean <- apply(Result$Params, 2, mean)
   #paramVar  <- apply(Result$Params, 2, var) + apply(sigma_hat, 2, mean)
+
+  #Resul$distribution[, 2] = 1 - 1/(1+exp(Resul$distribution[, 2]))
 
   return(list(distributions = Result$Params, logPost = Result$logPost))
 }
