@@ -67,7 +67,7 @@
 #'
 #' @examples
 calibrate <- function(sim, field,
-                      Nmcmc  = 10000, nBurn = 500, thining = 100,
+                      Nmcmc  = 11000, nBurn = 1000, thining = 100,
                       theta  = "uniform",      t1 = 0,   t2 = 20,
                       lambda = "chen",         l1 = NA,  l2 = NA,
                       gamma  = "uniform",      g1 = -20, g2 = 20,
@@ -81,15 +81,8 @@ calibrate <- function(sim, field,
 
 
   init       <- setup_cache(sim, field, thetaPr, lambdaPr, gammaPr, sigma2Pr)
-  Result     <- mcmc(Nmcmc, nBurn, thining, init,
-                     thetaPr, lambdaPr, gammaPr, sigma2Pr)
-
-  #paramMean <- apply(Result$Params, 2, mean)
-  #paramVar  <- apply(Result$Params, 2, var) + apply(sigma_hat, 2, mean)
-
-  #Resul$distribution[, 2] = 1 - 1/(1+exp(Resul$distribution[, 2]))
-
-  return(list(distributions = Result$Params, logPost = Result$logPost))
+  mcmc(Nmcmc, nBurn, thining, init, thetaPr, lambdaPr, gammaPr, sigma2Pr)
+  return(output())
 }
 
 
