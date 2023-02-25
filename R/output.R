@@ -4,7 +4,7 @@ output <- function() {
   for (i in 1:cache$k) {
     if (i %in% cache$itheta) {
       paramNames[i]        <- paste0("theta", i)
-      Params[, i] <- cache$Params[i]
+      Params[, i] <- cache$Params[, i]
     } else if (i %in% cache$ilambdaS) {
       paramNames[i] <- paste0("rhoS", i - cache$ilambdaS[1] + 1)
       Params[, i] <- 1 - 1/(1+exp(cache$Params[, i]))

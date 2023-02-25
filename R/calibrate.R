@@ -67,8 +67,8 @@
 #'
 #' @examples
 calibrate <- function(sim, field,
-                      Nmcmc  = 11000, nBurn = 1000, thining = 100,
-                      theta  = "uniform",      t1 = 0,   t2 = 20,
+                      Nmcmc  = 110, nBurn = 10, thining = 1,
+                      theta  = "uniform",      t1 = 0,   t2 = 50,
                       lambda = "chen",         l1 = NA,  l2 = NA,
                       gamma  = "uniform",      g1 = -20, g2 = 20,
                       sigma2 = "inversegamma", s1 = 2,   s2 = 1) {

@@ -48,39 +48,43 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
 
   for (i in 2:Nmcmc) {
     logPost[i] <- logPost[i-1]
-    lPost      <- double(imuHat)
-    lPost[1]   <- logPost[i-1]
+    lPost      <- logPost[i-1]
     for (j in 1:(cache$k-1)) {
       changed <- proposal(Phi[1:(i-1) ,j])
 
-      if (j == 1)
+      if (j == 1) {
         params <- c(changed, Phi[i-1, 2:cache$k])
-      else
+      } else
         params <- c(Phi[i, 1:j-1], changed, Phi[i-1, (j+1):cache$k])
 
       chol    <- update_cov(params, j)
 
       if (is.null(chol)) {
-        lPost[j+1] <- -.Machine$double.xmax
+        lPost <- -.Machine$double.xmax
       } else {
-        lPost[j+1] <- sum(sapply(params[itheta],                thetaPr$fun)  +
+        lPost <- sum(sapply(params[itheta],                thetaPr$fun)  +
                           sapply(params[c(ilambdaS, ilambdaB)], lambdaPr$fun)  +
                           sapply(params[c(igammaS, igammaB)],   gammaPr$fun)  +
                           sapply(params[isigma2S:isigma2E],     sigma2Pr$fun)) -
           ((chol$logDetCov - drop(cache$res %*% chol$InvCov %*% cache$res))/2)
       }
 
-      if (lPost[j+1] - logPost[i-1] > log(runif(1))) {
+      if (lPost - logPost[i] > log(runif(1))) {
+        if (j == 1)
+          print(changed)
         Phi[i, j]  <- changed
-        logPost[i] <- lPost[j+1]
+        logPost[i] <- lPost
       } else {
         Phi[i, j]  <- Phi[i - 1, j]
       }
     }
     Phi[i, imuHat] <- update_mu()
-    if (i %in% indices) {
+    if (i %% floor(Nmcmc/10) == 0 && i/floor(Nmcmc/10) < 10) {
+      cat("finished ",  (i/floor(Nmcmc/10))*10, "% of MCMC runs...", "\n")
+      print(Phi[i, ])
     }
   }
+  cat("finished MCMC runs.", "\n")
   assign('Params',  Phi[indices, ],   envir = cache)
   assign('logPost', logPost[indices], envir = cache)
 }
