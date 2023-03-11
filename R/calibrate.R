@@ -1,87 +1,108 @@
-# Calibrates the simulator using both simulator and field data and returns the
-# MCMCM distribution of calibration parameters and hyperparameters of the model
-
-
-# REQUIRE: simulation data (s) must be a matrix with rows representing
-#             simulator observations and first column being the univariate
-#             response variable, followed by experimental input columns,
-#             followed by calibration input columns.
-#          field data (field) must be a matrix with rows representing
-#             field observations and first column being the univariate response
-#             variable, followed by experimental input columns.
-#          prior for calibration parameter (theta_pr) is assumed to be "uniform"
-#          prior for lambda (lambda_pr), the scale parameter of correlation
-#             functions (lambda) is assumed to be "logistic"
-#          prior for gamma (gamma_pr), the transformed smoothness parameter in
-#             correlation functions (gamma), is assumed to be "uniform"
-#
-#          prior for uncertainty (sigma2_pr) assumed to be "inverse gamma"
-# EFFECT: given simulation data, field data, priors for calibration parameters,
-#             correlation functions hyperparameters, uncertainty hyperparameters
-#             , and MCMC specifications, build a KOH model and run MH MCMC to
-#             find the posterior distribution of parameters, hyperparameters,
-#             and and their point estimates and estimated variances.
-#             The function specifies the data and passes its environment to all
-#             child functions for use without needing to pass them as argumnets.
-# TODO: 1 - change initail values to vector
-#       2 - code few more options for priors
-
-#' calibrate
+#' Calibrating Simulator model Using Both Field Data and Simulator Runs
 #'
-#' @description  Calibrates the simulator using both simulator and field data and returns the
-#   MCMCM distribution of calibration parameters and hyperparameters of the model
+#' `calibrates` uses given (or default) priors and initial values of the
+#' calibration model, runs a full Bayesian Markov Chain Monte Carlo (MCMC)
+#' algorithm and samples the posterior distribution of parameters.
 #'
-#' @param sim       (m * (1+p+q) matrix) simulation data
-#' @param field     (n * (1+p+) matrix) field data
-#' @param Nmcmc     number of MCMC runs
-#' @param nBurn     number of MCMC burn ins
-#' @param thining   thining rate to de-correlate MCMC results
-#' @param theta     prior type for calibration parameters
-#' @param t1        first parameter of the chosen theta prior distribution
-#' @param t2        second parameter of the chosen theta prior distribution
-#' @param lambda    prior type for scale parameters
-#' @param l1        first parameter of the chosen rho prior distribution
-#' @param l2        second parameter of the chosen rho prior distribution
-#' @param gamma     prior type for smoothness parameters
-#' @param g1        first parameter of the chosen nu prior distribution
-#' @param g2        second parameter of the chosen nu prior distribution
-#' @param sigma2    prior type for variance parameters
-#' @param s1        first parameter of the chosen sigma2 prior distribution
-#' @param s2        second parameter of the chosen sigma2 prior distribution
 #'
-#' @return a list containing posterior:
-#'    - (((Nmcmc - nBurn) / thinning) * k) parameters distribution:
-#'        - 1st q columns: distribution of calibration parameters
-#'        - next (p + q) columns: distribution of sim scale parameters
-#'        - next (p + q) columns: distribution of sim smoothness parameters
-#'        - next p columns: distribution of bias scale parameters
-#'        - next p columns: distribution of bias smoothness parameters
-#'        - next column (index: k - 3): distribution of sim variance parameter
-#'        - next column (index: k - 1): distribution of bias variance parameter
-#'        - next column (index: k - 2): distribution of error variance parameter
-#'        - next column (index: k): distribution of mean response parameter
-#'    - a vector (length: k) of parameter estimated variances
-#'    - a vector (length: k) of parameter point estimates
+#' @details
+#'
+#' In both matrices of simulation and field data, the first column must be the
+#' univariate response variable, followed by experimental input columns,
+#' followed by calibration input columns (only in simulation matrix).
+#'
+#' Posterior distribution of a parameters often do not correspond to well-known
+#' distributions. A MCMC algorithm, and especially Metropolis-Hastings (MH)
+#' algorithm with adaptive proposal gives a sufficiently close distribution. In
+#' addition to point estimates of the parameters, `calibrate` also enables
+#' uncertainty quantification for estimated parameters.
+#'
+#' ## Calibration Model
+#'
+#' This implementation is based on Kennedy-O'Hagan (KOH) calibration model. In
+#' their seminal paper*, Kennedy and O'Hagan augmented simulator output with
+#' field observation and fit a three-component model that accounts for simulator
+#' input and bias correction using two independent Gaussian Processes (GP) and a
+#' third term representing measurement error.
+#' $$
+#' z_i = \eta (x_i, \kappa) + \delta(x_i) + e_i
+#' $$
+#' In the original paper, the authors proposed a two-stage hierarchical Bayesian
+#' model. In the first stage, point estimates of GP hyperparameters are computed
+#' using maximum likelihood estimation (MLE) method. In the second stage, these
+#' hyperparameters are fixed at their estimated value and run a MCMC algorithm
+#' to sample calibration parameters.
+#' In contrast, `calibrate` runs MCMC algorithm to sample the posterior
+#' distribution of all parameters/hyperparameters. As a result, priors must be
+#' specified carefully to reflect the prior expert belief about the distribution
+#' and initial values must be chosen as close as possible to prior means.
+#'
+#' ## Notation
+#'
+#' parameters of KOH model include all of calibration parameters and will be
+#' denoted by $\kappa$. Since data is scaled and has mean zero, both GPs are
+#' specified using their correlation structures and marginal variances. In this
+#' implementation, power correlation structure assumed as it has enough
+#' flexibility to capture both scale and smoothness of correalation. Therefore,
+#' hyperparameters includes scale ($\theta_S$ & $\theta_B$) and smoothness
+#' ($\alpha_S$ & $\alpha_B$) coefficients and marginal variances ($\sigma^2_S$ &
+#' $\sigma^2_B$) for each GP. Moreover there is a third term that represents
+#' measurement error and is specified using its variance ($\sigma^2_E$).
+#'
+#'
+#' @param sim       A m \times (1+p+q) matrix, representing simulation data,
+#' where m, number of rows, is number of simulation runs, p is number of
+#' experimental variables, and q is number of calibration variables. Plus one
+#' represent the first column, which is the response variable.
+#' @param field     A n \times (1+p) matrix, representing field data, where n,
+#' number of rows, is number of field observations and p is number of
+#' experimental variables.
+#' @param Nmcmc     An integer for number of MCMC runs.
+#' @param nBurn     An integer for number of MCMC burn ins.
+#' @param thining   A double as MCMC thinning rate to remove auto-correlation.
+#' @param kappa     A string to specify the prior type of calibration parameters.
+#' @param k1        A double as first parameter of the chosen kappa distribution.
+#' @param k2        A double as second parameter of the chosen kappa distribution.
+#' @param theta     A string to specify the prior type for scale parameters.
+#' @param t1        A double as first parameter of the chosen theta distribution.
+#' @param t2        A double as second parameter of the chosen theta distribution.
+#' @param alpha     A string to specify the prior type for smoothness parameters.
+#' @param a1        A double as first parameter of the chosen alpha distribution.
+#' @param a2        A double as second parameter of the chosen alpha distribution.
+#' @param sigma2    A string to specify the prior type for variance parameters.
+#' @param s1        A double as first parameter of the chosen sigma2 distribution.
+#' @param s2        A double as second parameter of the chosen sigma2 distribution.
+#'
+#' @return an output list containing: \n
+#'  * estimates: Point estimates for all parameters and hyperparameters \n
+#'  * dist:      ((Nmcmc - nBurn) / thinning) \times k) parameters distribution matrix,
+#'               where k (number of columns) is total number of parameters \n
+#'  * logPost:   log posterior distribution of response
+#'  * vars:      name of all parameters (based on below notation)
+#'  * summary:   summary of all columns of distribution matrix
 #'
 #' @export
 #'
-#' @examples
+#' @examples examples/calib
+#' @references
+#' Kennedy MC, O’Hagan A (2001). “Bayesian calibration of computer models.”
+#' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
+#' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 calibrate <- function(sim, field,
                       Nmcmc  = 110, nBurn = 10, thining = 1,
-                      theta  = "uniform",      t1 = 0,   t2 = 50,
-                      lambda = "chen",         l1 = NA,  l2 = NA,
-                      gamma  = "uniform",      g1 = -20, g2 = 20,
+                      kappa  = "uniform",      k1 = 0,   k2 = 50,
+                      theta  = "chen",         t1 = NA,  t2 = NA,
+                      alpha  = "uniform",      a1 = -20, a2 = 20,
                       sigma2 = "inversegamma", s1 = 2,   s2 = 1) {
 
-  thetaPr    <- setup_prior(theta,  t1, t2)
-  # parameters l1, l2 are already factored in 'chen' prior and will not be used
-  lambdaPr   <- setup_prior(lambda, l1, l2)
-  gammaPr    <- setup_prior(gamma,  g1, g2)
+  kappaPr    <- setup_prior(kappa,  k1, k2)
+  lambdaPr   <- setup_prior(theta, t1, t2)  # transform from $\theta \in (0, \inf)$ to $\lambda \in \R$
+  gammaPr    <- setup_prior(alpha,  a1, a2) # transform from $\alpha \in [1, 2]$ to $\gamma \in \R$
   sigma2Pr   <- setup_prior(sigma2, s1, s2)
 
 
-  init       <- setup_cache(sim, field, thetaPr, lambdaPr, gammaPr, sigma2Pr)
-  mcmc(Nmcmc, nBurn, thining, init, thetaPr, lambdaPr, gammaPr, sigma2Pr)
+  init       <- setup_cache(sim, field, kappaPr, lambdaPr, gammaPr, sigma2Pr)
+  mcmc(Nmcmc, nBurn, thining, init, kappaPr, lambdaPr, gammaPr, sigma2Pr)
   return(output())
 }
 
