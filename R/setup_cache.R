@@ -1,25 +1,27 @@
-#' setup_cache
-#' sets up all the initial values based on given data and priors
+#' Sets up the cache environment to hold all the intermediate results
 #'
-#' @param sim
-#' @param field
-#' @param thetaPr
-#' @param lambdaPr
-#' @param gammaPr
-#' @param sigma2Pr
+#' `setup_cache` declares and initalize the basic information about the data such as
+#' number of parameters in each category. It sets up all the initial values of the parameters
+#' and runs a first iteration of the workflow to compute log posterior and all the intermediate
+#' objects such as correlation matrices of both GPs. The objects in cache environment can be
+#' modified/accessed from all package functions.
+#'
+#' @param sim       a matrix containing the simulation data
+#' @param field     a matrix containing the field data
+#' @param kappaPr   a function that computes log of prior for calibration parameters
+#' @param thetaPr   a function that computes log of prior for scale hyperparameters
+#' @param alphaPr   a function that computes log of prior for smoothness hyperparameters
+#' @param sigma2Pr  a function that computes log of prior for variance hyperparameters
 #'
 #' @return
-setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
+setup_cache <- function(sim, field, kappaPr,thetaPr, alphaPr, sigma2Pr) {
 
-  # setting cache environment: TO BE ACCESSED/MODIFIED BY ALL PACKAGE FUNCTIONS
-  # scalers
   m   <- nrow(sim)               # number of simulation runs
   n   <- nrow(field)             # number of field observations
   p   <- ncol(field) - 1         # number of experimental variables
   q   <- ncol(sim) - p - 1       # number of calibration parameters
   d   <- ncol(sim) - 1           # number of all variables for simulation
   k   <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 + 1 # total # of parameters
-
 
   assign('m', m, envir = cache)    # number of simulation runs
   assign('n', n, envir = cache)    # number of field observations
@@ -29,32 +31,46 @@ setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
   assign('k', k, envir = cache)
 
   # indices for parameters in phi
-  itheta     <- 1:q                                             # calibration
-  ilambdaS   <- (q+1): (q + (p+q))                              # sim scale
-  igammaS    <- (q + (p+q) + 1): (q + (p+q) + (p+q))            # sim smooth
-  ilambdaB   <- (q + (p+q) + (p+q) + 1): (q + (p+q) + (p+q) + p)# bias scale
-  igammaB    <- (q + (p+q) + (p+q) + p + 1): (k-4)              # bias smooth
+  ikappa     <- 1:q                                             # calibration
+  ithetaS    <- (q+1): (q + (p+q))                              # sim scale
+  ialphaS    <- (q + (p+q) + 1): (q + (p+q) + (p+q))            # sim smooth
+  ithetaB    <- (q + (p+q) + (p+q) + 1): (q + (p+q) + (p+q) + p)# bias scale
+  ialphaB    <- (q + (p+q) + (p+q) + p + 1): (k-4)              # bias smooth
   isigma2S   <- k-3                                             # sim variance
   isigma2B   <- k-2                                             # bias variance
   isigma2E   <- k-1                                             # error variance
   imuHat     <- k                                               # estimated mean
 
-  assign('itheta',   itheta ,  envir = cache)     # calibration
-  assign('ilambdaS', ilambdaS, envir = cache)     # sim scale
-  assign('igammaS',  igammaS,  envir = cache)     # sim smoothness
-  assign('ilambdaB', ilambdaB, envir = cache)     # bias scale
-  assign('igammaB',  igammaB,  envir = cache)     # bias smoothness
+  assign('ikappa',   ikappa ,  envir = cache)     # calibration
+  assign('ithetaS',  ithetaS,  envir = cache)     # sim scale
+  assign('ialphaS',  ialphaS,  envir = cache)     # sim smoothness
+  assign('ithetaB',  ithetaB,  envir = cache)     # bias scale
+  assign('ialphaB',  ialphaB,  envir = cache)     # bias smoothness
   assign('isigma2S', isigma2S, envir = cache)     # sim variance
   assign('isigma2B', isigma2B, envir = cache)     # bias variance
   assign('isigma2E', isigma2E, envir = cache)     # error variance
   assign('imuHat',   imuHat,   envir = cache)     # number of total parameters
 
-  # data matrices and vectors
+  # data matrices and vectors and scaling
   Xs      <- sim[, 1:d]
+  ys      <- sim[, d + 1]
   ys      <- sim[, d + 1]
   Xb      <- field[, 1:p, drop = FALSE]
   yf      <- field[, p + 1]
-  y       <- (c(ys, yf) - mean(ys)) / sd(ys)
+
+  yMean   <- mean(ys)
+  ySd     <- sd(ys)
+  y       <- scale(c(ys, yf), center =  yMean, scale = ySd)
+
+  calibMin      <- apply(Xs[, (p+1):d], 2, min)
+  calibMax      <- apply(Xs[, (p+1):d], 2, max)
+  Xs[, (p+1):d] <- scale(Xs[, (p+1):d], center = calibMin, scale = calibMax - calibMin)
+
+  X             <- rbind(Xs[, 1:p], Xb)
+  experMin      <- apply(Xs[, (p+1):d], 2, min)
+  experMax      <- apply(Xs[, (p+1):d], 2, max)
+  Xs[, 1:p]     <- scale(Xs[, 1:p], center = experMin, scale = experMax - experMin)
+  Xb            <- scale(Xb       , center = experMin, scale = experMax - experMin)
 
   assign('Xs', Xs, envir = cache)
   assign('ys', ys, envir = cache)
@@ -62,33 +78,27 @@ setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
   assign('yf', yf, envir = cache)
   assign('y',  y,  envir = cache)
 
-
   # parameters (initialize first row of Phi matrix)
   phi            <- double(k)
-  phi[itheta]    <- double(length(itheta))  + thetaPr$mean
-  phi[ilambdaS]  <- double(length(ilambdaS)) + lambdaPr$mean
-  phi[igammaS]   <- double(length(igammaS)) + gammaPr$mean
-  phi[ilambdaB]  <- double(length(ilambdaB)) + lambdaPr$mean
-  phi[igammaB]   <- double(length(igammaB)) + gammaPr$mean
-  phi[isigma2S]  <- sigma2Pr$mean
-  phi[isigma2B]  <- sigma2Pr$mean
-  phi[isigma2E]  <- sigma2Pr$mean
-
-
+  phi[ikappa]    <- apply(Xs[, (p+1):q], 2, mean)
+  phi[ithetaS]   <- double(length(ithetaS)) + 0.5
+  phi[ialphaS]   <- double(length(ialphaS)) + 1.8
+  phi[ithetaB]   <- double(length(ithetaB)) + 0.5
+  phi[ialphaB]   <- double(length(ialphaB)) + 1.8
+  phi[isigma2S]  <- 1
+  phi[isigma2B]  <- 1
+  phi[isigma2E]  <- 1
 
   # set up first correlation matrices and load them into cache
-  Xf      <- cbind(Xb, replicate(n, phi[itheta], n))
-  CorFF   <- correlation(Xf,     lambda = phi[ilambdaS], gamma = phi[igammaS])
-  CorFS   <- correlation(Xf, Xs, lambda = phi[ilambdaS], gamma = phi[igammaS])
+  Xf      <- cbind(Xb, replicate(n, phi[ikappa], n))
+  CorFS   <- correlation(Xf, Xs, theta = phi[ithetaS], alpha = phi[ialphaS])
+  CorFF   <- correlation(Xf,     theta = phi[ithetaS], alpha = phi[ialphaS])
+  CorSS   <- correlation(Xs,     theta = phi[ithetaS], alpha = phi[ialphaS])
+  CorB    <- correlation(Xb,     theta = phi[ithetaB], alpha = phi[ialphaB])
   CorSF   <- t(CorFS)
-  CorSS   <- correlation(Xs,     lambda = phi[ilambdaS], gamma = phi[igammaS])
-  CorB    <- correlation(Xb,     lambda = phi[ilambdaB], gamma = phi[igammaB])
-
-
   sigma2S <- phi[isigma2S]
   sigma2B <- phi[isigma2B]
   sigma2E <- phi[isigma2E]
-
 
   assign('Xf',      Xf,      envir = cache)
   assign('CorFF',   CorFF,   envir = cache)
@@ -99,7 +109,6 @@ setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
   assign('sigma2S', sigma2S, envir = cache)
   assign('sigma2B', sigma2B, envir = cache)
   assign('sigma2E', sigma2E, envir = cache)
-
 
   # compute the first log likelihood by forming the augmented covariance matrix
   #   and load both augmented covariance matirx and log likelihood into cache
@@ -119,14 +128,12 @@ setup_cache <- function(sim, field, thetaPr,lambdaPr, gammaPr, sigma2Pr) {
   assign('muHat',   muHat,   envir = cache)
   assign('res',     res,     envir = cache)
 
-
-
   # computes posterior log likelihood of augmented response given the augmented
   #   covariance matrix (its inverse and determinant) and residuals
-  lPost <- sum(sapply(phi[itheta],                thetaPr$fun)  +
-               sapply(phi[c(ilambdaS, ilambdaB)], lambdaPr$fun)  +
-               sapply(phi[c(igammaS, igammaB)],   gammaPr$fun)  +
-               sapply(phi[isigma2S:isigma2E],     sigma2Pr$fun)) -
+  lPost <- sum(sapply(phi[ikappa],              kappaPr)  +
+               sapply(phi[c(ithetaS, ithetaB)], thetaPr)  +
+               sapply(phi[c(ialphaS, ialphaB)], alphaPr)  +
+               sapply(phi[isigma2S:isigma2E],   sigma2Pr)) -
     (0.5*logDetCov) - (0.5 * drop(res%*%InvCov%*%res))
   return(list(phi = phi, logPost = lPost))
 
