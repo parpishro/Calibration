@@ -71,7 +71,10 @@ update_cov <- function(phi, iChanged) {
   InvCov    <- chol2inv(CholCov)
   logDetCov <- sum(2*log(diag(CholCov)))
   assign('Chol', CholCov, envir = cache)
-  muHat    <- update_mu()
+  muHat     <- update_mu()
+  res       <- cache$y - muHat
+  assign('muHat',   muHat,   envir = cache)
+  assign('res',     res,     envir = cache)
 
   return(list(InvCov = InvCov, logDetCov = logDetCov))
 
