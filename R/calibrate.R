@@ -1,15 +1,15 @@
 #' Calibrating Simulator model Using Both Field Data and Simulator Runs
 #'
-#' `calibrates` uses given (or default) priors and initial values of the
+#' `calibrate` uses given (or default) priors and initial values of the
 #' calibration model, runs a full Bayesian Markov Chain Monte Carlo (MCMC)
 #' algorithm and samples the posterior distribution of parameters.
 #'
 #'
 #' @details
 #'
-#' In both matrices of simulation and field data, the first column must be the
-#' univariate response variable, followed by experimental input columns,
-#' followed by calibration input columns (only in simulation matrix).
+#' In both matrices of simulation and field data, the first columns are experimental inputs,
+#' followed by calibration input columns (only in simulation matrix), and last column is
+#' univariate response variable.
 #'
 #' Posterior distribution of a parameters often do not correspond to well-known
 #' distributions. A MCMC algorithm, and especially Metropolis-Hastings (MH)
@@ -90,19 +90,19 @@
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 calibrate <- function(sim, field,
                       Nmcmc  = 110, nBurn = 10, thining = 1,
-                      kappa  = "uniform",      k1 = 0,   k2 = 50,
+                      kappa  = "uniform",      k1 = 0,   k2 = 1,
                       theta  = "chen",         t1 = NA,  t2 = NA,
                       alpha  = "uniform",      a1 = -20, a2 = 20,
                       sigma2 = "inversegamma", s1 = 2,   s2 = 1) {
 
   kappaPr    <- setup_prior(kappa,  k1, k2)
-  lambdaPr   <- setup_prior(theta, t1, t2)  # transform from $\theta \in (0, \inf)$ to $\lambda \in \R$
-  gammaPr    <- setup_prior(alpha,  a1, a2) # transform from $\alpha \in [1, 2]$ to $\gamma \in \R$
+  thetaPr    <- setup_prior(theta,  t1, t2)
+  alphaPr    <- setup_prior(alpha,  a1, a2)
   sigma2Pr   <- setup_prior(sigma2, s1, s2)
+  init       <- setup_cache(sim, field, kappaPr, thetaPr, alphaPr, sigma2Pr)
 
+  mcmc(Nmcmc, nBurn, thining, init, kappaPr, thetaPr, alphaPr, sigma2Pr)
 
-  init       <- setup_cache(sim, field, kappaPr, lambdaPr, gammaPr, sigma2Pr)
-  mcmc(Nmcmc, nBurn, thining, init, kappaPr, lambdaPr, gammaPr, sigma2Pr)
   return(output())
 }
 
