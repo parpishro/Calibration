@@ -90,6 +90,11 @@ setup_cache <- function(sim, field, kappaPr,thetaPr, alphaPr, sigma2Pr) {
   phi[isigma2E]  <- 1
 
   # set up first correlation matrices and load them into cache
+  # corFF : (n * n) correlation matrix of augmented Xf's
+  # corFS : (n * m) correlation matrix between Xf's, Xs's
+  # corSF : (m * n) correlation matrix between Xs's, Xf's
+  # corSS : (m * m) correlation matrix between Xs's
+  # corB  : (n * n) correlation matrix between Xb's
   Xf      <- cbind(Xb, replicate(n, phi[ikappa], n))
   CorFS   <- correlation(Xf, Xs, theta = phi[ithetaS], alpha = phi[ialphaS])
   CorFF   <- correlation(Xf,     theta = phi[ithetaS], alpha = phi[ialphaS])
