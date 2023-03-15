@@ -58,29 +58,29 @@ setup_cache <- function(sim, field, kappaPr,thetaPr, alphaPr, sigma2Pr) {
   Xb      <- field[, 1:p, drop = FALSE]
   yf      <- field[, p + 1]
 
-  yMean   <- mean(ys)
-  ySd     <- sd(ys)
-  y       <- scale(c(ys, yf), center =  yMean, scale = ySd)
+  y       <- scale(c(ys, yf), center =  mean(ys), scale = sd(ys))
 
-  calibMin      <- apply(Xs[, (p+1):d], 2, min)
-  calibMax      <- apply(Xs[, (p+1):d], 2, max)
-  Xs[, (p+1):d] <- scale(Xs[, (p+1):d], center = calibMin, scale = calibMax - calibMin)
+  calibMin      <- apply(Xs[, (p+1):d, drop=F], 2, min)
+  calibMax      <- apply(Xs[, (p+1):d, drop=F], 2, max)
+  Xs[, (p+1):d] <- scale(Xs[, (p+1):d, drop=F], center = calibMin, scale = calibMax - calibMin)
 
-  X             <- rbind(Xs[, 1:p], Xb)
-  experMin      <- apply(Xs[, (p+1):d], 2, min)
-  experMax      <- apply(Xs[, (p+1):d], 2, max)
-  Xs[, 1:p]     <- scale(Xs[, 1:p], center = experMin, scale = experMax - experMin)
-  Xb            <- scale(Xb       , center = experMin, scale = experMax - experMin)
+  X             <- rbind(Xs[, 1:p, drop=F], Xb)
+  experMin      <- apply(Xs[, (p+1):d, drop=F], 2, min)
+  experMax      <- apply(Xs[, (p+1):d, drop=F], 2, max)
+  Xs[, 1:p]     <- scale(Xs[, 1:p,     drop=F], center = experMin, scale = experMax - experMin)
+  Xb            <- scale(Xb,                    center = experMin, scale = experMax - experMin)
 
-  assign('Xs', Xs, envir = cache)
-  assign('ys', ys, envir = cache)
-  assign('Xb', Xb, envir = cache)
-  assign('yf', yf, envir = cache)
-  assign('y',  y,  envir = cache)
+  assign('calibMin', calibMin, envir = cache)
+  assign('calibMax', calibMax, envir = cache)
+  assign('Xs',       Xs,       envir = cache)
+  assign('ys',       ys,       envir = cache)
+  assign('Xb',       Xb,       envir = cache)
+  assign('yf',       yf,       envir = cache)
+  assign('y',        y,        envir = cache)
 
   # parameters (initialize first row of Phi matrix)
   phi            <- double(k)
-  phi[ikappa]    <- apply(Xs[, (p+1):q], 2, mean)
+  phi[ikappa]    <- apply(Xs[, (p+1):(p+q), drop=F], 2, mean)
   phi[ithetaS]   <- double(length(ithetaS)) + 0.5
   phi[ialphaS]   <- double(length(ialphaS)) + 1.8
   phi[ithetaB]   <- double(length(ithetaB)) + 0.5
@@ -118,14 +118,13 @@ setup_cache <- function(sim, field, kappaPr,thetaPr, alphaPr, sigma2Pr) {
   # compute the first log likelihood by forming the augmented covariance matrix
   #   and load both augmented covariance matirx and log likelihood into cache
   Inn         <- diag(n)
-  AugCov      <- rbind(cbind(sigma2S*CorFF + sigma2B*CorB + sigma2E*Inn,
-                             sigma2S*CorFS),
+  AugCov      <- rbind(cbind(sigma2S*CorFF + sigma2B*CorB + sigma2E*Inn, sigma2S*CorFS),
                        cbind((sigma2S*CorSF), (sigma2S*CorSS)))
   CholCov     <- chol(AugCov)
   InvCov      <- chol2inv(CholCov)
   logDetCov   <- sum(2*log(diag(CholCov)))
 
-  assign('Chol',  CholCov,  envir = cache)
+  assign('InvCov',  InvCov,  envir = cache)
   muHat       <- update_mu()
   res         <- y - muHat
   phi[imuHat] <- muHat
@@ -138,8 +137,7 @@ setup_cache <- function(sim, field, kappaPr,thetaPr, alphaPr, sigma2Pr) {
   lPost <- sum(sapply(phi[ikappa],              kappaPr)  +
                sapply(phi[c(ithetaS, ithetaB)], thetaPr)  +
                sapply(phi[c(ialphaS, ialphaB)], alphaPr)  +
-               sapply(phi[isigma2S:isigma2E],   sigma2Pr)) -
-    (0.5*logDetCov) - (0.5 * drop(res%*%InvCov%*%res))
+               sapply(phi[isigma2S:isigma2E],   sigma2Pr)) - (0.5*logDetCov - 0.5 * drop(t(res)%*%InvCov%*%res))
   return(list(phi = phi, logPost = lPost))
 
 }

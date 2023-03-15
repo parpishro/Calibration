@@ -43,7 +43,6 @@ update_cov <- function(phi, iChanged) {
     assign('CorFF', CorFF, envir = cache)
     assign('CorFS', CorFS, envir = cache)
     assign('CorSF', CorSF, envir = cache)
-    assign('muHat', muHat, envir = cache)
 
   } else if (iChanged %in% ithetaB | iChanged %in% ialphaB) {
     CorB   <- correlation(cache$Xb, theta = phi[ithetaB], alpha = phi[ialphaB])
@@ -70,11 +69,13 @@ update_cov <- function(phi, iChanged) {
 
   InvCov    <- chol2inv(CholCov)
   logDetCov <- sum(2*log(diag(CholCov)))
-  assign('Chol', CholCov, envir = cache)
   muHat     <- update_mu()
   res       <- cache$y - muHat
-  assign('muHat',   muHat,   envir = cache)
-  assign('res',     res,     envir = cache)
+  assign('InvCov',    InvCov,    envir = cache)
+  assign('logDetCov', logDetCov, envir = cache)
+  assign('res',       res,       envir = cache)
+  assign('muHat',     muHat,     envir = cache)
+
 
   return(list(InvCov = InvCov, logDetCov = logDetCov))
 

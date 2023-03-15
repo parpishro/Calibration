@@ -89,11 +89,11 @@
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 calibrate <- function(sim, field,
-                      Nmcmc  = 110, nBurn = 10, thining = 1,
-                      kappa  = "uniform",      k1 = 0,   k2 = 1,
-                      theta  = "chen",         t1 = NA,  t2 = NA,
-                      alpha  = "uniform",      a1 = -20, a2 = 20,
-                      sigma2 = "inversegamma", s1 = 2,   s2 = 1) {
+                      Nmcmc  = 1100, nBurn = 100, thining = 10,
+                      kappa  = "gaussian",  k1 = 0.5,  k2 = 0.25,
+                      theta  = "logbeta",   t1 = NULL, t2 = NULL,
+                      alpha  = "betashift", a1 = 5,    a2 = 1,
+                      sigma2 = "jefferys",  s1 = NULL, s2 = NULL) {
 
   kappaPr    <- setup_prior(kappa,  k1, k2)
   thetaPr    <- setup_prior(theta,  t1, t2)

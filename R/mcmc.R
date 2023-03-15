@@ -40,19 +40,21 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
   # parameters (initialize first row of Phi matrix)
   Phi        <- matrix(nrow = Nmcmc, ncol = cache$k)
   Phi[1, ]   <- init$phi
+  cat("initial values: ", init$phi, "\n")
   logPost    <- double(Nmcmc)
   logPost[1] <- init$logPost
 
   indices    <- seq(nBurn, Nmcmc, by = thining)
   accepLast  <- double(cache$k - 1)
   accepCurr  <- double(cache$k - 1)
-
+  sdProp     <- double(cache$k - 1)
   for (i in 2:Nmcmc) {
     logPost[i] <- logPost[i-1]
     lPost      <- logPost[i-1]
     for (j in 1:(cache$k-1)) {
-      changed <- proposal(Phi[1:(i-1) ,j], j)
-
+      res <- proposal(Phi[1:(i-1) ,j], j)   # change res to changed
+      sdProp[j] <- res[1]
+      changed   <- res[2]
       if (j == 1)
         params <- c(changed, Phi[i-1, 2:cache$k])
       else
@@ -67,10 +69,9 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
                      sapply(params[c(ithetaS, ithetaB)], thetaPr)  +
                      sapply(params[c(ialphaS, ialphaB)], alphaPr)  +
                      sapply(params[isigma2S:isigma2E],   sigma2Pr)) -
-                 ((chol$logDetCov - drop(cache$res %*% chol$InvCov %*% cache$res))/2)
+                 ((chol$logDetCov - drop(t(cache$res) %*% chol$InvCov %*% cache$res))/2)
 
-
-      if (lPost - logPost[i] > log(runif(1))) {
+      if (is.finite(lPost) & lPost - logPost[i] >  log(runif(1))) {
         Phi[i, j]     <- changed
         logPost[i]    <- lPost
         accepCurr[j] <- accepCurr[j] + 1
@@ -79,9 +80,13 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
       }
     }
     Phi[i, imuHat] <- update_mu()
-    if (i %% floor(Nmcmc/10) == 0 && i/floor(Nmcmc/10) < 10) {
+
+    if (i %% floor(Nmcmc/10) == 0 && i/floor(Nmcmc/10) < 10) {   #
       cat("finished ",  (i/floor(Nmcmc/10))*10, "% of MCMC runs...", "\n")
-      print(accepCurr - accepLast)
+      cat("------------------------------------------------------------------------", "\n")
+      cat("acceptance ratio in the last ", (i/floor(Nmcmc/10))*10, " %: ", round((accepCurr - accepLast)*10/Nmcmc, 2), "\n")
+      cat("parameter sample: ", round(Phi[i, ], 3), "\n")
+      cat("proposal sd: ", round(sdProp, 3), "\n")
       accepLast <- accepCurr
     }
   }
