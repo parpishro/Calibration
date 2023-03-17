@@ -25,12 +25,12 @@ output <- function() {
     }
   }
 
-  paramMean        <- apply(Params, 2, mean)
-  paramVar         <- apply(Params, 2, var)
-  estimates        <- data.frame(var=paramNames, est=paramMean, se=sqrt(paramVar))
+  paramMean        <- round(apply(dist, 2, mean), 2)
+  paramVar         <- round(apply(dist, 2, var), 2)
+  estimates        <- data.frame(var=paramNames, est=paramMean, se=paramVar)
   colnames(dist)   <- paramNames
   return(list(estimates     = estimates,
-              distributions = dist,
+              distributions = round(dist, 2),
               logPost       = cache$logPost,
               vars          = paramNames,
               summary       = summary(dist)))
