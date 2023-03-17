@@ -24,9 +24,7 @@
 #' field observation and fit a three-component model that accounts for simulator
 #' input and bias correction using two independent Gaussian Processes (GP) and a
 #' third term representing measurement error.
-#' $$
-#' z_i = \eta (x_i, \kappa) + \delta(x_i) + e_i
-#' $$
+#' \deqn{z_i = \eta (x_i, \kappa) + \delta(x_i) + e_i}
 #' In the original paper, the authors proposed a two-stage hierarchical Bayesian
 #' model. In the first stage, point estimates of GP hyperparameters are computed
 #' using maximum likelihood estimation (MLE) method. In the second stage, these
@@ -40,21 +38,21 @@
 #' ## Notation
 #'
 #' parameters of KOH model include all of calibration parameters and will be
-#' denoted by $\kappa$. Since data is scaled and has mean zero, both GPs are
+#' denoted by \eqn{\kappa}. Since data is scaled and has mean zero, both GPs are
 #' specified using their correlation structures and marginal variances. In this
 #' implementation, power correlation structure assumed as it has enough
 #' flexibility to capture both scale and smoothness of correalation. Therefore,
-#' hyperparameters includes scale ($\theta_S$ & $\theta_B$) and smoothness
-#' ($\alpha_S$ & $\alpha_B$) coefficients and marginal variances ($\sigma^2_S$ &
-#' $\sigma^2_B$) for each GP. Moreover there is a third term that represents
-#' measurement error and is specified using its variance ($\sigma^2_E$).
+#' hyperparameters includes scale (\eqn{\theta_S} & \eqn{\theta_B}) and smoothness
+#' (\eqn{\alpha_S & \eqn{\alpha_B\eqn{) coefficients and marginal variances (\eqn{\sigma^2_S} &
+#' \eqn{\sigma^2_B}) for each GP. Moreover there is a third term that represents
+#' measurement error and is specified using its variance (\eqn{\sigma^2_E}).
 #'
 #'
-#' @param sim       A m \times (1+p+q) matrix, representing simulation data,
+#' @param sim       A \eqn{m \times (1+p+q)} matrix, representing simulation data,
 #' where m, number of rows, is number of simulation runs, p is number of
 #' experimental variables, and q is number of calibration variables. Plus one
 #' represent the first column, which is the response variable.
-#' @param field     A n \times (1+p) matrix, representing field data, where n,
+#' @param field     A \eqn{n \times (1+p)} matrix, representing field data, where n,
 #' number of rows, is number of field observations and p is number of
 #' experimental variables.
 #' @param Nmcmc     An integer for number of MCMC runs.
@@ -73,13 +71,13 @@
 #' @param s1        A double as first parameter of the chosen sigma2 distribution.
 #' @param s2        A double as second parameter of the chosen sigma2 distribution.
 #'
-#' @return an output list containing: \n
-#'  * estimates: Point estimates for all parameters and hyperparameters \n
-#'  * dist:      ((Nmcmc - nBurn) / thinning) \times k) parameters distribution matrix,
-#'               where k (number of columns) is total number of parameters \n
-#'  * logPost:   log posterior distribution of response
-#'  * vars:      name of all parameters (based on below notation)
-#'  * summary:   summary of all columns of distribution matrix
+#' @return an output list containing:
+#'  * estimates:      Point estimates for all parameters and hyperparameters
+#'  * distributions:  \eqn{\frac{(Nmcmc - nBurn)}{thinning} \times k} parameters distribution matrix,
+#'                    where k (number of columns) is total number of parameters
+#'  * logPost:        log posterior distribution of response
+#'  * vars:           name of all parameters (based on below notation)
+#'  * summary:        summary of all columns of distribution matrix
 #'
 #' @export
 #'
@@ -89,12 +87,11 @@
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 calibrate <- function(sim, field,
-                      Nmcmc  = 1100, nBurn = 100, thining = 10,
+                      Nmcmc  = 11000, nBurn = 1000, thining = 100,
                       kappa  = "gaussian",  k1 = 0.5,  k2 = 0.25,
                       theta  = "logbeta",   t1 = NULL, t2 = NULL,
                       alpha  = "betashift", a1 = 5,    a2 = 1,
                       sigma2 = "jefferys",  s1 = NULL, s2 = NULL) {
-
   kappaPr    <- setup_prior(kappa,  k1, k2)
   thetaPr    <- setup_prior(theta,  t1, t2)
   alphaPr    <- setup_prior(alpha,  a1, a2)
