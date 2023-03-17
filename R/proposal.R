@@ -12,27 +12,25 @@
 proposal <- function(param, index) {
   if (index %in% cache$ikappa) {
     last     <- param[length(param)]
-    temlambda<-0.95*rnorm(1, mean=lambda[k], sd=2.38*lambda.w.ini[k])+
-      0.05*rnorm(1, mean=lambda[k], sd=0.1)
-    sdSoFar  <- if (length(param) == 1 || is.na(sd(param)) || sd(param) == 0) 0.05 else sd(param)
+    sdSoFar  <- if (length(param) == 1 || is.na(sd(param)) || sd(param) == 0) 0.0001 else sd(param)
     proposed <- 0.95* rnorm(1, mean = last, sd = 2 * sdSoFar) + 0.05*rnorm(1, mean=last, sd=0.1)
 
   } else if (index %in% c(cache$ithetaS, cache$ithetaB)) {
     lambda   <- log(param)
     last     <- lambda[length(lambda)]
-    sdSoFar  <- if (length(lambda) == 1 ||  is.na(sd(lambda)) || sd(lambda) == 0) 0.05 else sd(lambda)
+    sdSoFar  <- if (length(lambda) == 1 ||  is.na(sd(lambda)) || sd(lambda) == 0) 0.0001 else sd(lambda)
     proposed <- exp(0.95* rnorm(1, mean = last, sd = 2*sdSoFar) + 0.05*rnorm(1, mean=last, sd=0.1))
 
   } else if (index %in% c(cache$ialphaS, cache$ialphaB)) {
     tau      <- log(param-1) - log(2-param)
     last     <- tau[length(tau)]
-    sdSoFar  <- if (length(tau) == 1 ||  is.na(sd(tau)) || sd(tau) == 0)  0.25 else sd(tau)
+    sdSoFar  <- if (length(tau) == 1 ||  is.na(sd(tau)) || sd(tau) == 0)  0.0001 else sd(tau)
     proposed <- 1 + (1 / (1 + exp(-(0.95* rnorm(1, mean = last, sd = 2*sdSoFar) + 0.05*rnorm(1, mean=last, sd=0.1)))))
 
   } else if (index %in% c(cache$isigma2S, cache$isigma2B, cache$isigma2E)) {
     logS2    <- log(param)
     last     <- logS2[length(logS2)]
-    sdSoFar  <- if (length(logS2) == 1 ||  is.na(sd(logS2)) || sd(logS2) == 0) 1 else sd(logS2)
+    sdSoFar  <- if (length(logS2) == 1 ||  is.na(sd(logS2)) || sd(logS2) == 0) 0.0001 else sd(logS2)
     proposed <- exp(0.95* rnorm(1, mean = last, sd = 2*sdSoFar) + 0.05*rnorm(1, mean=last, sd=0.1))
   }
 
