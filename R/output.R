@@ -1,3 +1,13 @@
+#' Model Output
+#'
+#' `output` loads all of the information that might be useful for user into a
+#' single list, which will be returned to user by `calibrate`
+#'
+#' @return a list containing the parameters estimates based on MCMCM sampling results,
+#' their distribution, acceptence rate of the algorithm, log posterior values of the
+#' MCMC runs, raw unfiltered result of sampling (without burn-in or thining), parameter
+#' names and a quantile summary of each parameter
+#' @noRd
 output <- function() {
   Params     <- matrix(nrow = nrow(cache$Params), ncol = cache$k)
   paramNames <- character(cache$k)
@@ -25,13 +35,15 @@ output <- function() {
     }
   }
 
-  paramMean        <- round(apply(dist, 2, mean), 2)
-  paramVar         <- round(apply(dist, 2, var), 2)
+  paramMean        <- round(apply(dist, 2, mean), 4)
+  paramVar         <- round(apply(dist, 2, var), 4)
   estimates        <- data.frame(var=paramNames, est=paramMean, se=paramVar)
   colnames(dist)   <- paramNames
   return(list(estimates     = estimates,
               distributions = round(dist, 2),
+              acceptance    = cache$acceptance,
               logPost       = cache$logPost,
+              samples       = cache$Phi,
               vars          = paramNames,
               summary       = summary(dist)))
 }

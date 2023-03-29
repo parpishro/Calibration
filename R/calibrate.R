@@ -1,7 +1,7 @@
-#' Calibrating Simulator model Using Both Field Data and Simulator Runs
+#' Calibration of Computer Models
 #'
-#' `calibrate` uses given (or default) priors and initial values of the
-#' calibration model, runs a full Bayesian Markov Chain Monte Carlo (MCMC)
+#' `calibrate` combines simulator and field data and uses given (or default) priors
+#' and initial values of the model parameters, runs a full Bayesian Markov Chain Monte Carlo (MCMC)
 #' algorithm and samples the posterior distribution of parameters.
 #'
 #'
@@ -41,7 +41,7 @@
 #' denoted by \eqn{\kappa}. Since data is scaled and has mean zero, both GPs are
 #' specified using their correlation structures and marginal variances. In this
 #' implementation, power correlation structure assumed as it has enough
-#' flexibility to capture both scale and smoothness of correalation. Therefore,
+#' flexibility to capture both scale and smoothness of correlation. Therefore,
 #' hyperparameters includes scale (\eqn{\theta_S} & \eqn{\theta_B}) and smoothness
 #' (\eqn{\alpha_S & \eqn{\alpha_B\eqn{) coefficients and marginal variances (\eqn{\sigma^2_S} &
 #' \eqn{\sigma^2_B}) for each GP. Moreover there is a third term that represents
@@ -75,7 +75,9 @@
 #'  * estimates:      Point estimates for all parameters and hyperparameters
 #'  * distributions:  \eqn{\frac{(Nmcmc - nBurn)}{thinning} \times k} parameters distribution matrix,
 #'                    where k (number of columns) is total number of parameters
+#'  * acceptance:     acceptance rate of proposed samples
 #'  * logPost:        log posterior distribution of response
+#'  * samples:        full unfiltered samples of MCMC runs
 #'  * vars:           name of all parameters (based on below notation)
 #'  * summary:        summary of all columns of distribution matrix
 #'

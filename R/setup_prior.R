@@ -7,7 +7,7 @@
 #' @param prior A String that specifies the type of the prior
 #' @param p1    A double as first parameter of the prior distribution
 #' @param p2    A double as second parameter of the prior distribution
-#'
+#' @noRd
 #' @return A function that given its input, x, computes the log of the chosen prior probability density function
 setup_prior <- function(prior, p1, p2) {
 

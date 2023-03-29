@@ -9,9 +9,9 @@
 #'
 #' @param X      A matrix with at least two rows
 #' @param Y      A matrix with same number of columns as X
-#' @param theta  A vector of scale parameters ($\theta \in (0, \inf)$) with the same size as number of columns as X
-#' @param alpha  A vector of smoothness parameters ($\alpha \in [1, 2]$) with the same size as number of columns as X
-#'
+#' @param theta  A vector of scale parameters (\eqn{\theta \in (0, \inf)}) with the same size as number of columns as X
+#' @param alpha  A vector of smoothness parameters (\eqn{\alpha \in [1, 2]}) with the same size as number of columns as X
+#' @noRd
 #' @return a correlation matrix between the rows of given matrices
 correlation <- function (X, Y = NULL, theta, alpha) {
   nx    <- nrow(X)

@@ -10,8 +10,8 @@
 #'
 #' @param phi      a vector of doubles containing the most recent update of the parameters
 #' @param iChanged      index of the changed parameter in this iteration
-#'
-#' @return
+#' @noRd
+#' @return A list consisting of the inverse covariance matrix and the determinant of covariance matrix
 update_cov <- function(phi, iChanged) {
 
   # indices for parameters in phi
@@ -69,12 +69,10 @@ update_cov <- function(phi, iChanged) {
 
   InvCov    <- chol2inv(CholCov)
   logDetCov <- sum(2*log(diag(CholCov)))
-  muHat     <- update_mu()
-  res       <- cache$y - muHat
+  #muHat     <- update_mu()
   assign('InvCov',    InvCov,    envir = cache)
   assign('logDetCov', logDetCov, envir = cache)
-  assign('res',       res,       envir = cache)
-  assign('muHat',     muHat,     envir = cache)
+  #assign('muHat',     muHat,     envir = cache)
 
 
   return(list(InvCov = InvCov, logDetCov = logDetCov))

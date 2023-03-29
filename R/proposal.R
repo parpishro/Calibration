@@ -10,29 +10,41 @@
 #' @param nRun       number of MCMC iterations so far
 #' @param accepRate  rate of acceptance so far
 #' @param sdLast     the last proposal sd used
-#'
+#' @noRd
 #' @return a list of consisting the proposed value of the parameter and the proposal sd used
-proposal <- function(param, nRun, accepRate, sdLast) {
+proposal <- function(param, nRun, accepRate, sdLast, index) {
 
-  if (nRun <= 5)
-    sdNew <- 0.1
-  else if (accepRate > 0.44)
-    sdNew <- exp(log(sdLast) + min(0.01, sqrt(1/nRun)))
-  else
-    sdNew <- exp(log(sdLast) - min(0.01, sqrt(1/nRun)))
+
 
   if (index %in% cache$ikappa) {
-    proposed <- 0.95* rnorm(1, mean = param, sd = sdNew) + 0.05*rnorm(1, mean=param, sd=0.1)
+    sdNew    <- compute_sd(0.02, nRun, accepRate, sdLast)
+    proposed <- 0.95* rnorm(1, mean = param, sd = sdNew) + 0.05*rnorm(1, mean=param, sd=0.01)
 
   } else if (index %in% c(cache$ithetaS, cache$ithetaB)) {
-    proposed <- exp(0.95* rnorm(1, mean = log(param), sd = sdNew) + 0.05*rnorm(1, mean=log(param), sd=0.1))
+    sdNew    <- compute_sd(0.02, nRun, accepRate, sdLast)
+    proposed <- exp(0.95* rnorm(1, mean = log(param), sd = sdNew) + 0.05*rnorm(1, mean=log(param), sd=0.01))
 
   } else if (index %in% c(cache$ialphaS, cache$ialphaB)) {
-    proposed <- 1 + (1 / (1 + exp(-(0.95* rnorm(1, mean = log(param-1) - log(2-param), sd = sdNew) + 0.05*rnorm(1, mean=log(param-1) - log(2-param), sd=0.1)))))
+    sdNew    <- compute_sd(0.01, nRun, accepRate, sdLast)
+    proposed <- 1 + (1 / (1 + exp(-(0.95* rnorm(1, mean = log(param-1) - log(2-param), sd = sdNew) + 0.05*rnorm(1, mean=log(param-1) - log(2-param), sd=0.01)))))
 
   } else if (index %in% c(cache$isigma2S, cache$isigma2B, cache$isigma2E)) {
-    proposed <- exp(0.95* rnorm(1, mean = log(param), sd = sdNew) + 0.05*rnorm(1, mean=log(param), sd=0.1))
+    sdNew    <- compute_sd(0.02, nRun, accepRate, sdLast)
+    proposed <- exp(0.95* rnorm(1, mean = log(param), sd = sdNew) + 0.05*rnorm(1, mean=log(param), sd=0.01))
   }
 
   return(list(proposed = proposed, sd = sdNew))
+}
+
+
+compute_sd <- function(init, nRun, accepRate, sdLast) {
+  if (nRun <= 2)
+    sdNew <- init
+  else if (nRun %% 11 == 5 && accepRate > 0.44) {
+    sdNew <- exp(log(sdLast) + min(0.1, 1/sqrt(nRun)))
+  } else if (nRun %% 11 == 5 && accepRate < 0.44) {
+    sdNew <- exp(log(sdLast) - min(0.1, 1/sqrt(nRun)))
+  } else
+    sdNew <- sdLast
+  return(sdNew)
 }
