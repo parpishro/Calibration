@@ -10,7 +10,7 @@ usethis::use_data(toyField)
 ## Create simulated data
 
 # design input matrix
-designLHS <- function(m, inputs, ranges) {
+design_lhs <- function(m, inputs, ranges) {
   D <- maximinLHS(m, inputs)
   for (i in 1:inputs) {
     D[ ,i] <- ranges[[i]][1] + (D[ ,i] * diff(ranges[[i]]))
@@ -28,7 +28,7 @@ toySim[, 1:2]   <- design_lhs(m      = 100,    # number of simulator runs
                               inputs = 2,      # p+q = 2
                               ranges = list(h = range(toyField[, 'height']),
                                             g = c(6, 14)))
-toySim[, 3] <- sim(toySim[, 1:2]) # simulated output (time)
+toySim[, 3] <- sim(toySim[, 1:2])  + rnorm(100, mean = 0, sd = 0.01) # simulated output (time)
 
 # Save the cleaned data in the required R package location
 usethis::use_data(toySim)
