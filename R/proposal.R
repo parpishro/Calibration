@@ -17,34 +17,74 @@ proposal <- function(param, nRun, accepRate, sdLast, index) {
 
 
   if (index %in% cache$ikappa) {
-    sdNew    <- compute_sd(0.02, nRun, accepRate, sdLast)
-    proposed <- 0.95* rnorm(1, mean = param, sd = sdNew) + 0.05*rnorm(1, mean=param, sd=0.01)
+    sdNew      <- compute_sd(0.06, nRun, accepRate, sdLast)
+    paramTr    <- param
+    proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
+    proposed   <- proposedTr
+    if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
-  } else if (index %in% c(cache$ithetaS, cache$ithetaB)) {
-    sdNew    <- compute_sd(0.02, nRun, accepRate, sdLast)
-    proposed <- exp(0.95* rnorm(1, mean = log(param), sd = sdNew) + 0.05*rnorm(1, mean=log(param), sd=0.01))
+  } else if (index %in% cache$ithetaS) {
+    sdNew      <- compute_sd(0.28, nRun, accepRate, sdLast)
+    paramTr    <- log(param)
+    proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
+    proposed   <- exp(proposedTr)
+    if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
-  } else if (index %in% c(cache$ialphaS, cache$ialphaB)) {
-    sdNew    <- compute_sd(0.01, nRun, accepRate, sdLast)
-    proposed <- 1 + (1 / (1 + exp(-(0.95* rnorm(1, mean = log(param-1) - log(2-param), sd = sdNew) + 0.05*rnorm(1, mean=log(param-1) - log(2-param), sd=0.01)))))
+  } else if (index %in% cache$ithetaB) {
+    sdNew      <- compute_sd(0.57, nRun, accepRate, sdLast)
+    paramTr    <- log(param)
+    proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
+    proposed   <- exp(proposedTr)
+    if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
-  } else if (index %in% c(cache$isigma2S, cache$isigma2B, cache$isigma2E)) {
-    sdNew    <- compute_sd(0.02, nRun, accepRate, sdLast)
-    proposed <- exp(0.95* rnorm(1, mean = log(param), sd = sdNew) + 0.05*rnorm(1, mean=log(param), sd=0.01))
+  } else if (index %in% cache$ialphaS) {
+    sdNew      <- compute_sd(0.33, nRun, accepRate, sdLast)
+    paramTr    <- log(param-1) - log(2-param)
+    proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
+    proposed   <- 1 + (1 / (1 + exp(-proposedTr)))
+    if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
+
+  } else if (index %in% cache$ialphaB) {
+    sdNew      <- compute_sd(1, nRun, accepRate, sdLast)
+    paramTr    <- log(param-1) - log(2-param)
+    proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
+    proposed   <- 1 + (1 / (1 + exp(-proposedTr)))
+    if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
+
+  } else if (index == cache$isigma2S) {
+    sdNew      <- compute_sd(0.16, nRun, accepRate, sdLast)
+    paramTr    <- log(param)
+    proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
+    proposed   <- exp(proposedTr)
+    if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
+
+  } else if (index == cache$isigma2B) {
+    sdNew    <- compute_sd(0.47, nRun, accepRate, sdLast)
+    paramTr  <- log(param)
+    proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
+    proposed   <- exp(proposedTr)
+    if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
+
+  } else if (index == cache$isigma2E) {
+    sdNew    <- compute_sd(0.17, nRun, accepRate, sdLast)
+    paramTr  <- log(param)
+    proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
+    proposed   <- exp(proposedTr)
+    if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
   }
 
-  return(list(proposed = proposed, sd = sdNew))
+  return(list(proposed = proposed, sd = sdNew, proposedTr = proposedTr))
 }
 
 
 compute_sd <- function(init, nRun, accepRate, sdLast) {
-  if (nRun <= 2)
+  if (nRun <= 3)
     sdNew <- init
-  else if (nRun %% 11 == 5 && accepRate > 0.44) {
-    sdNew <- exp(log(sdLast) + min(0.1, 1/sqrt(nRun)))
-  } else if (nRun %% 11 == 5 && accepRate < 0.44) {
-    sdNew <- exp(log(sdLast) - min(0.1, 1/sqrt(nRun)))
-  } else
+  else if (nRun %% 20 == 4 && accepRate > 0.44)
+    sdNew <- exp(log(sdLast) + (init/sqrt(nRun)))
+  else if (nRun %% 20 == 4 && accepRate < 0.44)
+    sdNew <- exp(log(sdLast) - (init/sqrt(nRun)))
+  else
     sdNew <- sdLast
   return(sdNew)
 }
