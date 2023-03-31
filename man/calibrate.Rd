@@ -2,66 +2,94 @@
 % Please edit documentation in R/calibrate.R
 \name{calibrate}
 \alias{calibrate}
-\title{calibrate}
+\title{Calibration of Computer Models}
 \usage{
 calibrate(
   sim,
   field,
-  Nmcmc = 10000,
-  nBurn = 500,
+  Nmcmc = 11000,
+  nBurn = 1000,
   thining = 100,
-  theta_pr = "weak",
-  omega_pr = "logbeta",
-  alpha_pr = "logistic",
-  sigma2_pr = "inverse gamma",
-  theta0,
-  omega0,
-  alpha0,
-  sigma20
+  kappa = "gaussian",
+  k1 = 0.5,
+  k2 = 0.25,
+  theta = "logbeta",
+  t1 = NULL,
+  t2 = NULL,
+  alpha = "betashift",
+  a1 = 5,
+  a2 = 1,
+  sigma2 = "jefferys",
+  s1 = NULL,
+  s2 = NULL
 )
 }
 \arguments{
-\item{sim}{(m * (1+p+q) matrix) simulation data}
+\item{sim}{A \eqn{m \times (1+p+q)} matrix, representing simulation data,
+where m, number of rows, is number of simulation runs, p is number of
+experimental variables, and q is number of calibration variables. Plus one
+represent the first column, which is the response variable.}
 
-\item{field}{(n * (1+p+) matrix) field data}
+\item{field}{A \eqn{n \times (1+p)} matrix, representing field data, where n,
+number of rows, is number of field observations and p is number of
+experimental variables.}
 
-\item{Nmcmc}{number of MCMC runs}
+\item{Nmcmc}{An integer for number of MCMC runs.}
 
-\item{nBurn}{number of MCMC burn ins}
+\item{nBurn}{An integer for number of MCMC burn ins.}
 
-\item{thining}{thining rate to de-correlate MCMC results}
+\item{thining}{A double as MCMC thinning rate to remove auto-correlation.}
 
-\item{theta_pr}{prior function for calibration parameters #TODO}
+\item{kappa}{A string to specify the prior type of calibration parameters.}
 
-\item{omega_pr}{prior function for scale parameters #TODO}
+\item{k1}{A double as first parameter of the chosen kappa distribution.}
 
-\item{alpha_pr}{prior function for smoothness parameters #TODO}
+\item{k2}{A double as second parameter of the chosen kappa distribution.}
 
-\item{sigma2_pr}{prior function for variance parameters #TODO}
+\item{theta}{A string to specify the prior type for scale parameters.}
 
-\item{theta0}{initial value of calibration parameters (to be given MCMC)}
+\item{t1}{A double as first parameter of the chosen theta distribution.}
 
-\item{omega0}{initial value of scale parameters (to be given MCMC)}
+\item{t2}{A double as second parameter of the chosen theta distribution.}
 
-\item{alpha0}{initial value of smoothness parameters (to be given MCMC)}
+\item{alpha}{A string to specify the prior type for smoothness parameters.}
 
-\item{sigma20}{initial value of smoothness parameters (to be given MCMC)}
+\item{a1}{A double as first parameter of the chosen alpha distribution.}
+
+\item{a2}{A double as second parameter of the chosen alpha distribution.}
+
+\item{sigma2}{A string to specify the prior type for variance parameters.}
+
+\item{s1}{A double as first parameter of the chosen sigma2 distribution.}
+
+\item{s2}{A double as second parameter of the chosen sigma2 distribution.}
 }
 \value{
-a list containing posterior:
-   - (((Nmcmc - nBurn) / thinning) * k) parameters distribution:
-       - 1st q columns: distribution of calibration parameters
-       - next (p + q) columns: distribution of sim scale parameters
-       - next (p + q) columns: distribution of sim smoothness parameters
-       - next p columns: distribution of bias scale parameters
-       - next p columns: distribution of bias smoothness parameters
-       - next column (index: k - 3): distribution of sim variance parameter
-       - next column (index: k - 1): distribution of bias variance parameter
-       - next column (index: k - 2): distribution of error variance parameter
-       - next column (index: k): distribution of mean response parameter
-   - a vector (length: k) of parameter estimated variances
-   - a vector (length: k) of parameter point estimates
+an output list containing:
+\itemize{
+\item estimates:      Point estimates for all parameters and hyperparameters
+\item distributions:  \eqn{\frac{(Nmcmc - nBurn)}{thinning} \times k} parameters distribution matrix,
+where k (number of columns) is total number of parameters
+\item acceptance:     acceptance rate of proposed samples
+\item logPost:        log posterior distribution of response
+\item samples:        full unfiltered samples of MCMC runs
+\item vars:           name of all parameters (based on below notation)
+\item summary:        summary of all columns of distribution matrix
+}
 }
 \description{
-calibrate
+\code{calibrate} combines simulator and field data and uses given (or default) priors
+and initial values of the model parameters, runs a full Bayesian Markov Chain Monte Carlo (MCMC)
+algorithm and samples the posterior distribution of parameters.
+}
+\details{
+
+}
+\examples{
+examples/calib
+}
+\references{
+Kennedy MC, O’Hagan A (2001). “Bayesian calibration of computer models.”
+\emph{Journal of the Royal Statistical Society}, \strong{Series B}, \strong{63(3)}, 425–464
+\url{https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf}
 }
