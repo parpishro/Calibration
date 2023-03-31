@@ -57,20 +57,24 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
   accepLast  <- double(cache$k)
   quantAccep <- double(cache$k)
   accepSoFar <- double(cache$k)
+  paramTr    <- double(cache$k)
   sdProp     <- double(cache$k)
   for (i in 2:Nmcmc) {
     logPost[i] <- logPost[i-1]
     lPost      <- logPost[i-1]
     for (j in 1:(cache$k)) {
-      res <- proposal(Phi[i-1 ,j], i, quantAccep[j], sdProp[j], j)
-      changed   <- res$proposed
-      sdProp[j] <- res$sd
+      res         <- proposal(Phi[i-1 ,j], i, quantAccep[j], sdProp[j], j)
+      changed     <- res$proposed
+      paramTr[j]  <- res$proposedTr
+
+      sdProp[j]   <- res$sd
+
       if (j == 1)
         params <- c(changed, Phi[i-1, 2:cache$k])
       else if (j == cache$k)
         params <- c(Phi[i, 1:(cache$k-1)], changed)
       else
-        params <- c(Phi[i, 1:j-1], changed, Phi[i-1, (j+1):cache$k])
+        params <- c(Phi[i, 1:(j-1)], changed, Phi[(i-1), (j+1):cache$k])
 
       chol <- update_cov(params, iChanged = j)
 
@@ -81,27 +85,35 @@ mcmc <- function(Nmcmc, nBurn, thining, init,
                      sapply(params[c(ithetaS, ithetaB)], thetaPr)  +
                      sapply(params[c(ialphaS, ialphaB)], alphaPr)  +
                      sapply(params[isigma2S:isigma2E],   sigma2Pr)) -
-                 ((chol$logDetCov - drop(t(cache$y) %*% chol$InvCov %*% cache$y))/2)
+                 ((chol$logDetCov + drop(t(cache$y) %*% chol$InvCov %*% cache$y))/2)
 
-      if (is.finite(lPost) & lPost - logPost[i] >  log(runif(1))) {
-        Phi[i, j]     <- changed
-        logPost[i]    <- lPost
+      if (is.finite(lPost) && (lPost - logPost[i] >  log(runif(1)))) {
+        Phi[i, j]      <- changed
+        logPost[i]     <- lPost
         accepSoFar[j]  <- accepSoFar[j] + 1
       } else {
-        Phi[i, j]     <- Phi[i - 1, j]
+        Phi[i, j]      <- Phi[i - 1, j]
       }
     }
-    #Phi[i, imuHat] <- update_mu()
 
-    if (i %% floor(Nmcmc/1000) == 0 && i/floor(Nmcmc/1000) <= 1000) {   #
+    if (i == 3) {
+      quantAccep <- (accepSoFar - accepLast)/2
+      accepLast  <- accepSoFar
+    }
+    if (i > 3 && i %% 20 == 3) {
+      quantAccep <- (accepSoFar - accepLast)/20
+      accepLast  <- accepSoFar
+    }
+
+
+    if (i %% floor(Nmcmc/100) == 0 && i/floor(Nmcmc/100) <= 100) {   #
       cat("------------------------------------------------------------------------", "\n")
-      cat("finished ",  (i/floor(Nmcmc/1000))/10, "% of MCMC runs...", "\n")
-      quantAccep <- (accepSoFar - accepLast)*1000/Nmcmc
-      cat("acceptance ratio in the last percent: ", round(quantAccep, 2), "\n")
+      cat("finished ",  (i/floor(Nmcmc/100)), "% of MCMC runs...", "\n")
+      cat("acceptance ratio in the last batch: ", round(quantAccep, 2), "\n")
       cat("parameter sample:                     ", round(Phi[i, ], 4), "\n")
+      cat("parameter sample (transformed):       ", round(paramTr, 4), "\n")
       cat("proposal sd:                          ", round(sdProp, 4), "\n")
       cat("total acceptance ratio:               ", round(accepSoFar/i, 2), "\n")
-      accepLast <- accepSoFar
     }
   }
   cat("Completed MCMC runs.", "\n")
