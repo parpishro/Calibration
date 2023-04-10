@@ -7,21 +7,25 @@
 calibrate(
   sim,
   field,
-  Nmcmc = 11000,
-  nBurn = 1000,
-  thining = 100,
-  kappa = "gaussian",
-  k1 = 0.5,
-  k2 = 0.25,
-  theta = "logbeta",
-  t1 = NULL,
-  t2 = NULL,
+  Nmcmc = 10000,
+  nBurn = 1,
+  thining = 1,
+  kappa = "betashift2",
+  k0 = 0.5,
+  k1 = 1.2,
+  k2 = 1.2,
+  theta = "gamma",
+  t0 = 0.5,
+  t1 = 1.5,
+  t2 = 0.1,
   alpha = "betashift",
+  a0 = 1.75,
   a1 = 5,
-  a2 = 1,
-  sigma2 = "jefferys",
-  s1 = NULL,
-  s2 = NULL
+  a2 = 2,
+  sigma2 = "gamma",
+  s0 = 1,
+  s1 = 1.5,
+  s2 = 1.5
 )
 }
 \arguments{
@@ -42,11 +46,17 @@ experimental variables.}
 
 \item{kappa}{A string to specify the prior type of calibration parameters.}
 
+\item{k0}{a scaler or vector of same length as number of calibration
+parameters that represent initial value for calibration parameters
+after scaling to (0, 1)}
+
 \item{k1}{A double as first parameter of the chosen kappa distribution.}
 
 \item{k2}{A double as second parameter of the chosen kappa distribution.}
 
 \item{theta}{A string to specify the prior type for scale parameters.}
+
+\item{t0}{a scaler in (0, Inf) representing initial values of theta (scale) parameters}
 
 \item{t1}{A double as first parameter of the chosen theta distribution.}
 
@@ -54,11 +64,15 @@ experimental variables.}
 
 \item{alpha}{A string to specify the prior type for smoothness parameters.}
 
+\item{a0}{a scaler in (1, 2) representing initial values of alpha (smoothness) parameters}
+
 \item{a1}{A double as first parameter of the chosen alpha distribution.}
 
 \item{a2}{A double as second parameter of the chosen alpha distribution.}
 
 \item{sigma2}{A string to specify the prior type for variance parameters.}
+
+\item{s0}{a scaler or vector of length three that represent initial value for marginal variance}
 
 \item{s1}{A double as first parameter of the chosen sigma2 distribution.}
 

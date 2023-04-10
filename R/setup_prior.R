@@ -19,6 +19,7 @@ setup_prior <- function(prior, p1, p2) {
                        lognormal    = function(x) dlnorm(x, meanlog  = p1, sdlog  = p2, log = T),
                        logistic     = function(x) dlogis(x, location = p1, scale  = p2, log = T),
                        betashift    = function(x) dbeta(x-1, shape1   = p1, shape2 = p2, log = T),
+                       betashift2   = function(x) dbeta(1.25*x-0.125, shape1   = p1, shape2 = p2, log = T),
                        exponential  = function(x) dexp(x,   rate     = p1,              log = T),
                        inversegamma = function(x) p1*log(p2) - lgamma(p1) - (p1+1)*log(abs(x)) - p2/(abs(x)),
                        jefferys     = function(x) -0.5*log(x),

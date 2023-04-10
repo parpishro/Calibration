@@ -17,56 +17,56 @@ proposal <- function(param, nRun, accepRate, sdLast, index) {
 
 
   if (index %in% cache$ikappa) {
-    sdNew      <- compute_sd(0.06, nRun, accepRate, sdLast)
+    sdNew      <- compute_sd(0.2, nRun, accepRate, sdLast)
     paramTr    <- param
     proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
     proposed   <- proposedTr
     if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
   } else if (index %in% cache$ithetaS) {
-    sdNew      <- compute_sd(0.28, nRun, accepRate, sdLast)
+    sdNew      <- compute_sd(0.3, nRun, accepRate, sdLast)
     paramTr    <- log(param)
     proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
     proposed   <- exp(proposedTr)
     if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
   } else if (index %in% cache$ithetaB) {
-    sdNew      <- compute_sd(0.57, nRun, accepRate, sdLast)
+    sdNew      <- compute_sd(0.4, nRun, accepRate, sdLast)
     paramTr    <- log(param)
     proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
     proposed   <- exp(proposedTr)
     if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
   } else if (index %in% cache$ialphaS) {
-    sdNew      <- compute_sd(0.33, nRun, accepRate, sdLast)
+    sdNew      <- compute_sd(0.3, nRun, accepRate, sdLast)
     paramTr    <- log(param-1) - log(2-param)
     proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
     proposed   <- 1 + (1 / (1 + exp(-proposedTr)))
     if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
   } else if (index %in% cache$ialphaB) {
-    sdNew      <- compute_sd(1, nRun, accepRate, sdLast)
+    sdNew      <- compute_sd(0.4, nRun, accepRate, sdLast)
     paramTr    <- log(param-1) - log(2-param)
     proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
     proposed   <- 1 + (1 / (1 + exp(-proposedTr)))
     if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
   } else if (index == cache$isigma2S) {
-    sdNew      <- compute_sd(0.16, nRun, accepRate, sdLast)
+    sdNew      <- compute_sd(0.25, nRun, accepRate, sdLast)
     paramTr    <- log(param)
     proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
     proposed   <- exp(proposedTr)
     if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
   } else if (index == cache$isigma2B) {
-    sdNew    <- compute_sd(0.47, nRun, accepRate, sdLast)
+    sdNew    <- compute_sd(1.5, nRun, accepRate, sdLast)
     paramTr  <- log(param)
     proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
     proposed   <- exp(proposedTr)
     if(is.na(proposedTr)) stop(paste(nRun, index, sdLast, sdNew, param, paramTr, proposed))
 
   } else if (index == cache$isigma2E) {
-    sdNew    <- compute_sd(0.17, nRun, accepRate, sdLast)
+    sdNew    <- compute_sd(0.3, nRun, accepRate, sdLast)
     paramTr  <- log(param)
     proposedTr <- rnorm(1, mean = paramTr, sd = sdNew)
     proposed   <- exp(proposedTr)
@@ -78,11 +78,11 @@ proposal <- function(param, nRun, accepRate, sdLast, index) {
 
 
 compute_sd <- function(init, nRun, accepRate, sdLast) {
-  if (nRun <= 3)
+  if (nRun <= 5)
     sdNew <- init
-  else if (nRun %% 20 == 4 && accepRate > 0.44)
+  else if (nRun %% 20 == 6 && accepRate > 0.44)
     sdNew <- exp(log(sdLast) + (init/sqrt(nRun)))
-  else if (nRun %% 20 == 4 && accepRate < 0.44)
+  else if (nRun %% 20 == 6 && accepRate < 0.44)
     sdNew <- exp(log(sdLast) - (init/sqrt(nRun)))
   else
     sdNew <- sdLast
