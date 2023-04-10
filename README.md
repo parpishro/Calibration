@@ -24,13 +24,13 @@ $$
 $$
 
 $$
-y_f  : y_r(.) + \epsilon \ \ \ \& \ \ \ y_r\ = y_s(.) + b(.) \\
+y_f  : y_r(.) + \epsilon \ \ \ \text{And} \ \ \ y_r\ = y_s(.) + b(.) \\
 $$
 
 $$\begin{align}
 \implies  y_f  &= y_s(.) + b(.) + \epsilon \\
 \implies y_f  &= \eta (x_b, x_\kappa^*) + \delta(x_b) + \epsilon \\
-\text{&}\ \ \ \ \ y_s  &= \eta (x_s, x_\kappa) \\
+\text{And}\ \ \ \ \ y_s  &= \eta (x_s, x_\kappa) \\
 \end{align}$$
 
 $$
@@ -116,12 +116,6 @@ $$\kappa = (\kappa_1, ... , \kappa_q)$$
 - More concentration on small values (right-skewed)
 - Gamma $[1.5, 0.1]$ is chosen for both GPs
 
-``` r
-seqPos <- seq(0, 2, by = 0.001)
-Density <- dgamma(seqPos, shape = 1.5, scale  = 0.1)
-plot(seqPos, Density,  type = "l", xlab="Scale Parameter", main = "Prior Distribution of the Scale Parameter")
-```
-
 <img src="README_files/figure-gfm/unnamed-chunk-2-1.png" width="75%" />
 
 ## GP Smoothness Hyperparameters
@@ -130,11 +124,6 @@ plot(seqPos, Density,  type = "l", xlab="Scale Parameter", main = "Prior Distrib
 - More concentration on larger values (left-skewed)
 - Shifted Beta $[5, 2]$ is chosen for both GPs
 
-``` r
-Density <- dbeta(seqPos-1, shape1   = 5, shape2 = 2)
-plot(seqPos, Density, type = "l", xlab="Smoothness Parameter (alpha)", main = "Prior Distribution of the Smoothness Parameter")
-```
-
 <img src="README_files/figure-gfm/unnamed-chunk-3-1.png" width="75%" />
 
 ## Marginal Variance
@@ -142,11 +131,6 @@ plot(seqPos, Density, type = "l", xlab="Smoothness Parameter (alpha)", main = "P
 - Restricted to positive values
 - More concentrtion on smaller values (right-skewed)
 - Inverse Gamma, Jefferey’s , and Gamma can be set
-
-``` r
-Density <- dgamma(seqPos, shape   = 0.5, scale = 1.5)
-plot(seqPos, Density, type = "l", xlab="Marginal Variance Parameter (sigma2)", main = "Prior Distribution of the Variance Parameter")
-```
 
 <img src="README_files/figure-gfm/unnamed-chunk-4-1.png" width="75%" />
 
@@ -456,11 +440,6 @@ $$t = \sqrt{\frac{2h}{g}}$$
 
 ## Data
 
-``` r
-plot(toyField[, 1], toyField[, 2], cex = 0.75, pch = 19, col = "red", ylim = c(0, 1.5), xlab="Height (m)", ylab="Time (s)", main = "Ball drop experiment (Bingham & Loeppky)")
-points(toySim[, 1], toySim[, 3],cex = 0.75, pch = 19, col = "blue")
-```
-
 ![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ## Results
@@ -475,34 +454,11 @@ points(toySim[, 1], toySim[, 3],cex = 0.75, pch = 19, col = "blue")
 
 **Calibration Parameter (Gravity)**
 
-``` r
-Iteration <- seq(1, 10000, by = 10)
-kappa <- init_kappa$Phi$kappa1[Iteration]
-plot(Iteration, kappa, ylim = c(5, 15), type = "l", ylab = "Gravity", 
-     main = "Calibration Parameter MC")
-```
-
 ![](README_files/figure-gfm/pressure-1.png)<!-- -->
 
 ## Markov Chains
 
 **Simulation Correlation Hyperparameters**
-
-``` r
-thetaSim1 <- init_kappa$Phi$thetaS1[Iteration]
-thetaSim2 <- init_kappa$Phi$thetaS2[Iteration]
-alphaSim1 <- init_kappa$Phi$alphaS1[Iteration]
-alphaSim2 <- init_kappa$Phi$alphaS2[Iteration]
-par(mfrow = c(2,2))
-plot(Iteration, thetaSim1, ylab = "thetaS1", ylim = c(0, 1.1), type = "l", 
-     main = "Sim 1st Scale")
-plot(Iteration, thetaSim2, ylab = "thetaS2", ylim = c(0, 1.1), type = "l", 
-     main = "Sim 2nd Scale")
-plot(Iteration, alphaSim1, ylab = "thetaS1", ylim = c(1.2, 2), type = "l", 
-     main = "Sims 1st Smoothness")
-plot(Iteration, alphaSim2, ylab = "thetaS2", ylim = c(1.2, 2), type = "l", 
-     main = "Sim 2nd Smothness")
-```
 
 ![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
@@ -510,34 +466,11 @@ plot(Iteration, alphaSim2, ylab = "thetaS2", ylim = c(1.2, 2), type = "l",
 
 **Bias-Correction Correlation Hyperparameters**
 
-``` r
-thetaBias1 <- init_kappa$Phi$thetaS1[Iteration]
-alphaBias1 <- init_kappa$Phi$alphaS1[Iteration]
-par(mfrow = c(1,2))
-plot(Iteration, thetaBias1, ylab = "thetaB1", ylim = c(0, 1.1), type = "l", 
-     main = "Bias 1st Scale")
-plot(Iteration, alphaBias1, ylab = "alphaB1", ylim = c(1.2, 2), type = "l", 
-     main = "Bias 1st Smoothness")
-```
-
 ![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 ## Markov Chains
 
 **Variance (Precision) Parameters**
-
-``` r
-sigma2Sim  <- init_kappa$Phi$sigma2S[Iteration]
-sigma2Bias <- init_kappa$Phi$sigma2B[Iteration]
-sigma2Err  <- init_kappa$Phi$sigma2E[Iteration]
-par(mfrow = c(1,3))
-plot(Iteration, sigma2Sim, ylab = "sigma2S", ylim = c(1, 10), type = "l", 
-     main = "Sim Marginal Variance")
-plot(Iteration, sigma2Bias, ylab = "sigma2B", ylim = c(0, 10), type = "l", 
-     main = "Bias Marginal Variance")
-plot(Iteration, sigma2Err, ylab = "sigma2E", ylim = c(0, 0.3), type = "l", 
-     main = "Measurement Variance")
-```
 
 ![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
@@ -545,60 +478,11 @@ plot(Iteration, sigma2Err, ylab = "sigma2E", ylim = c(0, 0.3), type = "l",
 
 **Posterior Density for Calibration Parameter**
 
-``` r
-grange <- ((init_kappa$cache$calibMax - init_kappa$cache$calibMin) * seq(0, 1, by = 0.01)) + init_kappa$cache$calibMin
-calPr  <- dbeta(1.25*seq(0, 1, by = 0.01)-0.125, shape1   = 1.2, shape2 = 1.2)
-kappahat <- init_kappa$estimates$mode[init_kappa$cache$ikappa] 
-plot(density(init_kappa$Phi$kappa1), xlab="g", lwd=2, main="")
-lines(grange, calPr/diff(range(grange)) , col="blue")
-abline(v= kappahat, col="red", lty=2)
-legend("topright", c("kappahat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-```
-
 ![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ## Estimated Posterior Densities
 
 **Posterior Density for Simulation GP Hyperparameters**
-
-``` r
-thetaRange <- seq(0, 1, by = 0.01)
-alphaRange <- seq(1, 2, by = 0.01)
-thetaPr  <- dgamma(thetaRange, shape   = 1.5, scale = 0.1)
-thetaShat1 <- init_kappa$estimates$mode[init_kappa$cache$ithetaS[1]]
-thetaShat2 <- init_kappa$estimates$mode[init_kappa$cache$ithetaS[2]]
-
-alphaPr  <- dbeta(alphaRange-1, shape1   = 5, shape2 = 2)
-alphaShat1 <- init_kappa$estimates$mode[init_kappa$cache$ialphaS[1]]
-alphaShat2 <- init_kappa$estimates$mode[init_kappa$cache$ialphaS[2]]
-
-par(mfrow = c(2, 2))
-plot(density(init_kappa$Phi$thetaS1), xlab="thetaS1", lwd=2, main="")
-lines(thetaRange, thetaPr, col="blue")
-abline(v= thetaShat1, col="red", lty=2)
-legend("topright", c("thetaS1hat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-
-plot(density(init_kappa$Phi$thetaS2), xlab="thetaS2", lwd=2, main="")
-lines(thetaRange, thetaPr, col="blue")
-abline(v= thetaShat2, col="red", lty=2)
-legend("topright", c("thetaS2hat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-
-
-plot(density(init_kappa$Phi$alphaS1), xlab="alphaS1", lwd=2, main="")
-lines(alphaRange, alphaPr, col="blue")
-abline(v= alphaShat1, col="red", lty=2)
-legend("topleft", c("alphaS1hat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-
-plot(density(init_kappa$Phi$alphaS2), xlab="alphaS2", lwd=2, main="")
-lines(alphaRange, alphaPr, col="blue")
-abline(v= alphaShat2, col="red", lty=2)
-legend("topleft", c("alphaS2hat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-```
 
 ![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
@@ -606,51 +490,11 @@ col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
 
 **Posterior Density for Bias-Correction GP Hyperparameters**
 
-``` r
-thetaBhat1 <- init_kappa$estimates$mode[init_kappa$cache$ithetaB]
-alphaBhat1 <- init_kappa$estimates$mode[init_kappa$cache$ialphaB]
-
-par(mfrow = c(1, 2))
-plot(density(init_kappa$Phi$thetaB1), xlab="thetaB1", lwd=2, main="")
-lines(thetaRange, thetaPr, col="blue")
-abline(v= thetaBhat1, col="red", lty=2)
-legend("topright", c("thetaB1hat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-
-
-
-plot(density(init_kappa$Phi$alphaB1), xlab="alphaB1", lwd=2, main="")
-lines(alphaRange, alphaPr, col="blue")
-abline(v= alphaBhat1, col="red", lty=2)
-legend("topleft", c("alphaB1hat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-```
-
 ![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ## Estimated Posterior Densities
 
 **Posterior Density for Variance Parameters**
-
-``` r
-sigRange <- seq(0, 5, by = 0.01)
-sigmaPr  <- dgamma(sigRange, shape   = 1.5, scale = 1.5)
-sigma2Shat <- init_kappa$estimates$mode[init_kappa$cache$isigma2S]
-sigma2Bhat <- init_kappa$estimates$mode[init_kappa$cache$isigma2B]
-
-par(mfrow = c(1, 2))
-plot(density(init_kappa$Phi$sigma2S), ylim = c(0, 0.4), xlab="sigma2S", lwd=2, main="")
-lines(sigRange, sigmaPr, col="blue")
-abline(v= sigma2Shat, col="red", lty=2)
-legend("topright", c("sigma2Shat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-
-plot(density(init_kappa$Phi$sigma2B), xlab="sigma2B", lwd=2, main="")
-lines(sigRange, sigmaPr, col="blue")
-abline(v= sigma2Bhat, col="red", lty=2)
-legend("topright", c("sigma2Bhat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-```
 
 ![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
@@ -658,26 +502,9 @@ col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
 
 **Posterior Density for Measurement Variance**
 
-``` r
-sigRangeE <- seq(0, 5, by = 0.01)
-sigma2Ehat <- init_kappa$estimates$mode[init_kappa$cache$isigma2E]
-
-plot(density(init_kappa$Phi$sigma2E), xlim = c(0, 1), xlab="sigma2E", lwd=2, main="")
-lines(sigRangeE, sigmaPr, col="blue")
-abline(v= sigma2Ehat, col="red", lty=2)
-legend("topright", c("sigma2Bhat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-```
-
 ![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 ## Parameter Estimates
-
-``` r
-estTable <- data.frame(round(init_kappa$estimates, 2))
-colnames(estTable) <- c("Sample MEan", "Sample SD", "5% Quantile", "95% Quantile", "Mode")
-kableExtra::kable(estTable)
-```
 
 <table>
 <thead>
@@ -907,55 +734,9 @@ sigma2E
 
 ## Point Prediction of Physical Mean Response
 
-``` r
-preds <- double(nrow(toyField))
-for (i in 1:nrow(toyField)) {
-  preds[i] <- predict.fbc(init_kappa, toyField[i, 1])
-}
-```
-
-``` r
-plot(toyField[, 1], toyField[, 2], cex = 0.75, pch = 19, col = "red", ylim = c(0, 1.5), xlab="Height (m)", ylab="Time (s)", main = "Ball drop experiment (Bingham & Loeppky)")
-points(toyField[, 1], preds,cex = 0.75, pch = 19, col = "green")
-```
-
 ![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 ## Effects of Initial values
-
-``` r
-par(mfrow = c(3, 2))
-
-
-
-plot(Iteration, kappa, ylim = c(5, 15), type = "l", ylab = "Gravity", 
-     main = "Calibration Parameter MC")
-plot(density(init_kappa$Phi$kappa1), xlab="g", lwd=2, main="")
-lines(grange, calPr/diff(range(grange)) , col="blue")
-abline(v= kappahat, col="red", lty=2)
-legend("topright", c("kappahat", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-
-kappaLower <- init_kappa_low$Phi$kappa1[Iteration]
-plot(Iteration, kappaLower, ylim = c(5, 15), type = "l", ylab = "Gravity", 
-     main = "Calibration Parameter MC")
-kappahatLow <- init_kappa_low$estimates$mode[init_kappa_low$cache$ikappa] 
-plot(density(init_kappa_low$Phi$kappa1), xlab="g", lwd=2, main="")
-lines(grange, calPr/diff(range(grange)) , col="blue")
-abline(v= kappahatLow, col="red", lty=2)
-legend("topright", c("kappahatLow", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-
-kappaHigher <- init_kappa_high$Phi$kappa1[Iteration]
-plot(Iteration, kappaHigher, ylim = c(5, 15), type = "l", ylab = "Gravity", 
-     main = "Calibration Parameter MC")
-kappahatHigh <- init_kappa_high$estimates$mode[init_kappa_high$cache$ikappa] 
-plot(density(init_kappa_high$Phi$kappa1), xlab="g", lwd=2, main="")
-lines(grange, calPr/diff(range(grange)) , col="blue")
-abline(v= kappahatHigh, col="red", lty=2)
-legend("topright", c("kappahatHigh", "prior", "posterior"), lty=c(2,1,1),
-col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
-```
 
 ![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
