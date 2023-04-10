@@ -59,15 +59,21 @@
 #' @param nBurn     An integer for number of MCMC burn ins.
 #' @param thining   A double as MCMC thinning rate to remove auto-correlation.
 #' @param kappa     A string to specify the prior type of calibration parameters.
+#' @param k0        a scaler or vector of same length as number of calibration
+#'                  parameters that represent initial value for calibration parameters
+#'                  after scaling to (0, 1)
 #' @param k1        A double as first parameter of the chosen kappa distribution.
 #' @param k2        A double as second parameter of the chosen kappa distribution.
 #' @param theta     A string to specify the prior type for scale parameters.
+#' @param t0        a scaler in (0, Inf) representing initial values of theta (scale) parameters
 #' @param t1        A double as first parameter of the chosen theta distribution.
 #' @param t2        A double as second parameter of the chosen theta distribution.
 #' @param alpha     A string to specify the prior type for smoothness parameters.
+#' @param a0        a scaler in (1, 2) representing initial values of alpha (smoothness) parameters
 #' @param a1        A double as first parameter of the chosen alpha distribution.
 #' @param a2        A double as second parameter of the chosen alpha distribution.
 #' @param sigma2    A string to specify the prior type for variance parameters.
+#' @param s0        a scaler or vector of length three that represent initial value for marginal variance
 #' @param s1        A double as first parameter of the chosen sigma2 distribution.
 #' @param s2        A double as second parameter of the chosen sigma2 distribution.
 #'
@@ -89,18 +95,46 @@
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 calibrate <- function(sim, field,
-                      Nmcmc  = 100000, nBurn = 1, thining = 1,
-                      kappa  = "uniform",  k1 = 0,  k2 = 1,
-                      theta  = "gamma",   t1 = 2, t2 = 20,
-                      alpha  = "betashift", a1 = 5,    a2 = 2,
-                      sigma2 = "gamma",  s1 = 2, s2 = 10) {
-  kappaPr    <- setup_prior(kappa,  k1, k2)
-  thetaPr    <- setup_prior(theta,  t1, t2)
-  alphaPr    <- setup_prior(alpha,  a1, a2)
-  sigma2Pr   <- setup_prior(sigma2, s1, s2)
-  init       <- setup_cache(sim, field, kappaPr, thetaPr, alphaPr, sigma2Pr)
+                      Nmcmc  = 10000, nBurn = 1, thining = 1,
+                      kappa  = "betashift2",  k0 = 0.5,  k1 = 1.2,  k2 = 1.2,
+                      theta  = "gamma",       t0 = 0.5,  t1 = 1.5,  t2 = 0.1,
+                      alpha  = "betashift",   a0 = 1.75, a1 = 5,    a2 = 2,
+                      sigma2 = "gamma",       s0 = 1,    s1 = 1.5,  s2 = 1.5) {
+  args    <- formals(calibrate)
+  Nmcmc   <- if (!is.null(args$Nmcmc))   Nmcmc   else 20000
+  nBurn   <- if (!is.null(args$nBurn))   nBurn   else 1
+  thining <- if (!is.null(args$thining)) thining else 1
+  kappa   <- if (!is.null(args$kappa))   kappa   else "betashift2"
+  k1      <- if (!is.null(args$k1))      k1      else 1.2
+  k2      <- if (!is.null(args$k2))      k2      else 1.2
+  theta   <- if (!is.null(args$theta))   theta   else "gamma"
+  t1      <- if (!is.null(args$t1))      t1      else 1.5
+  t2      <- if (!is.null(args$t2))      t2      else 0.1
+  alpha   <- if (!is.null(args$alpha))   alpha   else "betashift"
+  a1      <- if (!is.null(args$a1))      a1      else 5
+  a2      <- if (!is.null(args$a2))      a2      else 2
+  sigma2  <- if (!is.null(args$sigma2))  sigma2  else "gamma"
+  s1      <- if (!is.null(args$s1))      s1      else 1.5
+  s2      <- if (!is.null(args$s2))      s2      else 1.5
 
-  mcmc(Nmcmc, nBurn, thining, init, kappaPr, thetaPr, alphaPr, sigma2Pr)
+  kappaPr          <- setup_prior(kappa,  k1, k2)
+  thetaPr          <- setup_prior(theta,  t1, t2)
+  alphaPr          <- setup_prior(alpha,  a1, a2)
+  sigma2Pr         <- setup_prior(sigma2, s1, s2)
+  init             <- setup_cache(sim, field, kappaPr, thetaPr, alphaPr, sigma2Pr, k0, t0, a0, s0)
+  cache$Phi        <- matrix(nrow = Nmcmc, ncol = cache$k)
+  cache$Phi[1, ]   <- init$phi
+  cache$logPost    <- double(Nmcmc)
+  cache$logPost[1] <- init$logPost
+
+  cache$priors <- list(kappa  = c(kappa,  k1, k2),
+                       theta  = c(theta,  t1, t2),
+                       alpha  = c(alpha,  a1, a2),
+                       sigma2 = c(sigma2, s1, s2))
+
+  cat("initial values: ", round(init$phi, 3), "\n")
+
+  mcmc(Nmcmc, nBurn, thining, kappaPr, thetaPr, alphaPr, sigma2Pr)
 
   return(output())
 }

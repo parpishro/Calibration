@@ -14,54 +14,28 @@
 #' @return A list consisting of the inverse covariance matrix and the determinant of covariance matrix
 update_cov <- function(phi, iChanged) {
 
-  # indices for parameters in phi
-  ikappa    <- get('ikappa',   envir = cache)
-  ithetaS   <- get('ithetaS',  envir = cache)
-  ialphaS   <- get('ialphaS',  envir = cache)
-  ithetaB   <- get('ithetaB',  envir = cache)
-  ialphaB   <- get('ialphaB',  envir = cache)
-  isigma2S  <- get('isigma2S', envir = cache)
-  isigma2B  <- get('isigma2B', envir = cache)
-  isigma2E  <- get('isigma2E', envir = cache)
 
-  if (iChanged %in% ikappa) {
-    Xf     <- cbind(cache$Xb, replicate(cache$n, phi[ikappa], cache$n))
-    CorFF  <- correlation(Xf, theta = phi[ithetaS], alpha = phi[ialphaS])
-    CorFS  <- correlation(Xf, cache$Xs, phi[ithetaS], phi[ialphaS])
-    CorSF  <- t(CorFS)
-    assign('Xf',    Xf,    envir = cache)
-    assign('CorFF', CorFF, envir = cache)
-    assign('CorFS', CorFS, envir = cache)
-    assign('CorSF', CorSF, envir = cache)
 
-  } else if (iChanged %in% ithetaS | iChanged %in% ialphaS) {
-    CorFF  <- correlation(cache$Xf, theta = phi[ithetaS], alpha = phi[ialphaS])
-    CorFS  <- correlation(cache$Xf, cache$Xs, phi[ithetaS], phi[ialphaS])
-    CorSF  <- t(CorFS)
-    CorSS  <- correlation(cache$Xs, theta = phi[ithetaS], alpha = phi[ialphaS])
-    assign('CorSS', CorSS, envir = cache)
-    assign('CorFF', CorFF, envir = cache)
-    assign('CorFS', CorFS, envir = cache)
-    assign('CorSF', CorSF, envir = cache)
+  if (iChanged %in% cache$ikappa) {
+    cache$Xf     <- Xf <-  cbind(cache$Xb, replicate(cache$n, phi[cache$ikappa], cache$n))
+    cache$CorFF  <- correlation(Xf, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
+    cache$CorFS  <- correlation(Xf, cache$Xs, phi[cache$ithetaS], phi[cache$ialphaS])
+    cache$CorSF  <- t(cache$CorFS)
 
-  } else if (iChanged %in% ithetaB | iChanged %in% ialphaB) {
-    CorB   <- correlation(cache$Xb, theta = phi[ithetaB], alpha = phi[ialphaB])
-    assign('CorB', CorB, envir = cache)
+  } else if (iChanged %in% cache$ithetaS | iChanged %in% cache$ialphaS) {
+    cache$CorFF  <- correlation(cache$Xf, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
+    cache$CorFS  <- correlation(cache$Xf, cache$Xs, phi[cache$ithetaS], phi[cache$ialphaS])
+    cache$CorSF  <- t(cache$CorFS)
+    cache$CorSS  <- correlation(cache$Xs, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
 
-  } else if (iChanged %in% isigma2S)
-    assign('sigma2S', phi[isigma2S], envir = cache)
+  } else if (iChanged %in% cache$ithetaB | iChanged %in% cache$ialphaB) {
+    cache$CorB   <- correlation(cache$Xb, theta = phi[cache$ithetaB], alpha = phi[cache$ialphaB])
 
-  else if (iChanged %in% isigma2B)
-    assign('sigma2B', phi[isigma2B], envir = cache)
-
-  else if (iChanged %in% isigma2E)
-    assign('sigma2E', phi[isigma2E], envir = cache)
-
-  else stop("invalid iChanged argument!")
+  }
 
   Inn     <- diag(cache$n)
-  AugCov  <- rbind(cbind(cache$sigma2S*cache$CorFF + cache$sigma2B*cache$CorB + cache$sigma2E*Inn, cache$sigma2S*cache$CorFS),
-                   cbind(cache$sigma2S*cache$CorSF, cache$sigma2S*cache$CorSS))
+  AugCov  <- rbind(cbind(phi[cache$isigma2S]*cache$CorFF + phi[cache$isigma2B]*cache$CorB + phi[cache$isigma2E]*Inn, phi[cache$isigma2S]*cache$CorFS),
+                   cbind(phi[cache$isigma2S]*cache$CorSF, phi[cache$isigma2S]*cache$CorSS))
   CholCov <- try(chol(AugCov), silent = T)
 
   if (length(class(CholCov)) == 1 && class(CholCov) == "try-error")
@@ -69,12 +43,6 @@ update_cov <- function(phi, iChanged) {
 
   InvCov    <- chol2inv(CholCov)
   logDetCov <- 2 * sum(log(diag(CholCov)))
-
-  #muHat     <- update_mu()
-  assign('InvCov',    InvCov,    envir = cache)
-  assign('logDetCov', logDetCov, envir = cache)
-  #assign('muHat',     muHat,     envir = cache)
-
 
   return(list(InvCov = InvCov, logDetCov = logDetCov))
 

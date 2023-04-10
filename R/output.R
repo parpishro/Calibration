@@ -35,15 +35,23 @@ output <- function() {
     }
   }
 
-  paramMean        <- round(apply(dist, 2, mean), 4)
-  paramVar         <- round(apply(dist, 2, var), 4)
-  estimates        <- data.frame(var=paramNames, est=paramMean, se=paramVar)
   colnames(dist)   <- paramNames
-  return(list(estimates     = estimates,
-              distributions = round(dist, 2),
+  paramMean        <- round(apply(dist, 2, mean), 4)
+  paramSd          <- round(apply(dist, 2, sd), 4)
+  paramLwr         <- round(apply(dist, 2, quantile, 0.1), 4)
+  paramMod         <- round(apply(dist, 2, quantile, 0.5), 4)
+  paramUpr         <- round(apply(dist, 2, quantile, 0.9), 4)
+  estimates        <- data.frame(mean=paramMean, sd = paramSd,
+                                 lower=paramLwr, upper = paramUpr, mode = paramMod)
+
+  obj <- list(estimates     = estimates,
+              Phi           = round(dist, 2),
               acceptance    = cache$acceptance,
               logPost       = cache$logPost,
               samples       = cache$Phi,
               vars          = paramNames,
-              summary       = summary(dist)))
+              cache         = cache)
+  class(obj) <- "fbc"
+
+  return(obj)
 }
