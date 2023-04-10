@@ -32,14 +32,14 @@ $$
 
 
 $$
-y_f  : y_r(.) + \epsilon \ \ \ \& \ \ \ y_r\ = y_s(.) + b(.) \\
+y_f  : y_r(.) + \epsilon \ \ \ \text{And} \ \ \ y_r\ = y_s(.) + b(.) \\
 $$
 
 
 $$\begin{align}
 \implies  y_f  &= y_s(.) + b(.) + \epsilon \\
 \implies y_f  &= \eta (x_b, x_\kappa^*) + \delta(x_b) + \epsilon \\
-\text{&}\ \ \ \ \ y_s  &= \eta (x_s, x_\kappa) \\
+\text{And}\ \ \ \ \ y_s  &= \eta (x_s, x_\kappa) \\
 \end{align}$$
 
 
@@ -133,7 +133,7 @@ $$\kappa = (\kappa_1, ... , \kappa_q)$$
 - More concentration on small values (right-skewed)
 - Gamma $[1.5, 0.1]$ is chosen for both GPs
 
-```{r , out.width="75%"}
+```{r echo=FALSE, , out.width="75%"}
 seqPos <- seq(0, 2, by = 0.001)
 Density <- dgamma(seqPos, shape = 1.5, scale  = 0.1)
 plot(seqPos, Density,  type = "l", xlab="Scale Parameter", main = "Prior Distribution of the Scale Parameter")
@@ -146,7 +146,7 @@ plot(seqPos, Density,  type = "l", xlab="Scale Parameter", main = "Prior Distrib
 - More concentration on larger values (left-skewed)
 - Shifted Beta $[5, 2]$ is chosen for both GPs
 
-```{r , out.width="75%"}
+```{r echo=FALSE, , out.width="75%"}
 Density <- dbeta(seqPos-1, shape1   = 5, shape2 = 2)
 plot(seqPos, Density, type = "l", xlab="Smoothness Parameter (alpha)", main = "Prior Distribution of the Smoothness Parameter")
 ```
@@ -157,7 +157,7 @@ plot(seqPos, Density, type = "l", xlab="Smoothness Parameter (alpha)", main = "P
 - More concentrtion on smaller values (right-skewed)
 - Inverse Gamma, Jefferey's , and Gamma can be set
 
-```{r , out.width="75%"}
+```{r echo=FALSE, , out.width="75%"}
 Density <- dgamma(seqPos, shape   = 0.5, scale = 1.5)
 plot(seqPos, Density, type = "l", xlab="Marginal Variance Parameter (sigma2)", main = "Prior Distribution of the Variance Parameter")
 ```
@@ -502,7 +502,7 @@ $$t = \sqrt{\frac{2h}{g}}$$
 
 
 
-```{r}
+```{r echo=FALSE}
 plot(toyField[, 1], toyField[, 2], cex = 0.75, pch = 19, col = "red", ylim = c(0, 1.5), xlab="Height (m)", ylab="Time (s)", main = "Ball drop experiment (Bingham & Loeppky)")
 points(toySim[, 1], toySim[, 3],cex = 0.75, pch = 19, col = "blue")
 
@@ -522,7 +522,7 @@ _ Point Estimates and Credible Sets
 
 **Calibration Parameter (Gravity)**
 
-```{r pressure}
+```{r pressure, echo=FALSE}
 Iteration <- seq(1, 10000, by = 10)
 kappa <- init_kappa$Phi$kappa1[Iteration]
 plot(Iteration, kappa, ylim = c(5, 15), type = "l", ylab = "Gravity", 
@@ -537,7 +537,7 @@ plot(Iteration, kappa, ylim = c(5, 15), type = "l", ylab = "Gravity",
 **Simulation Correlation Hyperparameters**
 
 
-```{r}
+```{r echo=FALSE}
 thetaSim1 <- init_kappa$Phi$thetaS1[Iteration]
 thetaSim2 <- init_kappa$Phi$thetaS2[Iteration]
 alphaSim1 <- init_kappa$Phi$alphaS1[Iteration]
@@ -561,7 +561,7 @@ plot(Iteration, alphaSim2, ylab = "thetaS2", ylim = c(1.2, 2), type = "l",
 **Bias-Correction Correlation Hyperparameters**
 
 
-```{r}
+```{r echo=FALSE}
 thetaBias1 <- init_kappa$Phi$thetaS1[Iteration]
 alphaBias1 <- init_kappa$Phi$alphaS1[Iteration]
 par(mfrow = c(1,2))
@@ -580,7 +580,7 @@ plot(Iteration, alphaBias1, ylab = "alphaB1", ylim = c(1.2, 2), type = "l",
 **Variance (Precision) Parameters**
 
 
-```{r}
+```{r echo=FALSE}
 sigma2Sim  <- init_kappa$Phi$sigma2S[Iteration]
 sigma2Bias <- init_kappa$Phi$sigma2B[Iteration]
 sigma2Err  <- init_kappa$Phi$sigma2E[Iteration]
@@ -600,7 +600,7 @@ plot(Iteration, sigma2Err, ylab = "sigma2E", ylim = c(0, 0.3), type = "l",
 **Posterior Density for Calibration Parameter**
 
 
-```{r}
+```{r echo=FALSE}
 grange <- ((init_kappa$cache$calibMax - init_kappa$cache$calibMin) * seq(0, 1, by = 0.01)) + init_kappa$cache$calibMin
 calPr  <- dbeta(1.25*seq(0, 1, by = 0.01)-0.125, shape1   = 1.2, shape2 = 1.2)
 kappahat <- init_kappa$estimates$mode[init_kappa$cache$ikappa] 
@@ -618,7 +618,7 @@ col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
 **Posterior Density for Simulation GP Hyperparameters**
 
 
-```{r}
+```{r echo=FALSE}
 thetaRange <- seq(0, 1, by = 0.01)
 alphaRange <- seq(1, 2, by = 0.01)
 thetaPr  <- dgamma(thetaRange, shape   = 1.5, scale = 0.1)
@@ -664,7 +664,7 @@ col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
 **Posterior Density for Bias-Correction GP Hyperparameters**
 
 
-```{r}
+```{r echo=FALSE}
 thetaBhat1 <- init_kappa$estimates$mode[init_kappa$cache$ithetaB]
 alphaBhat1 <- init_kappa$estimates$mode[init_kappa$cache$ialphaB]
 
@@ -693,7 +693,7 @@ col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
 **Posterior Density for Variance Parameters**
 
 
-```{r}
+```{r echo=FALSE}
 sigRange <- seq(0, 5, by = 0.01)
 sigmaPr  <- dgamma(sigRange, shape   = 1.5, scale = 1.5)
 sigma2Shat <- init_kappa$estimates$mode[init_kappa$cache$isigma2S]
@@ -721,7 +721,7 @@ col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
 **Posterior Density for Measurement Variance**
 
 
-```{r}
+```{r echo=FALSE}
 sigRangeE <- seq(0, 5, by = 0.01)
 sigma2Ehat <- init_kappa$estimates$mode[init_kappa$cache$isigma2E]
 
@@ -739,7 +739,7 @@ col=c("red", "blue", "black"), lwd=c(1,1,1,2), bty="n")
 ## Parameter Estimates
 
 
-```{r}
+```{r echo=FALSE}
 estTable <- data.frame(round(init_kappa$estimates, 2))
 colnames(estTable) <- c("Sample MEan", "Sample SD", "5% Quantile", "95% Quantile", "Mode")
 kableExtra::kable(estTable)
@@ -749,14 +749,14 @@ kableExtra::kable(estTable)
 
 ## Point Prediction of Physical Mean Response
 
-```{r}
+```{r echo=FALSE}
 preds <- double(nrow(toyField))
 for (i in 1:nrow(toyField)) {
   preds[i] <- predict.fbc(init_kappa, toyField[i, 1])
 }
 ```
 
-```{r}
+```{r echo=FALSE}
 
 plot(toyField[, 1], toyField[, 2], cex = 0.75, pch = 19, col = "red", ylim = c(0, 1.5), xlab="Height (m)", ylab="Time (s)", main = "Ball drop experiment (Bingham & Loeppky)")
 points(toyField[, 1], preds,cex = 0.75, pch = 19, col = "green")
@@ -767,7 +767,7 @@ points(toyField[, 1], preds,cex = 0.75, pch = 19, col = "green")
 
 
 
-```{r}
+```{r echo=FALSE}
 par(mfrow = c(3, 2))
 
 
