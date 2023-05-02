@@ -37,7 +37,7 @@
 #'
 #' ## Notation
 #'
-#' parameters of KOH model include all of calibration parameters and will be
+#' parameters of FBC model include all of calibration parameters and will be
 #' denoted by \eqn{\kappa}. Since data is scaled and has mean zero, both GPs are
 #' specified using their correlation structures and marginal variances. In this
 #' implementation, power correlation structure assumed as it has enough

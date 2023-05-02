@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 
 ``` r
-library(KOH)
+library(FBC)
 load("output.RData")
 ```
 
@@ -107,7 +107,7 @@ $$\kappa = (\kappa_1, ... , \kappa_q)$$
 - Strong priors: low variance Gaussian
 - Vague priors: Beta $[1.1, 1.1]$
 - Uninformative priors: Uniform over domain
-- KOH recommends to include all parameters
+- FBC recommends to include all parameters
 - Engineering validation for defficult specification
 
 ## GP Scale Hyperparameters

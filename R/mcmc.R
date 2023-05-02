@@ -28,7 +28,7 @@
 #' @param alphaPr   a function that computes log prior for smoothness parameters
 #' @param sigma2Pr  a function that computes log prior for calibration parameters
 #' @noRd
-#' @return a KOH object that includes a matrix of all parameters' distribution
+#' @return a FBC object that includes a matrix of all parameters' distribution
 #'            and a vector of log likelihood updates of each usable MCMC runs
 mcmc <- function(Nmcmc, nBurn, thining,
                  kappaPr, thetaPr, alphaPr, sigma2Pr) {
