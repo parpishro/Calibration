@@ -4,11 +4,14 @@
 #'
 #' @export
 control <- function(...) {
+
+
   args <- list(...)
   for (argName in names(args)) {
     if (argName %in% names(formals(calibrate))) {
-      formals(calibrate)[[argName]] <- args[[argName]]
-      print(c(formals(calibrate)[[argName]], args[[argName]]))
+      from <- formals(calibrate)[[argName]]
+      formals(calibrate)[[argName]] <<- args[[argName]]
+      cat("Argument `", argName, "` changed from ", from, " to ", args[[argName]], sep = "")
     }
 
     else

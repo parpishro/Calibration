@@ -13,29 +13,32 @@
 #' @noRd
 #' @return A list consisting of the inverse covariance matrix and the determinant of covariance matrix
 update_cov <- function(phi, iChanged) {
-
-
-
   if (iChanged %in% cache$ikappa) {
-    cache$Xf     <- Xf <-  cbind(cache$Xb, replicate(cache$n, phi[cache$ikappa], cache$n))
-    cache$CorFF  <- correlation(Xf, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
-    cache$CorFS  <- correlation(Xf, cache$Xs, phi[cache$ithetaS], phi[cache$ialphaS])
-    cache$CorSF  <- t(cache$CorFS)
+    cache$Xk     <- Xk <-  cbind(cache$Xf, matrix(replicate(cache$n, phi[cache$ikappa]), nrow=cache$n, byrow=T))
+    cache$CorKK  <- correlation(Xk, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
+    cache$CorKS  <- correlation(Xk, cache$Xs, phi[cache$ithetaS], phi[cache$ialphaS])
+    cache$CorSK  <- t(cache$CorKS)
 
   } else if (iChanged %in% cache$ithetaS | iChanged %in% cache$ialphaS) {
-    cache$CorFF  <- correlation(cache$Xf, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
-    cache$CorFS  <- correlation(cache$Xf, cache$Xs, phi[cache$ithetaS], phi[cache$ialphaS])
-    cache$CorSF  <- t(cache$CorFS)
+    cache$CorKK  <- correlation(cache$Xk, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
+    cache$CorKS  <- correlation(cache$Xk, cache$Xs, phi[cache$ithetaS], phi[cache$ialphaS])
+    cache$CorSK  <- t(cache$CorKS)
     cache$CorSS  <- correlation(cache$Xs, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
 
   } else if (iChanged %in% cache$ithetaB | iChanged %in% cache$ialphaB) {
-    cache$CorB   <- correlation(cache$Xb, theta = phi[cache$ithetaB], alpha = phi[cache$ialphaB])
+    cache$CorFF   <- correlation(cache$Xf, theta = phi[cache$ithetaB], alpha = phi[cache$ialphaB])
 
   }
 
-  Inn     <- diag(cache$n)
-  AugCov  <- rbind(cbind(phi[cache$isigma2S]*cache$CorFF + phi[cache$isigma2B]*cache$CorB + phi[cache$isigma2E]*Inn, phi[cache$isigma2S]*cache$CorFS),
-                   cbind(phi[cache$isigma2S]*cache$CorSF, phi[cache$isigma2S]*cache$CorSS))
+
+
+  AugCov  <- rbind(cbind(phi[cache$isigma2S]*cache$CorKK +
+                         phi[cache$isigma2B]*cache$CorFF +
+                         phi[cache$isigma2E]*cache$Inn ,
+                         phi[cache$isigma2S]*cache$CorKS),
+                   cbind(phi[cache$isigma2S]*cache$CorSK,
+                         phi[cache$isigma2S]*cache$CorSS))
+
   CholCov <- try(chol(AugCov), silent = T)
 
   if (length(class(CholCov)) == 1 && class(CholCov) == "try-error")

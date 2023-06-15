@@ -7,32 +7,52 @@
 calibrate(
   sim,
   field,
-  Nmcmc = 10000,
-  nBurn = 1,
+  Nmcmc = 110,
+  nBurn = 10,
   thining = 1,
-  kappa = "betashift2",
+  kappa = "beta",
   k0 = 0.5,
-  k1 = 1.2,
-  k2 = 1.2,
-  theta = "gamma",
-  t0 = 0.5,
-  t1 = 1.5,
-  t2 = 0.1,
-  alpha = "betashift",
-  a0 = 1.75,
-  a1 = 5,
-  a2 = 2,
-  sigma2 = "gamma",
-  s0 = 1,
-  s1 = 1.5,
-  s2 = 1.5
+  k1 = 1.1,
+  k2 = 1.1,
+  thetaS = "gamma",
+  ts0 = 0.5,
+  ts1 = 1.1,
+  ts2 = 0.1,
+  alphaS = "betashift",
+  as0 = 1.8,
+  as1 = 5,
+  as2 = 2,
+  thetaB = "gamma",
+  tb0 = 0.5,
+  tb1 = 1.1,
+  tb2 = 0.1,
+  alphaB = "betashift",
+  ab0 = 1.8,
+  ab1 = 5,
+  ab2 = 2,
+  sigma2S = "gamma",
+  ss0 = 2,
+  ss1 = 0.1,
+  ss2 = 0.1,
+  sigma2B = "gamma",
+  sb0 = 1,
+  sb1 = 0.5,
+  sb2 = 0.5,
+  sigma2E = "inversegamma",
+  se0 = 0.1,
+  se1 = 0.1,
+  se2 = 0.1,
+  mu = "uniform",
+  m0 = 0,
+  m1 = -5,
+  m2 = 5
 )
 }
 \arguments{
-\item{sim}{A \eqn{m \times (1+p+q)} matrix, representing simulation data,
+\item{sim}{A \eqn{m \times (p+q+1)} matrix, representing simulation data,
 where m, number of rows, is number of simulation runs, p is number of
 experimental variables, and q is number of calibration variables. Plus one
-represent the first column, which is the response variable.}
+represent the last column, which is the response variable.}
 
 \item{field}{A \eqn{n \times (1+p)} matrix, representing field data, where n,
 number of rows, is number of field observations and p is number of
@@ -54,29 +74,7 @@ after scaling to (0, 1)}
 
 \item{k2}{A double as second parameter of the chosen kappa distribution.}
 
-\item{theta}{A string to specify the prior type for scale parameters.}
-
-\item{t0}{a scaler in (0, Inf) representing initial values of theta (scale) parameters}
-
-\item{t1}{A double as first parameter of the chosen theta distribution.}
-
-\item{t2}{A double as second parameter of the chosen theta distribution.}
-
-\item{alpha}{A string to specify the prior type for smoothness parameters.}
-
-\item{a0}{a scaler in (1, 2) representing initial values of alpha (smoothness) parameters}
-
-\item{a1}{A double as first parameter of the chosen alpha distribution.}
-
-\item{a2}{A double as second parameter of the chosen alpha distribution.}
-
-\item{sigma2}{A string to specify the prior type for variance parameters.}
-
-\item{s0}{a scaler or vector of length three that represent initial value for marginal variance}
-
-\item{s1}{A double as first parameter of the chosen sigma2 distribution.}
-
-\item{s2}{A double as second parameter of the chosen sigma2 distribution.}
+\item{m2}{}
 }
 \value{
 an output list containing:
@@ -97,7 +95,46 @@ and initial values of the model parameters, runs a full Bayesian Markov Chain Mo
 algorithm and samples the posterior distribution of parameters.
 }
 \details{
+In both matrices of simulation and field data, the first columns are experimental inputs,
+followed by calibration input columns (only in simulation matrix), and last column is
+univariate response variable.
 
+Posterior distribution of a parameters often do not correspond to well-known
+distributions. A MCMC algorithm, and especially Metropolis-Hastings (MH)
+algorithm with adaptive proposal gives a sufficiently close distribution. In
+addition to point estimates of the parameters, \code{calibrate} also enables
+uncertainty quantification for estimated parameters.
+\subsection{Calibration Model}{
+
+This implementation is based on Kennedy-O'Hagan (KOH) calibration model. In
+their seminal paper*, Kennedy and O'Hagan augmented simulator output with
+field observation and fit a three-component model that accounts for simulator
+input and bias correction using two independent Gaussian Processes (GP) and a
+third term representing measurement error.
+\deqn{z_i = \eta (x_i, \kappa) + \delta(x_i) + e_i}
+In the original paper, the authors proposed a two-stage hierarchical Bayesian
+model. In the first stage, point estimates of GP hyperparameters are computed
+using maximum likelihood estimation (MLE) method. In the second stage, these
+hyperparameters are fixed at their estimated value and run a MCMC algorithm
+to sample calibration parameters.
+In contrast, \code{calibrate} runs MCMC algorithm to sample the posterior
+distribution of all parameters/hyperparameters. As a result, priors must be
+specified carefully to reflect the prior expert belief about the distribution
+and initial values must be chosen as close as possible to prior means.
+}
+
+\subsection{Notation}{
+
+parameters of FBC model include all of calibration parameters and will be
+denoted by \eqn{\kappa}. Since data is scaled and has mean zero, both GPs are
+specified using their correlation structures and marginal variances. In this
+implementation, power correlation structure assumed as it has enough
+flexibility to capture both scale and smoothness of correlation. Therefore,
+hyperparameters includes scale (\eqn{\theta_S} & \eqn{\theta_B}) and smoothness
+(\eqn{\alpha_S} & \eqn{\alpha_B}) coefficients and marginal variances (\eqn{\sigma^2_S} &
+\eqn{\sigma^2_B}) for each GP. Moreover there is a third term that represents
+measurement error and is specified using its variance (\eqn{\sigma^2_E}).
+}
 }
 \examples{
 examples/calib

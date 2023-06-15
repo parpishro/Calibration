@@ -375,7 +375,7 @@ $C_D = \sigma^2_s \begin{bmatrix} R_{ff}^s  & R_{fs}^s \\  R_{sf}^s & R_{ss}^s \
 
 ## `mcmc()`
 
-**Input:** Prior Functions and MCMCM Parameters 
+**Input:** Prior Functions and MCMC Parameters 
 
 **Output:** NO Output
 

@@ -1,0 +1,162 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+
+
+### Introduction
+
+### KOH Calibration Model
+
+Kennedy and O'Hagan (KOH) proposed a Bayesian calibration model to integrate the 
+information from field observations, $y_f$, (and its corresponding matrix of 
+experimental input, $X_f$) and computer simulation, $y_s$ (and its corresponding 
+matrix of experimental/calibration input, $X_s$). Often, in computer simulation
+there are extra parameters that are either are unkwon in the field setting or
+are tuning parameters specific to simulation without physical interpretation. 
+These inputs are calibration parameters and tuning them for the computer model is
+one of the main objective of calibration. 
+
+Moreover, KOH assumes both field and simulation results are realization of real 
+process, $Y$, while admitting to a systemic bias in simulation models, and 
+measurement error in the form of independent zero-mean Gaussian error terms with
+variance $\sigma^2_{\epsilon}$.:  
+
+
+$$
+\begin{eqnarray}
+Y|_{X_f} : y(x) &=& y_f(x_f) +  \epsilon \ \ &, \text{where} \ x_f: 1 \times p \ \text{vector of experimental inputs} \\
+Y|_{X_s} : y(x) &=& y_s(x_s) + y_b(x_b) + \epsilon \ \ &, \ \text{where} \ x_s: 1 \times p+q \ \text{vector of experimental + calibration inputs}
+\end{eqnarray}
+$$
+
+In this formulation, $x_f$ is in fact $1 \times p+q$ vector, similar to $x_s$, 
+because it is realization of the same real process. However, calibration 
+parameters are set (fixed or variable) at their best value but their value is 
+not known. Since all field observation have the same calibration parameters,
+they are removed from notation. The current text uses $(1 \times p+q)$ vector 
+$x_s$ for simulation input, $(1 \times p+q)$ vector $x_f$ for field data 
+augmented with calibration parameters (at their current updated value and same 
+for all field observations), and $(1 \times p)$ vector $x_b$ for field data 
+without augmenting calibration parameters. The subscript $b$ is chosen to 
+indicate that it is only input to bias term. Stacking the two data, we can write
+the KOH calibration model in a single expression:
+
+$$
+Y|_{X} : y(x) = y_s(x) + y_b(x) + \epsilon \ \ , \ \text{where} \ x: 1 \times p+q \ \text{vector of experimental + calibration inputs}
+$$
+
+this formulation, emphasizes that model has systemic bias, even under best 
+calibration parameters. However, KOH postulates that reasonable correction can
+be made through $y_b(.)$ 
+
+Above specification leads to three unknowns: calibration parameters (denoted by
+$\kappa$), variance of measurement error ($\sigma^2_{\epsilon}$) and functional
+form of bias correction term (denoted by $y_b(.)$ noting that the actual bias is
+$-y_b(.)$). Moreover, KOH assumes a Gaussian Process (GP) for both simulation
+term (often the simulation is also expensive leading to limited runs. Fitting a 
+GP as a surrogate to couble bias-correction GP) and bias-correction term, which 
+introduces new hyper-parameters to the model. 
+
+Specifically, assuming a generalized correlation structure such as power 
+exponential correlation family, the scale (denoted by $\theta_s$ and $\theta_b$),
+smoothness (denoted by $\alpha_s$ and $\alpha_b$), and their marginal variance
+(denoted by $\sigma_s^2$ and $\sigma_b^2$) are added to the model. 
+
+$$
+\Omega = (Y_s(.), \Delta_b(.), \kappa, \sigma_{\epsilon}^2 ) = (\kappa, \theta_s, \alpha_s, \sigma_s^2, \theta_b, \alpha_b, \sigma^2_b, \sigma_{\epsilon}^2)
+$$
+
+After loading of the data (either toy data or user data), the combined 
+observation vector is scaled by mean and standard deviation of simulation runs 
+such that $y_s$ terms have mean zero and standard deviation of 1 after scaling.
+Furthermore, input matrix is scaled according to mean and standard deviation of
+columns of the input matrix (consisting of experimental and calibration values)
+such that $X_s$ columns span $[0, 1]$. These scaling removes the need for 
+parametrization of the mean of the GPs as they will be considered zero. 
+Following the results from Chen et al. (2016), the fitting a linear regression
+model does not necessarily improve the performance as the GP models are flexible.
+Therefore current package does not consider fitting regression model on the mean
+GPs.
+
+### Bayesian Inference
+
+The framework of KOH model is Bayesian. Prior information and restrictions about
+model parameters and hyperparameters can be specified through informative or
+non-informative priors. 
+
+For calibration parameters, often non-informative uniform prior is used over 
+wide but finite domain, unless expert opinion is available in the form of prior
+distributions. An alternative choice can be a regularizing prior that prevent 
+from over-concentration of posterior density on boundaries of domain.
+
+... other pror specification
+
+The likelihood for posterior density is in following form along with its log 
+form (where both sides are log transformed for computational efficiency):
+
+
+$$
+\begin{align}
+&L(\Omega \mid Y) = 
+\end{align}
+$$
+where augmented covariance matrix is given by:
+
+$$
+\Sigma \mid \Omega = 
+$$
+
+This expression is interactable and must be solved through optimization methods
+or it can be used to sample from its joint posterior.
+
+
+### Monte Carlo Markov Chain Sampling
+
+### Metropolis-Within-Gibbs Algorithm Imlementation
+
+### Adaptive Proposal
+
+### Parameter Estimation
+
+### Prediction
+
+### Toy Example
+
+##### Data
+
+##### Model
+
+##### MCMC Runs
+
+##### Parameter Estimation
+
+##### Prediction
+
+##### Diagnostics
+
+### Future Development
+
+### Consclusion
+
+
+
+
+
+
+(denoted by $\alpha$) and marginal variance
+
+
+
+
+
+
+
+
+
+
+
+

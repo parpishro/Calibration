@@ -6,42 +6,54 @@
 #' @return predictions
 #'
 #' @export
-predict.fbc <- function(object, newdata) {
-  cache <- object$cache
-  phi   <- object$estimates$mean
-  cache$Xf     <- Xf <-  cbind(cache$Xb, replicate(cache$n, phi[cache$ikappa], cache$n))
-  cache$CorFF  <- correlation(Xf, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
-  cache$CorFS  <- correlation(Xf, cache$Xs, phi[cache$ithetaS], phi[cache$ialphaS])
-  cache$CorSF  <- t(cache$CorFS)
-  cache$CorSS  <- correlation(cache$Xs, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
-  cache$CorB   <- correlation(cache$Xb, theta = phi[cache$ithetaB], alpha = phi[cache$ialphaB])
+predict.fbc <- function(object, newdata, type) {
+  cache     <- object@cache
+  Phi       <- object@Phi
+  InvCovRes <- cache$InvCovRes
+  expMin    <- cache$scale$expMin
+  expRange  <- cache$scale$expRange
+  calMin    <- cache$scale$calMin
+  calRange  <- cache$scale$calRange
+  yMean     <- cache$scale$meanYs
+  ySd       <- cache$scale$sdYs
+  Ystar     <- matrix(0, nrow = nrow(Phi), ncol = nrow(newdata))
+  Xstar     <<- matrix(scale(newdata,
+                               center=expMin,
+                               scale=expRange), ncol=length(expMin))
+  Phi[,cache$ikappa] <- matrix(scale(Phi[,cache$ikappa],
+                                     center=calMin,
+                                     scale=calRange), ncol=length(cache$ikappa))
 
-  Inn     <- diag(cache$n)
-  AugCov  <- rbind(cbind(phi[cache$isigma2S]*cache$CorFF + phi[cache$isigma2B]*cache$CorB + phi[cache$isigma2E]*Inn, phi[cache$isigma2S]*cache$CorFS),
-                   cbind(phi[cache$isigma2S]*cache$CorSF, phi[cache$isigma2S]*cache$CorSS))
-  CholCov <- try(chol(AugCov), silent = T)
-
-  if (length(class(CholCov)) == 1 && class(CholCov) == "try-error")
-    return(NULL)
-
-  InvCov    <- chol2inv(CholCov)
-  logDetCov <- 2 * sum(log(diag(CholCov)))
-
-
-  x                                    <- scale(newdata, center=cache$experMin, scale=cache$experMax-cache$experMin)
-  xstar                                <- double(cache$p+cache$q)
-  xstar[1:cache$p]                     <- scale(newdata, center=cache$experMin, scale=cache$experMax-cache$experMin)
-  xstar[(cache$p+1):(cache$p+cache$q)] <- scale(phi[cache$ikappa], center=cache$calibMin, scale=cache$calibMax-cache$calibMin)
-
-
-
-  covVec   <- phi[cache$isigma2S]*rbind(correlation(cache$Xf, matrix(xstar, nrow = 1), theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS]),
-                                        correlation(cache$Xs, matrix(xstar, nrow = 1), theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])) +
-              phi[cache$isigma2B]*rbind(correlation(cache$Xb, matrix(x, nrow = 1), theta = phi[cache$ithetaB], alpha = phi[cache$ialphaB]),
-                                        matrix(0, nrow = cache$m, ncol = 1))
-
-  preds    <- t(covVec) %*% InvCov %*% cache$y
-  return((preds* sd(cache$ys)) + mean(cache$ys))
+  if (type == "MAP") {
+    iMAP        <- which.max(object@logPost)
+    phiMAP      <- as.numeric(Phi[iMAP, ,drop=T])
+    Xk          <- cbind(cache$Xf, replicate(cache$n, phiMAP[cache$ikappa]))
+    Xkstar      <- cbind(Xstar,    replicate(cache$n, phiMAP[cache$ikappa]))
+    CorSN       <- correlation(cache$Xs, Xkstar, theta=phiMAP[cache$ithetaS], alpha=phiMAP[cache$ialphaS])
+    CorKN       <- correlation(Xk,        Xkstar, theta=phiMAP[cache$ithetaS], alpha=phiMAP[cache$ialphaS])
+    CorFN       <- correlation(cache$Xf, Xstar,  theta=phiMAP[cache$ithetaB], alpha=phiMAP[cache$ialphaB])
+    CovN        <- rbind(phiMAP[cache$isigma2S]*CorKN + phiMAP[cache$isigma2B]*CorFN, phiMAP[cache$isigma2S]*CorSN)
+    Ystar       <- phiMAP[cache$imu] + (t(CovN) %*% InvCovRes[iMAP, ])
+  } else if (type == "Bayesian") {
+    Inn       <- diag(cache$n)
+    cat("Statrting prediction draws ... \n")
+    Phi[,cache$ikappa] <- matrix(scale(Phi[,cache$ikappa],
+                                       center=calMin,
+                                       scale=calRange), ncol=length(cache$ikappa))
+    for (i in 1:nrow(Phi)) {
+      cache$Xk    <- cbind(cache$Xf, replicate(cache$n, Phi[i, cache$ikappa]))
+      Xkstar      <- cbind(Xstar,    replicate(cache$n, Phi[i, cache$ikappa]))
+      CorSN       <- correlation(cache$Xs, Xkstar, theta=Phi[i,cache$ithetaS], alpha=Phi[i,cache$ialphaS])
+      CorKN       <- correlation(cache$Xk, Xkstar, theta=Phi[i,cache$ithetaS], alpha=Phi[i,cache$ialphaS])
+      CorFN       <- correlation(cache$Xf, Xstar,  theta=Phi[i,cache$ithetaB], alpha=Phi[i,cache$ialphaB])
+      CovN        <- rbind(Phi[i,cache$isigma2S]*CorKN + Phi[i,cache$isigma2B]*CorFN, Phi[i, cache$isigma2S]*CorSN)
+      Ystar[i,]   <- Phi[i,cache$imu] + (t(CovN) %*% InvCovRes[i, ])
+      if ((i %% (nrow(Phi)/10)) == 0)
+        cat("Completed ", 100*(i/nrow(Phi)), " % of prediction draws ... \n")
+      }
+  } else
+    stop("Unknown prediction type!")
+  return((Ystar * ySd) + yMean)
 }
-fbc <- setClass("fbc")
-setMethod("predict", signature = "fbc", definition = predict.fbc)
+
+

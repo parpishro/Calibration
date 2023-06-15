@@ -7,9 +7,9 @@
 predict.fbc(object, newdata)
 }
 \arguments{
-\item{newdata}{a vector of new data}
+\item{object}{class fbc}
 
-\item{obj}{class fbc}
+\item{newdata}{a vector of new data}
 }
 \value{
 predictions

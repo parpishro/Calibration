@@ -9,13 +9,13 @@
 #' names and a quantile summary of each parameter
 #' @noRd
 output <- function() {
-  Params     <- matrix(nrow = nrow(cache$Params), ncol = cache$k)
-  paramNames <- character(cache$k)
-  dist       <- as.data.frame(cache$Params)
-  for (i in 1:cache$k) {
+  paramNames   <- character(cache$l)
+  Params       <- as.data.frame(cache$Params)
+  scales       <- cache$scale
+  for (i in 1:(cache$l-4)) {
     if (i %in% cache$ikappa) {
       paramNames[i] <- paste0("kappa", i)
-      dist[, i]     <- (dist[, i] * (cache$calibMax[i] - cache$calibMin[i])) + cache$calibMin[i]
+      Params[, i]   <- Params[, i]*scales$calRange[i] + scales$calMin[i]
     } else if (i %in% cache$ithetaS) {
       paramNames[i] <- paste0("thetaS", i - cache$ithetaS[1] + 1)
     } else if (i %in% cache$ialphaS) {
@@ -24,34 +24,37 @@ output <- function() {
       paramNames[i] <- paste0("thetaB", i - cache$ithetaB[1] + 1)
     } else if (i %in% cache$ialphaB) {
       paramNames[i] <- paste0("alphaB", i - cache$ialphaB[1] + 1)
-    } else if (i %in% cache$isigma2S) {
-      paramNames[i] <- "sigma2S"
-    } else if (i %in% cache$isigma2B) {
-      paramNames[i] <- "sigma2B"
-    } else if (i %in% cache$isigma2E) {
-      paramNames[i] <- "sigma2E"
-    } else if (i %in% cache$imuHat) {
-      paramNames[i] <- "muHat"
     }
   }
 
-  colnames(dist)   <- paramNames
-  paramMean        <- round(apply(dist, 2, mean), 4)
-  paramSd          <- round(apply(dist, 2, sd), 4)
-  paramLwr         <- round(apply(dist, 2, quantile, 0.1), 4)
-  paramMod         <- round(apply(dist, 2, quantile, 0.5), 4)
-  paramUpr         <- round(apply(dist, 2, quantile, 0.9), 4)
-  estimates        <- data.frame(mean=paramMean, sd = paramSd,
-                                 lower=paramLwr, upper = paramUpr, mode = paramMod)
+  paramNames[(cache$l-3):cache$l] <- c("sigma2S", "sigma2B", "sigma2E", "mu")
+  colnames(Params) <- paramNames
 
-  obj <- list(estimates     = estimates,
-              Phi           = round(dist, 2),
-              acceptance    = cache$acceptance,
-              logPost       = cache$logPost,
-              samples       = cache$Phi,
-              vars          = paramNames,
-              cache         = cache)
-  class(obj) <- "fbc"
-
+  paramMean        <- round(apply(Params, 2, mean),   3)
+  paramMedian      <- round(apply(Params, 2, median), 3)
+  paramMode        <- round(apply(Params, 2, pmode),  3)
+  paramSd          <- round(apply(Params, 2, sd),     3)
+  param50Lwr       <- round(apply(Params, 2, quantile, 0.25), 3)
+  param50Upr       <- round(apply(Params, 2, quantile, 0.75), 3)
+  param80Lwr       <- round(apply(Params, 2, quantile, 0.1),  3)
+  param80Upr       <- round(apply(Params, 2, quantile, 0.9),  3)
+  estimates        <- data.frame(mean=paramMean, median = paramMedian, mode = paramMode,
+                                 lwr50 = param50Lwr, upr50 = param50Upr,
+                                 lwr80 = param80Lwr, upr80 = param80Upr, sd = paramSd)
+  obj  <- new("fbc",
+              estimates  = estimates,
+              Phi        = round(Params, 2),
+              logPost    = cache$logPost,
+              acceptance = cache$acceptance,
+              vars       = paramNames,
+              cache      = cache)
   return(obj)
+}
+
+pmode <- function(vec) {
+  bins   <- seq(min(vec), max(vec), length.out = 101)
+  counts <- double(100)
+  for (i in 2:101)
+    counts[i-1] <- sum(vec >= bins[i-1] & vec < bins[i])
+  return(mean(bins[which.max(counts):(which.max(counts)+1)]))
 }

@@ -3,3 +3,5 @@
 export(calibrate)
 export(control)
 export(predict.fbc)
+export(predict)
+exportClasses(fbc)
