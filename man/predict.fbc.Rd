@@ -2,18 +2,27 @@
 % Please edit documentation in R/predict.fbc.R
 \name{predict.fbc}
 \alias{predict.fbc}
-\title{predict}
+\title{Predict based on Calibrated Model}
 \usage{
 predict.fbc(object, newdata)
 }
 \arguments{
-\item{object}{class fbc}
+\item{object}{class fbc (output of \code{calibrate()} function)}
 
-\item{newdata}{a vector of new data}
+\item{newdata}{matrix of new field input configuration (\eqn{\bf{X}_f^*}), where each
+row represents a vector of field input configuration (\eqn{\bf{x}_f^*})
+and columns represent experimental inputs}
 }
 \value{
-predictions
+list containing two vectors:
+- \code{mean} representing the estimate (\eqn{\bf{y}_f^*})
+- \code{se} represents the uncertainty about estimates (\eqn{\bf{\sigma^2_y}})
 }
 \description{
-predict
+It uses MCMC samples of calibration parameters and predicts the response for new input
+configurations. For every vector of joint parameter draw, a prediction is made to get a
+vector of prediction for each new input configuration (and a matrix of predictions for
+all new input configurations). This vector represents the estimated distribution of
+response conditioned on parameter samples. Full Bayesian framework of this package
+enables also uncertainty quantification.
 }

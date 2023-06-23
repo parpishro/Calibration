@@ -1,59 +1,86 @@
-#' predict
+#' Predict based on Calibrated Model
 #'
-#' @param object     class fbc
-#' @param newdata a vector of new data
+#' It uses MCMC samples of calibration parameters and predicts the response for new input
+#' configurations. For every vector of joint parameter draw, a prediction is made to get a
+#' vector of prediction for each new input configuration (and a matrix of predictions for
+#' all new input configurations). This vector represents the estimated distribution of
+#' response conditioned on parameter samples. Full Bayesian framework of this package
+#' enables also uncertainty quantification.
 #'
-#' @return predictions
+#' @param object  class fbc (output of `calibrate()` function)
+#' @param newdata matrix of new field input configuration (\eqn{\bf{X}_f^*}), where each
+#'                row represents a vector of field input configuration (\eqn{\bf{x}_f^*})
+#'                and columns represent experimental inputs
+#'
+#' @return list containing two vectors:
+#'            - `pred` representing the estimate (\eqn{\bf{y}_f^*})
+#'            - `se` represents the uncertainty about estimates (\eqn{\bf{\sigma^2_y}})
 #'
 #' @export
-predict.fbc <- function(object, newdata, type) {
-  cache     <- object@cache
-  Phi       <- object@Phi
-  InvCovRes <- cache$InvCovRes
-  expMin    <- cache$scale$expMin
-  expRange  <- cache$scale$expRange
-  calMin    <- cache$scale$calMin
-  calRange  <- cache$scale$calRange
-  yMean     <- cache$scale$meanYs
-  ySd       <- cache$scale$sdYs
-  Ystar     <- matrix(0, nrow = nrow(Phi), ncol = nrow(newdata))
-  Xstar     <<- matrix(scale(newdata,
-                               center=expMin,
-                               scale=expRange), ncol=length(expMin))
-  Phi[,cache$ikappa] <- matrix(scale(Phi[,cache$ikappa],
-                                     center=calMin,
-                                     scale=calRange), ncol=length(cache$ikappa))
+predict.fbc <- function(object, newdata, type="Bayesian") {
+  c              <- object@cache
+  Phi            <- object@Phi
+  np             <- nrow(Phi)
+  nx             <- nrow(newdata)
+  s              <- c$scale
+  preds          <- double(nx)
+  vars           <- double(nx)
+  predMean       <- matrix(0, nrow = np, ncol = nx)
+  predVar        <- matrix(0, nrow = np, ncol = nx)
+  Xstar          <- matrix(scale(newdata, center=s$expMin, scale=s$expRange), ncol=c$q)
+  Phi[,c$ikappa] <- matrix(scale(Phi[,c$ikappa], center=s$calMin, scale=s$calRange), ncol=c$q)
+  inds           <- c(c$indices, n=c$n, m=c$m)
 
-  if (type == "MAP") {
-    iMAP        <- which.max(object@logPost)
-    phiMAP      <- as.numeric(Phi[iMAP, ,drop=T])
-    Xk          <- cbind(cache$Xf, replicate(cache$n, phiMAP[cache$ikappa]))
-    Xkstar      <- cbind(Xstar,    replicate(cache$n, phiMAP[cache$ikappa]))
-    CorSN       <- correlation(cache$Xs, Xkstar, theta=phiMAP[cache$ithetaS], alpha=phiMAP[cache$ialphaS])
-    CorKN       <- correlation(Xk,        Xkstar, theta=phiMAP[cache$ithetaS], alpha=phiMAP[cache$ialphaS])
-    CorFN       <- correlation(cache$Xf, Xstar,  theta=phiMAP[cache$ithetaB], alpha=phiMAP[cache$ialphaB])
-    CovN        <- rbind(phiMAP[cache$isigma2S]*CorKN + phiMAP[cache$isigma2B]*CorFN, phiMAP[cache$isigma2S]*CorSN)
-    Ystar       <- phiMAP[cache$imu] + (t(CovN) %*% InvCovRes[iMAP, ])
-  } else if (type == "Bayesian") {
-    Inn       <- diag(cache$n)
-    cat("Statrting prediction draws ... \n")
-    Phi[,cache$ikappa] <- matrix(scale(Phi[,cache$ikappa],
-                                       center=calMin,
-                                       scale=calRange), ncol=length(cache$ikappa))
-    for (i in 1:nrow(Phi)) {
-      cache$Xk    <- cbind(cache$Xf, replicate(cache$n, Phi[i, cache$ikappa]))
-      Xkstar      <- cbind(Xstar,    replicate(cache$n, Phi[i, cache$ikappa]))
-      CorSN       <- correlation(cache$Xs, Xkstar, theta=Phi[i,cache$ithetaS], alpha=Phi[i,cache$ialphaS])
-      CorKN       <- correlation(cache$Xk, Xkstar, theta=Phi[i,cache$ithetaS], alpha=Phi[i,cache$ialphaS])
-      CorFN       <- correlation(cache$Xf, Xstar,  theta=Phi[i,cache$ithetaB], alpha=Phi[i,cache$ialphaB])
-      CovN        <- rbind(Phi[i,cache$isigma2S]*CorKN + Phi[i,cache$isigma2B]*CorFN, Phi[i, cache$isigma2S]*CorSN)
-      Ystar[i,]   <- Phi[i,cache$imu] + (t(CovN) %*% InvCovRes[i, ])
-      if ((i %% (nrow(Phi)/10)) == 0)
-        cat("Completed ", 100*(i/nrow(Phi)), " % of prediction draws ... \n")
+  compute_prediction <- function(xstar, phi, InvCov, res) {
+    xkStar <- matrix(c(xstar, phi[c$ikappa]), nrow=1)
+    corSN  <- correlation(c$Xs, xkStar,                theta=phi[c$ithetaS], alpha=phi[c$ialphaS])
+    corKN  <- correlation(Xk,   xkStar,                theta=phi[c$ithetaS], alpha=phi[c$ialphaS])
+    corFN  <- correlation(c$Xf, matrix(xstar, ncol=1), theta=phi[c$ithetaB], alpha=phi[c$ialphaB])
+    covND  <- matrix(c(phi[c$isigma2S]*corKN + phi[c$isigma2B]*corFN, phi[c$isigma2S]*corSN), ncol=1)
+
+    pMean <- phi[c$imuB] + (t(covND) %*% InvCov %*% res)
+    pVar  <- (phi[c$isigma2S]+phi[c$isigma2B]+phi[c$isigma2E]) - (t(covND) %*% InvCov %*% covND) + ((1-sum(InvCov%*%covND))^2)/sum(InvCov)
+    return(list(pMean=pMean, pVar=pVar))
+  }
+
+  if (type == "Bayesian") {
+    for (i in 1:np) {
+      phi    <- as.double(Phi[i, ,drop=T])
+      Xk     <- cbind(c$Xf,    matrix(as.double(replicate(c$n, phi[c$ikappa])), nrow=c$n))
+      InvCov <- compute_covs(phi, c$Xf, c$Xs, Xk, inds)
+      res    <- matrix(c$y - phi[c$imuB], ncol = 1)
+      for (j in 1:nx) {
+        prediction    <- compute_prediction(Xstar[j, ], phi, InvCov, res)
+        predMean[i,j] <- prediction$pMean
+        predVar[i,j]  <- prediction$pVar
       }
-  } else
-    stop("Unknown prediction type!")
-  return((Ystar * ySd) + yMean)
+    }
+    predMean <- (predMean*s$sdYs)+s$meanYs
+    predVar  <- predVar*(s$sdYs^2)
+    varMean  <- round(apply(predVar,  2, mean), 6)
+    meanVar  <- round(apply(predMean, 2, var),  6)
+
+    preds    <- round(apply(predMean, 2, mean), 3)
+    vars     <- varMean + meanVar
+  } else if (type == "MAP") {
+    iMAP     <- which.max(object@logPost)
+    phi      <- as.double(Phi[iMAP, ,drop=T])
+    Xk       <- cbind(c$Xf,    matrix(as.double(replicate(c$n, phi[c$ikappa])), nrow=c$n))
+    InvCov   <- compute_covs(phi, c$Xf, c$Xs, Xk, inds)
+    res      <- matrix(c$y - phi[c$imuB], ncol = 1)
+
+    for (j in 1:nx) {
+      prediction <- compute_prediction(Xstar[j, ], phi, InvCov, res)
+      preds[j]   <- prediction$pMean
+      vars[j]    <- prediction$pVar
+    }
+    preds    <- (preds*s$sdYs)+s$meanYs
+    vars     <- vars*(s$sdYs^2)
+  } else {
+    stop("Invalid prediction type!")
+  }
+
+  return(list(pred=preds, se=round(sqrt(vars), 4)))
 }
 
 
