@@ -844,3 +844,21 @@ Also a quote using `>`:
 > "He who gives up [code] safety for [code] speed deserves neither."
 ([via](https://twitter.com/hadleywickham/status/504368538874703872))
 
+
+#' ## Calibration Model
+#'
+#' This implementation is based on Kennedy-O'Hagan (KOH) calibration model. In
+#' their seminal paper*, Kennedy and O'Hagan augmented simulator output with
+#' field observation and fit a three-component model that accounts for simulator
+#' input and bias correction using two independent Gaussian Processes (GP) and a
+#' third term representing measurement error.
+#' \deqn{z_i = \eta (x_i, \kappa) + \delta(x_i) + e_i}
+#' In the original paper, the authors proposed a two-stage hierarchical Bayesian
+#' model. In the first stage, point estimates of GP hyperparameters are computed
+#' using maximum likelihood estimation (MLE) method. In the second stage, these
+#' hyperparameters are fixed at their estimated value and run a MCMC algorithm
+#' to sample calibration parameters.
+#' In contrast, `calibrate` runs MCMC algorithm to sample the posterior
+#' distribution of all parameters/hyperparameters. As a result, priors must be
+#' specified carefully to reflect the prior expert belief about the distribution
+#' and initial values must be chosen as close as possible to prior means.

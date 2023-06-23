@@ -1,67 +1,83 @@
-#' Sets up the cache environment to hold all the intermediate results
+#' Setting Cache Environment
 #'
-#' `setup_cache` declares and initalize the basic information about the data such as
-#' number of parameters in each category. It sets up all the initial values of the parameters
-#' and runs a first iteration of the workflow to compute log posterior and all the intermediate
-#' objects such as correlation matrices of both GPs. The objects in cache environment can be
-#' modified/accessed from all package functions.
+#' `setup_cache()` sets up a cache environment to hold shared data. The cache can be
+#' accessed and modified by all package function. Any large dataset appearing iteratively
+#' must be kept here to minimize argument passing. Furthermore, it sets up the prior
+#' functions and initiates the Phi matrix to be completed by MCMC algorithm.
 #'
-#' @param sim       a matrix containing the simulation data
-#' @param field     a matrix containing the field data
-#' @param kappaPr   a function that computes log of prior for calibration parameters
-#' @param thetaPr   a function that computes log of prior for scale hyperparameters
-#' @param alphaPr   a function that computes log of prior for smoothness hyperparameters
-#' @param k0        a scaler or vector of same length as number of calibration
-#'                  parameters that represent initial value for calibration parameters
-#'                  after scaling to (0, 1)
-#' @param t0        a scaler in (0, Inf) representing initial values of theta (scale) parameters
-#' @param a0        a scaler in (1, 2) representing initial values of alpha (smoothness) parameters
-#' @param s0        a scaler or vector of length three that represent initial value for marginal variance
+#' @param sim       numeric matrix containing the simulation data
+#' @param field     numeric matrix containing the field data
+#' @param priors    nested list containing prior specification for all parameters
+#' @param Nmcmc     integer representing number of MCMC runs
 #'
-#' @param sigma2Pr  a function that computes log of prior for variance hyperparameters
-#'
+#' @return A list consisting of initialized `Phi` matrix and `logPost` vector, and prior
+#' function list `priorFns`
 #' @noRd
-#' @return A list consisting of sampled Parameters in matrix form and log posterior vector
-setup_cache <- function(sim, field, Nmcmc,
-                        kappa,   k0,  k1,  k2,
-                        thetaS,  ts0, ts1, ts2,
-                        alphaS,  as0, as1, as2,
-                        thetaB,  tb0, tb1, tb2,
-                        alphaB,  ab0, ab1, ab2,
-                        sigma2S, ss0, ss1, ss2,
-                        sigma2B, sb0, sb1, sb2,
-                        sigma2E, se0, se1, se2,
-                        mu,      m0,  m1,  m2) {
+setup_cache <- function(sim, field, priors, Nmcmc) {
 
   cache$m   <- m <- nrow(sim)               # number of simulation runs
   cache$n   <- n <- nrow(field)             # number of field observations
   cache$p   <- p <- ncol(field) - 1         # number of experimental inputs
   cache$q   <- q <- ncol(sim) - p - 1       # number of calibration inputs
-  cache$l   <- l <- q + (p + q) + (p + q) +  p + p + 1 + 1 + 1 +1 # total # of parameters
-
+  cache$l   <- l <- q + (p+q) + (p+q) +  p + p + 1+1+1+1 # total # of parameters
 
   # indices for parameters in phi
-  cache$ikappa     <- ikappa   <- 1:q                                             # calibration
-  cache$ithetaS    <- ithetaS  <- (q+1): (q + (p+q))                              # sim scale
-  cache$ialphaS    <- ialphaS  <- (q + (p+q) + 1): (q + (p+q) + (p+q))            # sim smooth
-  cache$ithetaB    <- ithetaB  <- (q + (p+q) + (p+q) + 1): (q + (p+q) + (p+q) + p)# bias scale
-  cache$ialphaB    <- ialphaB  <- (q + (p+q) + (p+q) + p + 1): (l-4)              # bias smooth
-  cache$isigma2S   <- isigma2S <- l-3                                             # sim variance
-  cache$isigma2B   <- isigma2B <- l-2                                             # bias variance
-  cache$isigma2E   <- isigma2E <- l-1                                               # error variance
-  cache$imu        <- imu      <- l                                               # error variance
+  cache$ikappa   <- ikappa   <- 1:q                                             # calibration
+  cache$ithetaS  <- ithetaS  <- (q+1): (q + (p+q))                              # sim scale
+  cache$ialphaS  <- ialphaS  <- (q + (p+q) + 1): (q + (p+q) + (p+q))            # sim smooth
+  cache$ithetaB  <- ithetaB  <- (q + (p+q) + (p+q) + 1): (q + (p+q) + (p+q) + p)# bias scale
+  cache$ialphaB  <- ialphaB  <- (q + (p+q) + (p+q) + p + 1): (l-4)              # bias smooth
+  cache$isigma2S <- isigma2S <- l-3                                             # sim variance
+  cache$isigma2B <- isigma2B <- l-2                                             # bias variance
+  cache$isigma2E <- isigma2E <- l-1                                             # error variance
+  cache$imuB     <- imuB     <- l                                               # error variance
+  indices        <- list(ikappa   =ikappa,
+                         ithetaS  = ithetaS, ialphaS = ialphaS,
+                         ithetaB  = ithetaB, ialphaB = ialphaB,
+                         isigma2S = isigma2S, isigma2B = isigma2B,
+                         isigma2E = isigma2E, imuB     = imuB)
+  cache$indices  <- indices
+
+
 
   # parameters (initialize first row of Phi matrix)
-  Phi       <- matrix(nrow = Nmcmc, ncol = l)
-  phi1      <- c(rep(k0,  length(ikappa)),
-                 rep(ts0, length(ithetaS)),
-                 rep(as0, length(ialphaS)),
-                 rep(tb0, length(ithetaB)),
-                 rep(ab0, length(ialphaB)),
-                 ss0, sb0, se0, m0)
-  Phi[1, ] <- phi1
+  Phi      <- matrix(nrow = Nmcmc, ncol = l)
+  ifixed   <- c()
+  phi1     <- c()
+  priorFns <- list()
+  for (i in 1:length(priors)) {
+    param    <- priors[[i]]
+    iparam   <- indices[[i]]
+    dist <- param$dist
+    init <- param$init
+    p1   <- param$p1
+    p2   <- param$p2
 
+    if (length(init) == 1)
+      phi1     <- c(phi1, rep(init, length(iparam)))
+    else if (length(init) == length(iparam))
+      phi1     <- c(phi1, init)
+    else
+      stop("Length of parameter initial values must be same as parameter elements!")
 
+    if (dist  == "fixed") {
+      Phi[, iparam] <- matrix(rep(phi1[iparam], Nmcmc), nrow=Nmcmc, byrow=T)
+      ifixed        <- c(ifixed, iparam)
+      priorFns[iparam] <-  replicate(length(iparam), function(x) 0)
+    } else if (length(dist) ==  1) {
+      priorFns[iparam] <- replicate(length(iparam), prior_builder(dist, p1, p2))
+    } else if (length(dist) ==  length(iparam)) {
+      for (j in 1:length(dist)) {
+        priorFns    <- c(priorFns, prior_builder(dist[j], p1, p2))
+      }
+
+    } else
+        stop("Length of parameter priors distributions must be same as parameter elements!")
+  }
+
+  cache$ifixed   <- ifixed
+  cache$priorFns <- priorFns
+  cache$priors   <- priors
 
 
   # data matrices and vectors and scaling
@@ -80,88 +96,24 @@ setup_cache <- function(sim, field, Nmcmc,
   calMax      <- apply(Xs[, ical, drop=F], 2, max)
   expRange    <- expMax-expMin
   calRange    <- calMax-calMin
-  cache$scale <- list(meanYs=meanYs, sdYs=sdYs,
-                      expMin=expMin, expRange=expRange,
-                      calMin=calMin, calRange=calRange)
-
+  cache$scale <- list(meanYs=meanYs, sdYs=sdYs, expMin=expMin, expRange=expRange, calMin=calMin, calRange=calRange)
+  phi1[ikappa]<- scale(phi1[ikappa], center=calMin, scale=calRange)
   Xs[, iexp]  <- matrix(scale(Xs[,iexp], center=expMin, scale=expRange), ncol=length(iexp))
   Xs[, ical]  <- matrix(scale(Xs[,ical], center=calMin, scale=calRange), ncol=length(ical))
   Xf          <- matrix(scale(Xf,        center=expMin, scale=expRange), ncol=length(iexp))
   y           <- as.vector(scale(c(yf, ys), center=meanYs, scale=sdYs))
-  Xk          <- cbind(Xf, matrix(replicate(n, phi1[ikappa]), nrow=n, byrow=T))
+
+  TrueKappa   <- matrix(replicate(n, phi1[ikappa]), nrow=n, byrow=T)
+  Xk          <- cbind(Xf, TrueKappa)
 
   cache$Xs    <- Xs
   cache$Xk    <- Xk
   cache$Xf    <- Xf
   cache$y     <- y
 
-
-  # Priors
-  cache$kappa_pr   <- kappa_pr   <- setup_prior(kappa,   k1,  k2)
-  cache$thetaS_pr  <- thetaS_pr  <- setup_prior(thetaS,  ts1, ts2)
-  cache$alphaS_pr  <- alphaS_pr  <- setup_prior(alphaS,  as1, as2)
-  cache$thetaB_pr  <- thetaB_pr  <- setup_prior(thetaB,  tb1, tb2)
-  cache$alphaB_pr  <- alphaB_pr  <- setup_prior(alphaB,  ab1, ab2)
-  cache$sigma2S_pr <- sigma2S_pr <- setup_prior(sigma2S, ss1, ss2)
-  cache$sigma2B_pr <- sigma2B_pr <- setup_prior(sigma2B, sb1, sb2)
-  cache$sigma2E_pr <- sigma2E_pr <- setup_prior(sigma2E, se1, se2)
-  cache$mu_pr      <- mu_pr      <- setup_prior(mu,      m1,  m2)
-  cache$priors     <- list(kappa   = c(kappa,   k1,  k2),
-                           thetaS  = c(thetaS,  ts1, ts2),
-                           alphaS  = c(alphaS,  as1, as2),
-                           thetaB  = c(thetaB,  tb1, tb2),
-                           alphaS  = c(alphaB,  ab1, ab2),
-                           sigma2S = c(sigma2S, ss1, ss2),
-                           sigma2B = c(sigma2B, sb1, sb2),
-                           sigma2E = c(sigma2E, se1, se2),
-                           mu      = c(mu,      m1,  m2))
-
-
-
-
-  # Exclude parameters from MCMC
-  ifixed <- c()
-  if (thetaS  == "fixed") {
-    Phi[, ithetaS] <- matrix(replicate(Nmcmc, phi1[ithetaS]), nrow=Nmcmc, byrow=T)
-    ifixed         <- c(ifixed, ithetaS)
-  }
-
-  if (alphaS  == "fixed") {
-    Phi[, ialphaS] <- matrix(replicate(Nmcmc, phi1[ialphaS]), nrow=Nmcmc, byrow=T)
-    ifixed         <- c(ifixed, ialphaS)
-  }
-
-  if (thetaB  == "fixed") {
-    Phi[, ithetaB] <- matrix(replicate(Nmcmc, phi1[ithetaB]), nrow=Nmcmc, byrow=T)
-    ifixed         <- c(ifixed, ithetaB)
-  }
-
-  if (alphaB  == "fixed") {
-    Phi[, ialphaB] <- matrix(replicate(Nmcmc, phi1[ialphaB]), nrow=Nmcmc, byrow=T)
-    ifixed         <- c(ifixed, ialphaB)
-  }
-
-  if (sigma2S == "fixed")  {
-    Phi[, isigma2S] <- matrix(replicate(Nmcmc, phi1[isigma2S]), nrow=Nmcmc, byrow=T)
-    ifixed          <- c(ifixed, isigma2S)
-  }
-
-  if (sigma2B == "fixed")  {
-    Phi[, isigma2B] <- matrix(replicate(Nmcmc, phi1[isigma2B]), nrow=Nmcmc, byrow=T)
-    ifixed          <- c(ifixed, isigma2B)
-  }
-
-  if (sigma2E == "fixed")  {
-    Phi[, isigma2E] <- matrix(replicate(Nmcmc, phi1[isigma2E]), nrow=Nmcmc, byrow=T)
-    ifixed          <- c(ifixed, isigma2E)
-  }
-
-  if (mu == "fixed")  {
-    Phi[, imu] <- matrix(replicate(Nmcmc, phi1[mu]), nrow=Nmcmc, byrow=T)
-    ifixed     <- c(ifixed, imu)
-  }
-  cache$ifixed <- ifixed
-
+  # proposal sd rates
+  cache$sdRates <- c(rep(0.2, length(ikappa)), rep(0.2, length(ithetaS)), rep(0.2, length(ialphaS)),
+                     rep(0.2, length(ithetaB)), rep(0.2, length(ialphaB)), 0.2, 0.2, 0.2, 0.2)
 
   # set up first correlation matrices and load them into cache
   # CorKK : (n * n) correlation matrix of augmented Xk's
@@ -169,12 +121,11 @@ setup_cache <- function(sim, field, Nmcmc,
   # CorSK : (m * n) correlation matrix between Xs's, Xk's
   # corSS : (m * m) correlation matrix between Xs's
   # CorFF : (n * n) correlation matrix between Xf's
-  cache$CorKS  <- CorKS   <- correlation(Xk, Xs, theta = phi1[ithetaS], alpha = phi1[ialphaS])
   cache$CorKK  <- CorKK   <- correlation(Xk, Xk, theta = phi1[ithetaS], alpha = phi1[ialphaS])
+  cache$CorKS  <- CorKS   <- correlation(Xk, Xs, theta = phi1[ithetaS], alpha = phi1[ialphaS])
+  cache$CorSK  <- CorSK   <- t(CorKS)
   cache$CorSS  <- CorSS   <- correlation(Xs, Xs, theta = phi1[ithetaS], alpha = phi1[ialphaS])
   cache$CorFF  <- CorFF   <- correlation(Xf, Xf, theta = phi1[ithetaB], alpha = phi1[ialphaB])
-  cache$CorSK  <- CorSK   <- t(CorKS)
-
 
   # compute the first log likelihood by forming the augmented covariance matrix
   #   and load both augmented covariance matirx and log likelihood into cache
@@ -186,29 +137,19 @@ setup_cache <- function(sim, field, Nmcmc,
   InvCov    <- chol2inv(CholCov)
   logDetCov <- 2*sum(log(diag(CholCov)))
 
-
-
-
   # computes posterior log likelihood of augmented response given the augmented
   #   covariance matrix (its inverse and determinant) and residuals
-  InvCovRes      <- matrix(nrow = Nmcmc, ncol = n+m)
   logPost        <- double(Nmcmc)
-  res            <- y-phi1[imu]
-  InvCovRes[1, ] <- InvCov%*%res
-  logPost[1]     <- sum(sapply(phi1[ikappa],  kappa_pr),
-                        sapply(phi1[ithetaS], thetaS_pr),
-                        sapply(phi1[ialphaS], alphaS_pr),
-                        sapply(phi1[ithetaB], thetaB_pr),
-                        sapply(phi1[ialphaB], alphaB_pr),
-                        sigma2S_pr(phi1[isigma2S]),
-                        sigma2B_pr(phi1[isigma2B]),
-                        sigma2E_pr(phi1[isigma2E]),
-                        mu_pr(phi1[imu])) -
-                    (0.5*logDetCov) -
-                    (0.5*drop(t(res)%*%InvCovRes[1,]))
+  res            <- y-phi1[imuB]
+  logPrior       <- 0
+  for (i in 1:length(priorFns)) {
+    fn <- priorFns[[i]]
+    logPrior     <- logPrior + fn(phi1[[i]])
+  }
+  logPost[1]     <- logPrior - 0.5*(logDetCov+drop(t(res)%*%InvCov%*%res))
+  Phi[1, ]       <- phi1
   cat("initial values: ", round(phi1, 3), "\n")
-  return(list(Phi = Phi, logPost = logPost, InvCovRes = InvCovRes))
-
+  return(list(Phi = Phi, logPost = logPost))
 }
 
 

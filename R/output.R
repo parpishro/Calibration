@@ -1,12 +1,25 @@
 #' Model Output
 #'
-#' `output` loads all of the information that might be useful for user into a
-#' single list, which will be returned to user by `calibrate`
+#' `output` creates a `fbc` object using all information that might be useful for user.
+#' The main component of the output is matrix `Phi`, which represents draws from the joint
+#' posterior distribution of all calibration model parameters.
 #'
-#' @return a list containing the parameters estimates based on MCMCM sampling results,
-#' their distribution, acceptence rate of the algorithm, log posterior values of the
-#' MCMC runs, raw unfiltered result of sampling (without burn-in or thining), parameter
-#' names and a quantile summary of each parameter
+#' @return a `fbc` object containing:
+#'  * Phi:            A numeric matrix in which each row represents a draw from joint
+#'                    posterior distribution of parameters (after thinning to remove
+#'                    autocorrelation between consecutive draws) and each column
+#'                    represents a parameter of the model. In essence each column
+#'                    approximates the marginal distribution of that parameter.
+#'  * estimates:      a dataframe containing the summary of estimates of parameters and
+#'                    their uncertainty
+#'  * logPost:        a numeric vector of same length as Phi rows representing the log of
+#'                    posterior likelihood
+#'  * priors:         prior specifications of all parameters
+#'  * acceptance:     a numeric vector representing the final acceptance rate of MH MCMC
+#'                    algorithm
+#'  * vars:           name of all parameters (based on below notation)
+#'  * cache:          an environment containing original datasets and indexing variables
+#'                    that is used in `predict()` function.
 #' @noRd
 output <- function() {
   paramNames   <- character(cache$l)
@@ -27,7 +40,7 @@ output <- function() {
     }
   }
 
-  paramNames[(cache$l-3):cache$l] <- c("sigma2S", "sigma2B", "sigma2E", "mu")
+  paramNames[(cache$l-3):cache$l] <- c("sigma2S", "sigma2B", "sigma2E", "muB")
   colnames(Params) <- paramNames
 
   paramMean        <- round(apply(Params, 2, mean),   3)
@@ -41,20 +54,13 @@ output <- function() {
   estimates        <- data.frame(mean=paramMean, median = paramMedian, mode = paramMode,
                                  lwr50 = param50Lwr, upr50 = param50Upr,
                                  lwr80 = param80Lwr, upr80 = param80Upr, sd = paramSd)
-  obj  <- new("fbc",
+  obj  <- list(Phi        = round(Params, 2),
               estimates  = estimates,
-              Phi        = round(Params, 2),
               logPost    = cache$logPost,
+              priors     = cache$priors,
               acceptance = cache$acceptance,
               vars       = paramNames,
               cache      = cache)
+  class(obj) <- "fbc"
   return(obj)
-}
-
-pmode <- function(vec) {
-  bins   <- seq(min(vec), max(vec), length.out = 101)
-  counts <- double(100)
-  for (i in 2:101)
-    counts[i-1] <- sum(vec >= bins[i-1] & vec < bins[i])
-  return(mean(bins[which.max(counts):(which.max(counts)+1)]))
 }

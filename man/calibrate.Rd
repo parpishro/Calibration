@@ -7,137 +7,122 @@
 calibrate(
   sim,
   field,
-  Nmcmc = 110,
-  nBurn = 10,
-  thining = 1,
+  Nmcmc = 2001,
+  nBurn = 1,
+  thinning = 1,
   kappa = "beta",
-  k0 = 0.5,
-  k1 = 1.1,
-  k2 = 1.1,
-  thetaS = "gamma",
-  ts0 = 0.5,
-  ts1 = 1.1,
-  ts2 = 0.1,
-  alphaS = "betashift",
-  as0 = 1.8,
-  as1 = 5,
-  as2 = 2,
-  thetaB = "gamma",
-  tb0 = 0.5,
-  tb1 = 1.1,
-  tb2 = 0.1,
-  alphaB = "betashift",
-  ab0 = 1.8,
-  ab1 = 5,
-  ab2 = 2,
-  sigma2S = "gamma",
-  ss0 = 2,
-  ss1 = 0.1,
-  ss2 = 0.1,
-  sigma2B = "gamma",
-  sb0 = 1,
-  sb1 = 0.5,
-  sb2 = 0.5,
-  sigma2E = "inversegamma",
-  se0 = 0.1,
-  se1 = 0.1,
-  se2 = 0.1,
-  mu = "uniform",
-  m0 = 0,
-  m1 = -5,
-  m2 = 5
+  k0 = 9.8,
+  p1 = 1.1,
+  p2 = 1.1,
+  hypers = hyperPriors
 )
 }
 \arguments{
-\item{sim}{A \eqn{m \times (p+q+1)} matrix, representing simulation data,
-where m, number of rows, is number of simulation runs, p is number of
-experimental variables, and q is number of calibration variables. Plus one
-represent the last column, which is the response variable.}
+\item{sim}{\eqn{m \times (1+p+q+1)} numeric matrix, representing simulation data,
+where m is the number of simulation runs, p is number of experimental inputs, and q is
+thenumber of calibration inputs. The plus one column represents the response which is
+the output of the computer code.}
 
-\item{field}{A \eqn{n \times (1+p)} matrix, representing field data, where n,
-number of rows, is number of field observations and p is number of
-experimental variables.}
+\item{field}{\eqn{n \times (1+p)} numeric matrix, representing field data, where n is
+the number of field observations and p is number of experimental inputs. Plus one (the
+first column) represents the field response.}
 
-\item{Nmcmc}{An integer for number of MCMC runs.}
+\item{Nmcmc}{integer for number of MCMC runs.}
 
-\item{nBurn}{An integer for number of MCMC burn ins.}
+\item{nBurn}{integer for number of MCMC burn ins.}
 
-\item{thining}{A double as MCMC thinning rate to remove auto-correlation.}
+\item{kappa}{string (vector of strings) to specify the prior distribution type(s)
+for calibration parameters.}
 
-\item{kappa}{A string to specify the prior type of calibration parameters.}
+\item{k0}{double (vector of doubles) representing initial value(s) for}
 
-\item{k0}{a scaler or vector of same length as number of calibration
-parameters that represent initial value for calibration parameters
-after scaling to (0, 1)}
+\item{p1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s)}
 
-\item{k1}{A double as first parameter of the chosen kappa distribution.}
+\item{p2}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s)}
 
-\item{k2}{A double as second parameter of the chosen kappa distribution.}
+\item{hypers}{a nested list containing the priors and initial values for all
+hyperparameters. The notation for the list members are explained below.
+Each member contains four fields: the distribution type (\code{dist}), the
+initial value (\code{init}), first distribution parameter (\code{p1}), and
+second distribution parameter (\code{p2}). The default list (\code{hyperPriors})
+fully specifies the priors for all hyperparameters of the calibration
+model except calibration parameter(s). They are specified based on
+literature consensus and in most cases user does not need to change
+them. However, when needed, user can change the priors using
+\code{control()} function. Note that the default value will be changed until next
+restart of the package.}
 
-\item{m2}{}
+\item{thining}{integer representing sampling frequency of MCMC results to remove
+auto-correlation.}
 }
 \value{
-an output list containing:
+a \code{fbc} object containing:
 \itemize{
-\item estimates:      Point estimates for all parameters and hyperparameters
-\item distributions:  \eqn{\frac{(Nmcmc - nBurn)}{thinning} \times k} parameters distribution matrix,
-where k (number of columns) is total number of parameters
-\item acceptance:     acceptance rate of proposed samples
-\item logPost:        log posterior distribution of response
-\item samples:        full unfiltered samples of MCMC runs
+\item Phi:            A numeric matrix in which each row represents a draw from joint
+posterior distribution of parameters (after thinning to remove
+autocorrelation between consecutive draws) and each column
+represents a parameter of the model. In essence each column
+approximates the marginal distribution of that parameter.
+\item estimates:      a dataframe containing the summary of estimates of parameters and
+their uncertainty
+\item logPost:        a numeric vector of same length as Phi rows representing the log of
+posterior likelihood
+\item priors:         prior specifications of all parameters
+\item acceptance:     acceptance rate of MH MCMC algorithm
 \item vars:           name of all parameters (based on below notation)
-\item summary:        summary of all columns of distribution matrix
+\item cache:          an environment containing original datasets and indexing variables
+that is used in \code{predict()} function.
 }
 }
 \description{
-\code{calibrate} combines simulator and field data and uses given (or default) priors
-and initial values of the model parameters, runs a full Bayesian Markov Chain Monte Carlo (MCMC)
-algorithm and samples the posterior distribution of parameters.
+\code{calibrate} uses a Bayesian framework to estimate the posterior density distribution of
+calibration model parameters. It takes in simulator data, and field data, and parameter
+priors as arguments, and forms a numeric joint distribution of all parameters as output.
 }
 \details{
-In both matrices of simulation and field data, the first columns are experimental inputs,
-followed by calibration input columns (only in simulation matrix), and last column is
-univariate response variable.
+Both simulation and field data are required to be dataframe or matrix. The first column
+in both datasets is the response. In field data rest of columns are experimental inputs
+and in simulation data there are additional columns at the end that represent
+calibration inputs.
 
 Posterior distribution of a parameters often do not correspond to well-known
 distributions. A MCMC algorithm, and especially Metropolis-Hastings (MH)
-algorithm with adaptive proposal gives a sufficiently close distribution. In
-addition to point estimates of the parameters, \code{calibrate} also enables
-uncertainty quantification for estimated parameters.
-\subsection{Calibration Model}{
-
-This implementation is based on Kennedy-O'Hagan (KOH) calibration model. In
-their seminal paper*, Kennedy and O'Hagan augmented simulator output with
-field observation and fit a three-component model that accounts for simulator
-input and bias correction using two independent Gaussian Processes (GP) and a
-third term representing measurement error.
-\deqn{z_i = \eta (x_i, \kappa) + \delta(x_i) + e_i}
-In the original paper, the authors proposed a two-stage hierarchical Bayesian
-model. In the first stage, point estimates of GP hyperparameters are computed
-using maximum likelihood estimation (MLE) method. In the second stage, these
-hyperparameters are fixed at their estimated value and run a MCMC algorithm
-to sample calibration parameters.
-In contrast, \code{calibrate} runs MCMC algorithm to sample the posterior
-distribution of all parameters/hyperparameters. As a result, priors must be
-specified carefully to reflect the prior expert belief about the distribution
-and initial values must be chosen as close as possible to prior means.
-}
-
+algorithm with adaptive proposal is used to draw from joint posterior distribution of
+parameters. The full Bayesian approach of \code{calibrate} enables both point estimates and
+inference about the uncertainty in parameter estimates. More information about
+calibration model and package functionality can be found in package vignette.
 \subsection{Notation}{
 
 parameters of FBC model include all of calibration parameters and will be
-denoted by \eqn{\kappa}. Since data is scaled and has mean zero, both GPs are
-specified using their correlation structures and marginal variances. In this
-implementation, power correlation structure assumed as it has enough
-flexibility to capture both scale and smoothness of correlation. Therefore,
-hyperparameters includes scale (\eqn{\theta_S} & \eqn{\theta_B}) and smoothness
-(\eqn{\alpha_S} & \eqn{\alpha_B}) coefficients and marginal variances (\eqn{\sigma^2_S} &
-\eqn{\sigma^2_B}) for each GP. Moreover there is a third term that represents
-measurement error and is specified using its variance (\eqn{\sigma^2_E}).
+denoted by \eqn{\kappa}. Both simulator and bias-correction processes are modeled
+using Gaussian Processes (GP), which in turn are specified with their respective
+correlation structures and marginal variances. In this implementation, power
+correlation structure is assumed for its flexibility. In summary, model parameters are
+calibration parameters (\eqn{\kappa}), simulator GP hyperparameters (marginal variance
+\eqn{\sigma^2_S}, scale \eqn{\theta_S}, and smoothness \eqn{\alpha_S}), bias-correction
+GP hyperparameters (\eqn{\sigma^2_B}, \eqn{\theta_B}, and \eqn{\alpha_B}), and finally
+field measurement error  variance (\eqn{\sigma^2_E}). If
+calibration parameters have different initial values, a double vector
+of same length as number of calibration inputs (determined internally
+by subtracting the number of columns in \code{sim} and \code{field}) can be used.
 }
 }
+\section{Data}{
+
+}
+
+\section{MCMC}{
+
+}
+
+\section{Priors}{
+
+}
+
 \examples{
-examples/calib
+examples/calib (TODO)
 }
 \references{
 Kennedy MC, O’Hagan A (2001). “Bayesian calibration of computer models.”

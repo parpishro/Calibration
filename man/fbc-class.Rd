@@ -3,9 +3,9 @@
 \docType{class}
 \name{fbc-class}
 \alias{fbc-class}
-\title{Title}
+\title{fbc Class}
 \description{
-Title
+fbc Class
 }
 \section{Slots}{
 
@@ -14,9 +14,9 @@ Title
 
 \item{\code{Phi}}{data.frame.}
 
-\item{\code{acceptance}}{numeric.}
-
 \item{\code{logPost}}{numeric.}
+
+\item{\code{acceptance}}{numeric.}
 
 \item{\code{vars}}{character.}
 
