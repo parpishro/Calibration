@@ -17,9 +17,11 @@
 #'            - `se` represents the uncertainty about estimates (\eqn{\bf{\sigma^2_y}})
 #'
 #' @export
+#'
+#' @example
 predict.fbc <- function(object, newdata, type="Bayesian") {
-  c              <- object@cache
-  Phi            <- object@Phi
+  c              <- object$cache
+  Phi            <- object$Phi
   np             <- nrow(Phi)
   nx             <- nrow(newdata)
   s              <- c$scale
@@ -63,7 +65,7 @@ predict.fbc <- function(object, newdata, type="Bayesian") {
     preds    <- round(apply(predMean, 2, mean), 3)
     vars     <- varMean + meanVar
   } else if (type == "MAP") {
-    iMAP     <- which.max(object@logPost)
+    iMAP     <- which.max(object$logPost)
     phi      <- as.double(Phi[iMAP, ,drop=T])
     Xk       <- cbind(c$Xf,    matrix(as.double(replicate(c$n, phi[c$ikappa])), nrow=c$n))
     InvCov   <- compute_covs(phi, c$Xf, c$Xs, Xk, inds)

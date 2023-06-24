@@ -61,6 +61,6 @@ output <- function() {
               acceptance = cache$acceptance,
               vars       = paramNames,
               cache      = cache)
-  class(obj) <- "fbc"
-  return(obj)
+  fbcObj <- fbc(obj)
+  return(fbcObj)
 }

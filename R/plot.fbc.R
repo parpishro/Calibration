@@ -1,9 +1,3 @@
-
-plot <- function(x) {
-  UseMethod("plot")
-}
-
-
 #' Plot Calibration Model
 #'
 #' Given a parameter, `plot.fbc()` can plot three types of plots:
@@ -18,7 +12,9 @@ plot <- function(x) {
 #' @export
 #'
 #' @examples
-plot.fbc <- function(object, parameter = "kappa", type = "density") {
+plot.fbc <- function(x, parameter= "kappa", type = "density", main = NULL, xlab = NULL, ylab = NULL, ...) {
+
+  object <- x
   c   <- object$cache
   pr  <- object$priors[parameter][[1]]
   Phi <- object$Phi
@@ -30,9 +26,9 @@ plot.fbc <- function(object, parameter = "kappa", type = "density") {
 
       prior_fn <- c$priorFns[[i]]
       prX      <- switch(parameter, kappa = (seq(0.001,1,0.001) * c$scale$calRange[i]) + c$scale$calMin[i], seq(0.002,2,0.002))
-      prY      <- switch(parameter, kappa = exp(prior_fn(seq(0.001,1,0.001))), exp(prior_fn(seq(0.002,2,0.002))))
-      posX     <- density(Phi[ ,label], cut=0.6)$x
-      posY     <- density(Phi[ ,label], cut=0.6)$y
+      prY      <- switch(parameter, kappa = exp(prior_fn(seq(0.001,1,0.001)))/c$scale$calRange[i], exp(prior_fn(seq(0.002,2,0.002))))
+      posX     <- density(Phi[ ,label], from=min(prX), to=max(prX))$x
+      posY     <- density(Phi[ ,label], from=min(prX), to=max(prX))$y
       xlimit   <- c(min(c(prX, posX)), max(c(prX, posX))) * c(0.95, 1.05)
       ylimit   <- c(0, max(c(prY, posY))) * 1.2
       pMode    <- object$estimates[label, 'mode']
@@ -64,7 +60,7 @@ plot.fbc <- function(object, parameter = "kappa", type = "density") {
       lines(X[, i], upper95, cex = 0.65, pch = 0,  col = "lightblue", type="o", lty=2)
       lines(X[, i], lower95, cex = 0.65, pch = 0,  col = "lightblue", type="o", lty=2)
       legend("top", legend = c("Field Response", "Prediction", "95% P.I."), lty=c(0,1,2), text.font = 4,
-             col = c("black", "blue", "lightblue"), pch = c(1, 15, 0), cex = 0.5, horiz=T)
+             col = c("black", "blue", "lightblue"), pch = c(1, 15, 0), cex = 0.4, horiz=T)
     }
   } else {
     stop("Invalid plot type!")

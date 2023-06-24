@@ -14,7 +14,7 @@ calibrate(
   k0 = 9.8,
   p1 = 1.1,
   p2 = 1.1,
-  hypers = hyperPriors
+  hypers = set_hyperPriors()
 )
 }
 \arguments{
