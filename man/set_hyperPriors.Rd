@@ -5,14 +5,14 @@
 \title{Set Calibration Hyperparameter Priors}
 \usage{
 set_hyperPriors(
-  thetaS = list(dist = "gamma", init = 0.5, p1 = 1.1, p2 = 0.1),
-  alphaS = list(dist = "betashift", init = 1.7, p1 = 5, p2 = 2),
-  thetaB = list(dist = "gamma", init = 0.5, p1 = 1.1, p2 = 0.1),
-  alphaB = list(dist = "betashift", init = 1.7, p1 = 5, p2 = 2),
-  sigma2S = list(dist = "inversegamma", init = 1, p1 = 0.01, p2 = 0.01),
-  sigma2B = list(dist = "inversegamma", init = 1, p1 = 0.01, p2 = 0.01),
-  sigma2E = list(dist = "inversegamma", init = 1, p1 = 0.01, p2 = 0.01),
-  muB = list(dist = "uniform", init = 0, p1 = -5, p2 = 5)
+  thetaS = list(dist = "gamma", init = 0.1, p1 = 1.5, p2 = 0.5),
+  alphaS = list(dist = "betashift", init = 1.5, p1 = 5, p2 = 2),
+  thetaB = list(dist = "gamma", init = 0.1, p1 = 1.5, p2 = 0.5),
+  alphaB = list(dist = "betashift", init = 1.5, p1 = 5, p2 = 2),
+  sigma2S = list(dist = "inversegamma", init = 1, p1 = 100, p2 = 0.1),
+  sigma2B = list(dist = "inversegamma", init = 1, p1 = 1, p2 = 1),
+  sigma2E = list(dist = "inversegamma", init = 1, p1 = 10, p2 = 1),
+  muB = list(dist = "uniform", init = 0, p1 = -1, p2 = 1)
 )
 }
 \arguments{

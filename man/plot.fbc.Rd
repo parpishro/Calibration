@@ -6,7 +6,6 @@
 \usage{
 \method{plot}{fbc}(
   x,
-  y = NULL,
   parameter = "kappa",
   type = "density",
   main = NULL,
@@ -16,11 +15,11 @@
 )
 }
 \arguments{
+\item{x}{\code{fbc} object (output of \code{calibrate()} function)}
+
 \item{parameter}{character string representing the parameter class}
 
 \item{type}{type of plotting}
-
-\item{object}{\code{fbc} object (output of \code{calibrate()} function)}
 }
 \description{
 Given a parameter, \code{plot.fbc()} can plot three types of plots:
