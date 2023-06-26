@@ -7,14 +7,14 @@
 calibrate(
   sim,
   field,
-  Nmcmc = 2001,
-  nBurn = 1,
+  Nmcmc = 1100,
+  nBurn = 100,
   thinning = 1,
   kappa = "beta",
-  k0 = 9.8,
+  k0 = NA,
   p1 = 1.1,
   p2 = 1.1,
-  hypers = hyperPriors
+  hypers = set_hyperPriors()
 )
 }
 \arguments{

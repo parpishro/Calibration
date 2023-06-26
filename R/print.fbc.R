@@ -1,9 +1,3 @@
-
-print <- function(x) {
-  UseMethod("print")
-}
-
-
 #' Calibration Object Print
 #'
 #' `print.fbc()` prints the prior specification and parameter summary for all model parameters

@@ -4,7 +4,7 @@
 \alias{predict.fbc}
 \title{Predict based on Calibrated Model}
 \usage{
-predict.fbc(object, newdata)
+\method{predict}{fbc}(object, newdata, type = "Bayesian")
 }
 \arguments{
 \item{object}{class fbc (output of \code{calibrate()} function)}
@@ -15,7 +15,7 @@ and columns represent experimental inputs}
 }
 \value{
 list containing two vectors:
-- \code{mean} representing the estimate (\eqn{\bf{y}_f^*})
+- \code{pred} representing the estimate (\eqn{\bf{y}_f^*})
 - \code{se} represents the uncertainty about estimates (\eqn{\bf{\sigma^2_y}})
 }
 \description{

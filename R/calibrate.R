@@ -97,10 +97,12 @@
 #' Kennedy MC, O’Hagan A (2001). “Bayesian calibration of computer models.”
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
-calibrate <- function(sim, field,                                                 # Data
-                      Nmcmc=2001, nBurn=1, thinning=1,                         # MCMC
-                      kappa="beta", k0=9.8, p1=1.1, p2=1.1, hypers=set_hyperPriors()) { # Priors
-
+calibrate <- function(sim, field,                                                      # Data
+                      Nmcmc=1100, nBurn=100, thinning=1,                               # MCMC
+                      kappa="beta", k0=NA, p1=1.1, p2=1.1, hypers=set_hyperPriors()) { # Priors
+  ical  <- (ncol(field)+1):ncol(sim)
+  if (is.na(k0))
+    k0   <- apply(sim[, ical, drop=F], 2, mean)
   priors <- c(list(kappa=list(dist=kappa, init=k0, p1=p1, p2=p2)), hypers)
   init   <- setup_cache(sim, field, priors, Nmcmc)
   inds   <- seq(nBurn+1, Nmcmc, by=thinning)
