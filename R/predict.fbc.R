@@ -29,6 +29,7 @@ predict.fbc <- function(object, newdata, type="Bayesian") {
   vars           <- double(nx)
   predMean       <- matrix(0, nrow = np, ncol = nx)
   predVar        <- matrix(0, nrow = np, ncol = nx)
+  print(c(dim(newdata), length(s$expMin)))
   Xstar          <- matrix(scale(newdata, center=s$expMin, scale=s$expRange), ncol=c$q)
   Phi[,c$ikappa] <- matrix(scale(Phi[,c$ikappa], center=s$calMin, scale=s$calRange), ncol=c$q)
   inds           <- c(c$indices, n=c$n, m=c$m)

@@ -5,7 +5,7 @@
 #'  - "trace":   plots the trace of the chosen parameter over MCMC runs (afte thinning)
 #'  - "fits":    plots the fit of field training data to calibrated model (using "MAP" method)
 #'
-#' @param object     `fbc` object (output of `calibrate()` function)
+#' @param x         `fbc` object (output of `calibrate()` function)
 #' @param parameter  character string representing the parameter class
 #' @param type       type of plotting
 #'
@@ -25,12 +25,27 @@ plot.fbc <- function(x, parameter= "kappa", type = "density", main = NULL, xlab 
       label <- if (parameter %in% c("sigma2S", "sigma2B", "sigma2E", "muB")) parameter else paste0(parameter, i-ind[1]+1)
 
       prior_fn <- c$priorFns[[i]]
-      prX      <- switch(parameter, kappa = (seq(0.001,1,0.001) * c$scale$calRange[i]) + c$scale$calMin[i], seq(0.002,2,0.002))
-      prY      <- switch(parameter, kappa = exp(prior_fn(seq(0.001,1,0.001)))/c$scale$calRange[i], exp(prior_fn(seq(0.002,2,0.002))))
+      prX      <- switch(parameter,
+                         kappa  = (seq(0,1,0.001) * c$scale$calRange[i]) + c$scale$calMin[i],
+                         thetaS = seq(0,5,0.001),
+                         thetaB = seq(0,5,0.001),
+                         alphaS = seq(1,2,0.001),
+                         alphaB = seq(1,2,0.001),
+                         muB    = seq(-1,1,0.001),
+                         seq(0,5,0.001))
+      prY      <- switch(parameter,
+                         kappa = exp(prior_fn(seq(0,1,0.001)))/c$scale$calRange[i],
+                         thetaS = exp(prior_fn(seq(0,5,0.001))),
+                         thetaB = exp(prior_fn(seq(0,5,0.001))),
+                         alphaS = exp(prior_fn(seq(1,2,0.001))),
+                         alphaB = exp(prior_fn(seq(1,2,0.001))),
+                         muB    = exp(prior_fn(seq(-1,1,0.001))),
+                         exp(prior_fn(seq(0,5,0.001))))
+      prY[1]   <- 0
       posX     <- density(Phi[ ,label], from=min(prX), to=max(prX))$x
       posY     <- density(Phi[ ,label], from=min(prX), to=max(prX))$y
       xlimit   <- c(min(c(prX, posX)), max(c(prX, posX))) * c(0.95, 1.05)
-      ylimit   <- c(0, max(c(prY, posY))) * 1.2
+      ylimit   <- c(0, min(max(c(prY, posY)), 100)) * 1.2
       pMode    <- object$estimates[label, 'mode']
 
       plot(posX, posY, main="Density Plot", xlab=label, ylab= "density", type="l", lwd=2, col="blue", xlim=xlimit, ylim=ylimit)
@@ -44,7 +59,7 @@ plot.fbc <- function(x, parameter= "kappa", type = "density", main = NULL, xlab 
       plot(Phi[, i], type="l", xlab="index", ylab=label, main="Trace Plot")
     }
   } else if (type == "fits") {
-    X       <- matrix(scale(unique(c$Xf), center=-(c$scale$expMin/c$scale$expRange), scale=1/c$scale$expRange), ncol = length(ind), byrow = T)
+    X       <- matrix(scale(unique(c$Xf), center=-(c$scale$expMin/c$scale$expRange), scale=1/c$scale$expRange), ncol = ncol(c$Xf), byrow = T)
     preds   <- predict.fbc(object = object, newdata = X, type = "MAP")
     actuals <- (c$y[1:c$n]*c$scale$sdYs)+c$scale$meanYs
     fits    <- preds$pred

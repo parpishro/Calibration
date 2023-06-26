@@ -86,14 +86,14 @@ mcmc <- function(init, Nmcmc, inds) {
       cat("------------------------------------------------------------------------", "\n")
       cat("finished ",  (i/floor(Nmcmc/100)), "% of MCMC runs...", "\n")
       cat("acceptance ratio in the last batch:   ", round(accepRate, 2), "\n")
-      cat("parameter sample:                     ", round(Phi[i, ], 4), "\n")
-      cat("proposal sd:                          ", round(sdProp, 4), "\n")
+      cat("parameter sample:                     ", round(Phi[i, ], 2), "\n")
+      cat("proposal sd:                          ", round(sdProp, 2), "\n")
       cat("total acceptance ratio:               ", round(accepted/i, 2), "\n")
     }
   }
   cat("------------------------------------------------------------------------", "\n")
   cat("Completed MCMC runs.", "\n")
-  cat("total acceptance ratio ", round(accepted/Nmcmc, 3), "\n")
+  cat("total acceptance ratio ", round(accepted/Nmcmc, 2), "\n")
   cache$Params     <- Phi[inds, ]
   cache$logPost    <- logPost[inds]
   cache$acceptance <- accepted/Nmcmc
