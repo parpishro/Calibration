@@ -118,7 +118,7 @@ The `calibrate()` function takes three sets of arguments from user: data, prior 
 ```{r calibrate, eval=FALSE}
 output <- calibrate(sim = ballSim, field = ballField,                         # Data 
                     Nmcmc = 11000, nBurn = 1000, thining = 50,                # MCMC
-                    kappa   = "beta",         k0  = 0.5, k1 = 1.1,  k2 = 1.1, # Priors
+                    kappa   = "beta",         init  = 0.5, k1 = 1.1,  k2 = 1.1, # Priors
                     thetaS  = "gamma",        ts0 = 0.5, ts1 = 1.1, ts2 = 0.1,
                     alphaS  = "betashift",    as0 = 1.8, as1 = 5,   as2 = 2,
                     thetaB  = "gamma",        tb0 = 0.5, tb1 = 1.1, tb2 = 0.1,
@@ -154,14 +154,14 @@ The second set of arguments consists of MCMC parameters such as number of total 
 
 
 #### Prior Arguments:
-The third and last set of arguments consists of prior specification for each parameter of the model. There are eight classes of parameters: calibration (vector $\bf{\kappa}$), simulation scale (vector $\bf{\theta_s}$), simulation smoothness (vector $\bf{\alpha_s}$), bias-correction scale (vector $\bf{\theta_b}$), bias-correction smoothness (vector $\bf{\alpha_b}$), marginal simulator variance (scaler $\sigma^2_s$), marginal bias-correction variance (scaler $\sigma^2_b$), and measurement error variance (scaler $\sigma^2_{\epsilon}$). These parameters are based KOH calibration model and will be introduced in detail in section 2. For each parameter class, there are four arguments: distribution (Ex: `kappa`), initial value (Ex: `k0`), shape parameter one (Ex: `k1`), and prior parameter two (Ex: `k2`). 
+The third and last set of arguments consists of prior specification for each parameter of the model. There are eight classes of parameters: calibration (vector $\bf{\kappa}$), simulation scale (vector $\bf{\theta_s}$), simulation smoothness (vector $\bf{\alpha_s}$), bias-correction scale (vector $\bf{\theta_b}$), bias-correction smoothness (vector $\bf{\alpha_b}$), marginal simulator variance (scaler $\sigma^2_s$), marginal bias-correction variance (scaler $\sigma^2_b$), and measurement error variance (scaler $\sigma^2_{\epsilon}$). These parameters are based KOH calibration model and will be introduced in detail in section 2. For each parameter class, there are four arguments: distribution (Ex: `kappa`), initial value (Ex: `init`), shape parameter one (Ex: `k1`), and prior parameter two (Ex: `k2`). 
 
 \rule{\linewidth}{0.75pt}
 **Table 1:** *Arguments to specify priors for each parameter along with their default values.*
 
 | **Parameter**                                    | **Distribution**       |**Initial Value**|**Shape Parameters** |
 | -------------                                    | ---------              | -----           | -------             |
-| True field calibration inputs ($\kappa$)         | `kappa="beta"`         | `k0=0.5`        | `k1=1.1` & `k2=1.1` |
+| True field calibration inputs ($\kappa$)         | `kappa="beta"`         | `init=0.5`        | `k1=1.1` & `k2=1.1` |
 |                                                  |                        |                 |                     |
 | Simulation GP scale ($\theta_s$)                 | `thetaS="gamma"`       | `ts0=0.5`       |`ts1=1.1` & `ts2=0.1`|
 |                                                  |                        |                 |                     |
@@ -180,7 +180,7 @@ The third and last set of arguments consists of prior specification for each par
 
 Distribution arguments (`kappa`, `thetaS`, `alphaS`, `thetaB`, `alphaB`, `sigma2S`, `sigma2B`, `sigma2E`) must be chosen from the string list of implemented prior distributions, namely \texttt{"uniform", "gaussian", "gamma", "beta", "lognormal", "logistic", "betashift", "exponential", "inversegamma", "jefferys"}. 
 
-Initial value arguments (`k0`, `ts0`, `as0`, `tb0`, `ab0`, `ss0`, `sb0`, `se0`) are scalers or vectors (only `k0`, `ts0`, `as0`, `tb0`, `ab0`) with same length as number of parameters in the same class. For example if there are five calibration parameters, `k0` can either be a scaler, in which case the initial value for all calibration parameters will be set to that scaler value, or a vector of length five that supplies the initial values for all calibration parameters.
+Initial value arguments (`init`, `ts0`, `as0`, `tb0`, `ab0`, `ss0`, `sb0`, `se0`) are scalers or vectors (only `init`, `ts0`, `as0`, `tb0`, `ab0`) with same length as number of parameters in the same class. For example if there are five calibration parameters, `init` can either be a scaler, in which case the initial value for all calibration parameters will be set to that scaler value, or a vector of length five that supplies the initial values for all calibration parameters.
 
 And finally shape parameter arguments (Ex: `k1`, `k2`) determine the values for the shape parameters of the chosen distribution. For example, assuming a choice of `kappa = "gaussian"`, `k1` and `k2` will represent the mean and variance of the Gaussian distribution. Not all prior types will need both parameters for specification. In particular, the choice of `"exponential"` requires only rate parameter which corresponds to first prior parameter (`k1`), and the choice of `"jefferys"` requires no prior parameters. In both cases the unused arguments are irrelevant and can take any value. Section 3.1 will explain in detail how priors can be specified using above arguments.
 
