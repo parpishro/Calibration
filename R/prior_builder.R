@@ -27,7 +27,7 @@ prior_builder <- function(prior, p1, p2) {
                       betashift    = function(x) return(dbeta(x-1, shape1=p1,   shape2=p2, log=T)),
                       exponential  = function(x) return(dexp(x,    rate=p1,                log=T)),
                       inversegamma = function(x) return(p1*log(p2) - log(gamma(p1)) - (p1+1)*log(x) - p2/x),
-                      jefferys     = function(x) return(-0.5*log(x)),
+                      jeffreys     = function(x) return(-0.5*log(x)),
                       stop("at least one prior missing or invalid!"))
   return(prior_fn)
 }
