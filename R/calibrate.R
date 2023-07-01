@@ -98,7 +98,7 @@
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 calibrate <- function(sim, field,                                                      # Data
-                      Nmcmc=3L, nBurn=1L, thinning=1L,                               # MCMC
+                      Nmcmc=2200L, nBurn=200L, thinning=20L,                               # MCMC
                       kappa="beta", k0=NA, p1=1.1, p2=1.1, hypers=set_hyperPriors()) { # Priors
   stopifnot((is.matrix(sim) || is.data.frame(sim)),
             (is.matrix(field) || is.data.frame(field)),

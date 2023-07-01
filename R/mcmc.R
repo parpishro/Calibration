@@ -51,15 +51,12 @@ mcmc <- function(init, Nmcmc, inds) {
         update_cov(params, ichanged = j)
       }
 
-      #print(params)
-
       if (is.null(cache$InvCov))
         lPost  <- -.Machine$double.xmax
       else {
         logPrior       <- 0
         for (h in 1:l)
           logPrior     <- logPrior + priorFns[[h]](params[h])
-        #print(c(logPrior, 0.5*cache$logDetCov, 0.5*drop(t(res)%*%(cache$InvCov)%*%res)))
         lPost  <- logPrior - 0.5*(cache$logDetCov+drop(t(res)%*%(cache$InvCov)%*%res))
       }
 
