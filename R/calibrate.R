@@ -98,12 +98,28 @@
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 calibrate <- function(sim, field,                                                      # Data
-                      Nmcmc=1100, nBurn=100, thinning=1,                               # MCMC
+                      Nmcmc=3L, nBurn=1L, thinning=1L,                               # MCMC
                       kappa="beta", k0=NA, p1=1.1, p2=1.1, hypers=set_hyperPriors()) { # Priors
-  ical  <- (ncol(field)+1):ncol(sim)
+  stopifnot((is.matrix(sim) || is.data.frame(sim)),
+            (is.matrix(field) || is.data.frame(field)),
+            ncol(sim) > 1, ncol(field) > 0)
+  stopifnot(is.integer(Nmcmc), Nmcmc > 1,
+            is.integer(nBurn), nBurn >= 0,
+            is.integer(thinning), thinning > 0)
+  stopifnot(is.character(kappa), kappa %in% c("beta", "betashift", "logistic", "gamma",
+            "uniform", "gaussian", "inversegamma", "exponential", "jeffreys","lognormal"),
+            (is.double(k0) || is.na(k0)), is.double(p1), is.double(p2),
+            length(kappa) == length(p1), length(kappa) == length(p2))
+  stopifnot(is.list(hypers), names(hypers) == c("thetaS", "alphaS", "thetaB", "alphaB",
+            "sigma2S", "sigma2B", "sigma2E", "muB"))
+  for (param in names(hypers))
+    stopifnot(length(hypers[param]['dist']) == length(hypers[param]['init']),
+              length(hypers[param]['dist']) == length(hypers[param]['p1']),
+              length(hypers[param]['dist']) == length(hypers[param]['p2']))
+  ical  <- (ncol(field) + 1):ncol(sim)
   if (is.na(k0))
-    k0   <- apply(sim[, ical, drop=F], 2, mean)
-  priors <- c(list(kappa=list(dist=kappa, init=k0, p1=p1, p2=p2)), hypers)
+    k0   <- apply(sim[, ical, drop = F], 2, mean)
+  priors <- c(list(kappa = list(dist = kappa, init = k0, p1 = p1, p2 = p2)), hypers)
   init   <- setup_cache(sim, field, priors, Nmcmc)
   inds   <- seq(nBurn+1, Nmcmc, by=thinning)
   output <- mcmc(init, Nmcmc, inds)
