@@ -14,13 +14,10 @@
 #' @param x       numeric vector
 #' @param breaks  integer representing number of bins to compute mode
 #'
-#' @return double represent estimated mode of
+#' @return double represent estimated mode of given vector
 #' @export
 #'
-#' @examples
-#' # find the estimated mode of a vector
-#' vec <- runif(100, 0, 10)
-#' pmode(vec)
+#' @example examples/ex_pmode.R
 pmode <- function(x, breaks = NA) {
   if (length(x) < 6)
     return(mean(x))

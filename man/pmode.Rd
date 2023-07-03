@@ -2,9 +2,9 @@
 % Please edit documentation in R/pmode.R
 \name{pmode}
 \alias{pmode}
-\title{Compute Mode of a Vector}
+\title{Estimate Mode from a Sample}
 \usage{
-pmode(x, breaks = 20)
+pmode(x, breaks = NA)
 }
 \arguments{
 \item{x}{numeric vector}
@@ -15,5 +15,18 @@ pmode(x, breaks = 20)
 double represent estimated mode of
 }
 \description{
-Compute Mode of a Vector
+\code{pmode} bins sample observations into equally spaced intervals and counts number of
+observations in each bin. The bin with highest number of observations represents the
+mode and mean of observations in that bin is returned as representative mode of the
+vector.
+}
+\details{
+Note that \code{pmode} estimates the mode value of the underlying distribution. It is
+suitable to use when dealing with double vectors. Therefore, for integer vectors,
+\code{pmode}, the estimated mode will differ from its exact value.
+}
+\examples{
+# find the estimated mode of a vector
+vec <- runif(100, 0, 10)
+pmode(vec)
 }
