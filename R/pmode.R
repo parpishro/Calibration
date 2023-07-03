@@ -5,6 +5,12 @@
 #' mode and mean of observations in that bin is returned as representative mode of the
 #' vector.
 #'
+#' @details
+#' Note that `pmode` estimates the mode value of the underlying distribution. It is
+#' suitable to use when dealing with double vectors. Therefore, for integer vectors,
+#' `pmode`, the estimated mode will differ from its exact value.
+#'
+#'
 #' @param x       numeric vector
 #' @param breaks  integer representing number of bins to compute mode
 #'
