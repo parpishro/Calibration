@@ -7,11 +7,11 @@
 calibrate(
   sim,
   field,
-  Nmcmc = 1100,
-  nBurn = 100,
-  thinning = 1,
-  kappa = "beta",
-  k0 = NA,
+  Nmcmc = 2200L,
+  nBurn = 200L,
+  thinning = 20L,
+  kappa_dist = "beta",
+  init = NA,
   p1 = 1.1,
   p2 = 1.1,
   hypers = set_hyperPriors()
@@ -31,10 +31,10 @@ first column) represents the field response.}
 
 \item{nBurn}{integer for number of MCMC burn ins.}
 
-\item{kappa}{string (vector of strings) to specify the prior distribution type(s)
+\item{kappa_dist}{string (vector of strings) to specify the prior distribution type(s)
 for calibration parameters.}
 
-\item{k0}{double (vector of doubles) representing initial value(s) for}
+\item{init}{double (vector of doubles) representing initial value(s) for}
 
 \item{p1}{double (vector of doubles) representing the first parameter(s) of the
 chosen distribution(s)}
