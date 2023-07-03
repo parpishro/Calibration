@@ -18,6 +18,9 @@
 #' @export
 #'
 #' @examples
+#' # find the estimated mode of a vector
+#' vec <- runif(100, 0, 10)
+#' pmode(vec)
 pmode <- function(x, breaks = NA) {
   if (length(x) < 6)
     return(mean(x))
