@@ -38,6 +38,9 @@ setup_cache <- function(sim, field, priors, Nmcmc) {
                          isigma2E = isigma2E, imuB     = imuB)
   cache$indices  <- indices
 
+    iexp         <- 1:p
+    ical         <- (p+1):(p+q)
+
 
 
   # parameters (initialize first row of Phi matrix)
@@ -45,6 +48,10 @@ setup_cache <- function(sim, field, priors, Nmcmc) {
   ifixed   <- c()
   phi1     <- c()
   priorFns <- list()
+
+
+  if (is.na(priors$kappa$init))
+    priors$kappa$init <- apply(sim[, ical+1, drop = F], 2, mean)
   for (i in 1:length(priors)) {
     param    <- priors[[i]]
     iparam   <- indices[[i]]
@@ -86,8 +93,6 @@ setup_cache <- function(sim, field, priors, Nmcmc) {
   Xf          <- field[, 2:(p+1), drop=F]
   yf          <- field[, 1]
 
-  iexp        <- 1:p
-  ical        <- (p+1):(p+q)
   meanYs      <- mean(ys)
   sdYs        <- sd(ys)
   expMin      <- apply(Xs[, iexp, drop=F], 2, min)
@@ -133,6 +138,7 @@ setup_cache <- function(sim, field, priors, Nmcmc) {
   AugCov    <- rbind(cbind(phi1[isigma2S]*CorKK+phi1[isigma2B]*CorFF+phi1[isigma2E]*Inn,
                            phi1[isigma2S]*CorKS),
                      cbind(phi1[isigma2S]*CorSK, phi1[isigma2S]*CorSS))
+
   CholCov   <- chol(AugCov)
   InvCov    <- chol2inv(CholCov)
   logDetCov <- 2*sum(log(diag(CholCov)))
