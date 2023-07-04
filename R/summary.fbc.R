@@ -1,9 +1,3 @@
-
-summary <- function(x) {
-  UseMethod("summary")
-}
-
-
 #' Calibration Object Summary
 #'
 #' `summary.fbc()` produces a dataframe of summary statistics for all model parameters
