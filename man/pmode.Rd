@@ -12,7 +12,7 @@ pmode(x, breaks = NA)
 \item{breaks}{integer representing number of bins to compute mode}
 }
 \value{
-double represent estimated mode of
+double represent estimated mode of given vector
 }
 \description{
 \code{pmode} bins sample observations into equally spaced intervals and counts number of
