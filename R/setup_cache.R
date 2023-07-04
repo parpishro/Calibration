@@ -97,7 +97,7 @@ setup_cache <- function(sim, field, priors, Nmcmc) {
   expRange    <- expMax-expMin
   calRange    <- calMax-calMin
   cache$scale <- list(meanYs=meanYs, sdYs=sdYs, expMin=expMin, expRange=expRange, calMin=calMin, calRange=calRange)
-  phi1[ikappa]<- scale(phi1[ikappa], center=calMin, scale=calRange)
+  phi1[ikappa]<- (phi1[ikappa] - calMin) / calRange
   Xs[, iexp]  <- matrix(scale(Xs[,iexp], center=expMin, scale=expRange), ncol=length(iexp))
   Xs[, ical]  <- matrix(scale(Xs[,ical], center=calMin, scale=calRange), ncol=length(ical))
   Xf          <- matrix(scale(Xf,        center=expMin, scale=expRange), ncol=length(iexp))
