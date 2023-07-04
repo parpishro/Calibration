@@ -12,8 +12,8 @@
 #' @param alpha  vector of smoothness parameters (\eqn{\alpha \in [1, 2]}) with the same size as number of columns as X
 #' @export
 #' @return a correlation matrix between the rows of given matrices
-#' #' @noRd
-correlation <- function (X, Y=NULL, theta, alpha) {
+#' @example examples/ex_correlation.R
+correlation <- function (X, Y=NULL, theta = 1, alpha = 2) {
   nx <- nrow(X)
   if (is.null(Y)) {
     R  <- matrix(0, nrow=nx, ncol=nx)
