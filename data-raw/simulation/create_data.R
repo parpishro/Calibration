@@ -1,30 +1,30 @@
-library(lhs)
+create_data <- function(n, m, p, q, sdE, fnM, fnS, seed = 666) {
+  set.seed(seed)
+  Xf  <- lhs::maximinLHS(n, p) * 10 - 5
+  Xs  <- lhs::maximinLHS(m, p + q)
+  scl <- c(rep(10, p), rep(4, q))
+  Xs  <- t(apply(Xs, 1, function(x) x* scl - (scl/2)))
+  err <- rnorm(n, 0, sdE)
+  yf  <- fnM(Xf) + err
+  ys  <- fnS(Xs)
+  Df  <- cbind(matrix(yf, ncol = 1), Xf)
+  Ds  <- cbind(matrix(ys, ncol = 1), Xs)
+  return(list(Ds = Ds, Df = Df))
+}
 
-set.seed(666)
-n   <- 5
-m   <- 15
-p   <- 1
-q   <- 1
-sdE <- 0.8
-fnM <- function(x) 0.1*(x^2) - x + 0.4
-err <- rnorm(n, 0, sdE) # error mean = 0, error sd = 0.8, n = 5
-xf  <- seq(-5, 5, 2.5)
-yf  <- fnM(xf) + err
-Df  <- cbind(matrix(yf, ncol = 1), matrix(xf, ncol=1))
+fnM1 <- function(X) 0.1*(X[,1]^2) - X[1,] + 0.4
+fnS1 <- function(X) X[,2]*(X[,1]^2) - 1.3*X[, 1]
+D1   <- create_data(n = 5, m = 15, p = 1, q = 1, sdE = 0.8, fnM = fnM1, fnS = fnS1)
+Df1  <- D1$Df
+Ds1  <- D1$Ds
 
+fnM2 <- function(X) 0.1*(X[,1]^2) + X[, 2]
+fnS2 <- function(X) X[, 3] * (X[, 1] ^ 2) + X[, 4] * X[, 2] + 1.1
+D2   <- create_data(n = 50, m = 100, p = 2, q = 2, sdE = 0.24, fnM = fnM2, fnS = fnS2)
+Df2  <- D2$Df
+Ds2  <- D2$Ds
 
-
-fnS <- function(x, k) k - 1.3*x
-Xs  <- maximinLHS(m, p + q) * c(-5, 5) # m = 15, p + q = 2
-ys  <- fnS(Xs[,1:p], Xs[,(p + 1):(p + q)])
-
-Ds <- cbind(matrix(ys, ncol = 1), Xs)
-Ds <- Ds[order(Ds[, 2]), ]
-
-#ylimit <- c(min(c(yf, ys)), max(c(yf, ys)))
-#plot(Df[, 2], Df[, 1], type = "l", ylim = ylimit)
-#lines(seq(-5, 5, 0.01), fnM(seq(-5, 5, 0.01)), col = "blue")
-#lines(Ds[, 2], Ds[, 1], col = "red")
-
-usethis::use_data(Df)
-usethis::use_data(Ds)
+usethis::use_data(Df1)
+usethis::use_data(Ds1)
+usethis::use_data(Df2)
+usethis::use_data(Ds2)
