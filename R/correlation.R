@@ -8,11 +8,14 @@
 #'
 #' @param X      matrix with at least two rows
 #' @param Y      matrix with same number of columns as X
-#' @param theta  vector of scale parameters (\eqn{\theta \in (0, \inf)}) with the same size as number of columns as X
-#' @param alpha  vector of smoothness parameters (\eqn{\alpha \in [1, 2]}) with the same size as number of columns as X
+#' @param theta  vector of scale parameters (\eqn{\theta \in (0, \inf)}) with the same
+#'               size as number of columns as X
+#' @param alpha  vector of smoothness parameters (\eqn{\alpha \in [1, 2]}) with the same
+#'               size as number of columns as X
+#'
+#' @returns      a correlation matrix between the rows of given matrices
+#' @example      examples/ex_correlation.R
 #' @export
-#' @return a correlation matrix between the rows of given matrices
-#' @example examples/ex_correlation.R
 correlation <- function (X, Y=NULL, theta = 1, alpha = 2) {
   nx <- nrow(X)
   if (is.null(Y)) {

@@ -17,7 +17,6 @@ correlation(X, Y = NULL, theta, alpha)
 }
 \value{
 a correlation matrix between the rows of given matrices
-#' @noRd
 }
 \description{
 If only one matrix is provided, \code{correlation} would compute the correlation between
