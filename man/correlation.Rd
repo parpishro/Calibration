@@ -4,19 +4,22 @@
 \alias{correlation}
 \title{Correlation Between Rows of Two Matrices.}
 \usage{
-correlation(X, Y = NULL, theta, alpha)
+correlation(X, Y = NULL, theta = 1, alpha = 2)
 }
 \arguments{
 \item{X}{matrix with at least two rows}
 
 \item{Y}{matrix with same number of columns as X}
 
-\item{theta}{vector of scale parameters (\eqn{\theta \in (0, \inf)}) with the same size as number of columns as X}
+\item{theta}{vector of scale parameters (\eqn{\theta \in (0, \inf)}) with the same
+size as number of columns as X}
 
-\item{alpha}{vector of smoothness parameters (\eqn{\alpha \in [1, 2]}) with the same size as number of columns as X}
+\item{alpha}{vector of smoothness parameters (\eqn{\alpha \in [1, 2]}) with the same
+size as number of columns as X}
 }
 \value{
-a correlation matrix between the rows of given matrices
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ a correlation matrix between the rows of given matrices
+}\if{html}{\out{</div>}}
 }
 \description{
 If only one matrix is provided, \code{correlation} would compute the correlation between
