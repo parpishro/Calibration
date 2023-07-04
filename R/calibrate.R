@@ -73,6 +73,8 @@
 #'                    default values. Nevertheless, when needed, user can specify the
 #'                    prior distribution for any of the model hyperparameters by supplying
 #'                    the changed arguments and their values.
+#' @param showProgress  logical indicating whether progress must be displayed at console.
+#'                    Default is False.
 #'
 #' @return a `fbc` object containing:
 #'  * Phi:            A numeric matrix in which each row represents a draw from joint
@@ -99,7 +101,8 @@
 calibrate <- function(sim, field,                                                   # Data
                       Nmcmc  = 2200, nBurn = 200, thinning = 20,                    # MCMC
                       kappa  = list(dist = "beta", init = NA, p1 = 1.1, p2 = 1.1),# Priors
-                      hypers = set_hyperPriors()) {                  # Hyperparameter Priors
+                      hypers = set_hyperPriors(),
+                      showProgress = FALSE) {                  # Hyperparameter Priors
   stopifnot((is.matrix(sim) || is.data.frame(sim)),
             (is.matrix(field) || is.data.frame(field)),
             ncol(sim) > 1, ncol(field) > 0)
@@ -119,9 +122,9 @@ calibrate <- function(sim, field,                                               
     stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p1']]))
     stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p2']]))
 
-  init   <- setup_cache(sim, field, priors, Nmcmc)
+  init   <- setup_cache(sim, field, priors, Nmcmc, showProgress)
   inds   <- seq(nBurn + 1, Nmcmc, by=thinning)
-  output <- mcmc(init, Nmcmc, inds)
+  output <- mcmc(init, Nmcmc, inds, showProgress)
   return(output)
 }
 

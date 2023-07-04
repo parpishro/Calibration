@@ -9,6 +9,8 @@
 #' @param init     list containing initialized `Phi` mtrix and `logPost` vector
 #' @param Nmcmc    integer representing total number of MCMC runs
 #' @param inds     indices of final MCMC draws after burn-in and thinning
+#' @param showProgress  logical indicating whether progress must be displayed at console.
+#'                    Default is False.
 #'
 #' @noRd
 #' @return fbc object containing:
@@ -21,7 +23,7 @@
 #'            * acceptance  vector representing acceptance rate of each parameter
 #'            * vars        name of parameters (column headers of `Phi`)
 #'            * cache       environment containing original data and indices
-mcmc <- function(init, Nmcmc, inds) {
+mcmc <- function(init, Nmcmc, inds, showProgress) {
   Phi        <- init$Phi
   logPost    <- init$logPost
   priorFns   <- cache$priorFns
@@ -79,7 +81,7 @@ mcmc <- function(init, Nmcmc, inds) {
     }
 
 
-    if (i %% floor(Nmcmc/100) == 0 && i/floor(Nmcmc/100) <= 100) {   #
+    if (showProgress && i %% floor(Nmcmc/100) == 0 && i/floor(Nmcmc/100) <= 100) {   #
       cat("------------------------------------------------------------------------", "\n")
       cat("finished ",  (i/floor(Nmcmc/100)), "% of MCMC runs...", "\n")
       cat("acceptance ratio in the last batch:   ", round(accepRate, 2), "\n")
@@ -88,9 +90,12 @@ mcmc <- function(init, Nmcmc, inds) {
       cat("total acceptance ratio:               ", round(accepted/i, 2), "\n")
     }
   }
-  cat("------------------------------------------------------------------------", "\n")
-  cat("Completed MCMC runs.", "\n")
-  cat("total acceptance ratio ", round(accepted/Nmcmc, 2), "\n")
+  if (showProgress) {
+    cat("------------------------------------------------------------------------", "\n")
+    cat("Completed MCMC runs.", "\n")
+    cat("total acceptance ratio ", round(accepted/Nmcmc, 2), "\n")
+  }
+
   cache$Params     <- Phi[inds, ]
   cache$logPost    <- logPost[inds]
   cache$acceptance <- accepted/Nmcmc

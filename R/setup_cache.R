@@ -9,11 +9,13 @@
 #' @param field     numeric matrix containing the field data
 #' @param priors    nested list containing prior specification for all parameters
 #' @param Nmcmc     integer representing number of MCMC runs
+#' @param showProgress  logical indicating whether progress must be displayed at console.
+#'                    Default is False.
 #'
 #' @return A list consisting of initialized `Phi` matrix and `logPost` vector, and prior
 #' function list `priorFns`
 #' @noRd
-setup_cache <- function(sim, field, priors, Nmcmc) {
+setup_cache <- function(sim, field, priors, Nmcmc, showProgress) {
 
   cache$m   <- m <- nrow(sim)               # number of simulation runs
   cache$n   <- n <- nrow(field)             # number of field observations
@@ -154,7 +156,8 @@ setup_cache <- function(sim, field, priors, Nmcmc) {
   }
   logPost[1]     <- logPrior - 0.5*(logDetCov+drop(t(res)%*%InvCov%*%res))
   Phi[1, ]       <- phi1
-  cat("initial values: ", round(phi1, 3), "\n")
+  if (showProgress)
+    cat("initial values: ", round(phi1, 3), "\n")
   return(list(Phi = Phi, logPost = logPost))
 }
 
