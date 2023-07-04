@@ -7,52 +7,53 @@
 calibrate(
   sim,
   field,
-  Nmcmc = 2200L,
-  nBurn = 200L,
-  thinning = 20L,
-  kappa_dist = "beta",
-  init = NA,
-  p1 = 1.1,
-  p2 = 1.1,
+  Nmcmc = 2200,
+  nBurn = 200,
+  thinning = 20,
+  kappa = list(dist = "beta", init = NA, p1 = 1.1, p2 = 1.1),
   hypers = set_hyperPriors()
 )
 }
 \arguments{
-\item{sim}{\eqn{m \times (1+p+q+1)} numeric matrix, representing simulation data,
-where m is the number of simulation runs, p is number of experimental inputs, and q is
-thenumber of calibration inputs. The plus one column represents the response which is
-the output of the computer code.}
+\item{sim}{\eqn{m \times (1+p+q+1)} numeric matrix, representing simulation
+data, where m is the number of simulation runs, p is number of
+experimental inputs, and q is the number of calibration inputs. The
+plus one column represents the response which is the output of the
+computer code.}
 
-\item{field}{\eqn{n \times (1+p)} numeric matrix, representing field data, where n is
-the number of field observations and p is number of experimental inputs. Plus one (the
-first column) represents the field response.}
+\item{field}{\eqn{n \times (1+p)} numeric matrix, representing field data, where n
+is the number of field observations and p is number of experimental
+inputs. Plus one (the first column) represents the field response.}
 
 \item{Nmcmc}{integer for number of MCMC runs.}
 
 \item{nBurn}{integer for number of MCMC burn ins.}
 
-\item{kappa_dist}{string (vector of strings) to specify the prior distribution type(s)
-for calibration parameters.}
+\item{kappa}{list containing following fields to specify the prior distribution
+for calibration parameters:
+* \code{dist}: string (vector of strings) to specify the prior distribution type(s)
+for calibration parameters.
+* \code{p1}:   double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s)
+* \code{p2}:   double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s)
+* \code{init}: double (vector of doubles) that represent initial
+value(s) of calibration parameters to start the MCMC.
+The default(NA) automates choosing initial value for
+calibration parameters based on their range in simulation
+data.}
 
-\item{init}{double (vector of doubles) representing initial value(s) for}
-
-\item{p1}{double (vector of doubles) representing the first parameter(s) of the
-chosen distribution(s)}
-
-\item{p2}{double (vector of doubles) representing the first parameter(s) of the
-chosen distribution(s)}
-
-\item{hypers}{a nested list containing the priors and initial values for all
-hyperparameters. The notation for the list members are explained below.
-Each member contains four fields: the distribution type (\code{dist}), the
-initial value (\code{init}), first distribution parameter (\code{p1}), and
-second distribution parameter (\code{p2}). The default list (\code{hyperPriors})
-fully specifies the priors for all hyperparameters of the calibration
-model except calibration parameter(s). They are specified based on
-literature consensus and in most cases user does not need to change
-them. However, when needed, user can change the priors using
-\code{control()} function. Note that the default value will be changed until next
-restart of the package.}
+\item{hypers}{nested list containing the priors and initial values for all
+hyperparameters. The notation for the list members are explained
+below. Each member contains four fields (similar to \code{kappa}): the
+distribution type (\code{dist}), the initial value (\code{init}), first
+distribution parameter (\code{p1}), and second distribution parameter
+(\code{p2}). The default is a call to \code{set_hyperPriors()} without
+argument to build the nested list. All arguments of
+\code{set_hyperPriors()}. In most cases there is no need to change the
+default values. Nevertheless, when needed, user can specify the
+prior distribution for any of the model hyperparameters by supplying
+the changed arguments and their values.}
 
 \item{thining}{integer representing sampling frequency of MCMC results to remove
 auto-correlation.}
@@ -103,26 +104,20 @@ correlation structure is assumed for its flexibility. In summary, model paramete
 calibration parameters (\eqn{\kappa}), simulator GP hyperparameters (marginal variance
 \eqn{\sigma^2_S}, scale \eqn{\theta_S}, and smoothness \eqn{\alpha_S}), bias-correction
 GP hyperparameters (\eqn{\sigma^2_B}, \eqn{\theta_B}, and \eqn{\alpha_B}), and finally
-field measurement error  variance (\eqn{\sigma^2_E}). If
-calibration parameters have different initial values, a double vector
-of same length as number of calibration inputs (determined internally
-by subtracting the number of columns in \code{sim} and \code{field}) can be used.
+field measurement error  variance (\eqn{\sigma^2_E}). If calibration parameters have
+different initial values, a double vector of same length as number of calibration
+inputs (determined internally by subtracting the number of columns in \code{sim} and
+\code{field}) can be used.
 }
 }
-\section{Data}{
-
-}
-
-\section{MCMC}{
-
-}
-
-\section{Priors}{
-
-}
-
 \examples{
-examples/calib (TODO)
+cal1    <- calibrate(sim = Ds1, field = Df1,
+                     Nmcmc = 5, nBurn = 0, thinning = 1,
+                     kappa = list(dist = "gaussian", init = 0.5, p1 = 0.5, p2 = 0.25))
+summary(cal1)
+
+cal2    <- calibrate(sim = Ds2, field = Df2, Nmcmc = 20, nBurn = 0, thinning = 1)
+summary(cal2)
 }
 \references{
 Kennedy MC, O’Hagan A (2001). “Bayesian calibration of computer models.”
