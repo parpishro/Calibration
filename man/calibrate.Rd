@@ -11,7 +11,8 @@ calibrate(
   nBurn = 200,
   thinning = 20,
   kappa = list(dist = "beta", init = NA, p1 = 1.1, p2 = 1.1),
-  hypers = set_hyperPriors()
+  hypers = set_hyperPriors(),
+  showProgress = FALSE
 )
 }
 \arguments{
@@ -54,6 +55,9 @@ argument to build the nested list. All arguments of
 default values. Nevertheless, when needed, user can specify the
 prior distribution for any of the model hyperparameters by supplying
 the changed arguments and their values.}
+
+\item{showProgress}{logical indicating whether progress must be displayed at console.
+Default is False.}
 
 \item{thining}{integer representing sampling frequency of MCMC results to remove
 auto-correlation.}
