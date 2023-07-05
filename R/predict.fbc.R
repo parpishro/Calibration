@@ -37,7 +37,7 @@ predict.fbc <- function(object, newdata, type="Bayesian") {
     xkStar <- matrix(c(xstar, phi[c$ikappa]), nrow=1)
     corSN  <- correlation(c$Xs, xkStar,                theta=phi[c$ithetaS], alpha=phi[c$ialphaS])
     corKN  <- correlation(Xk,   xkStar,                theta=phi[c$ithetaS], alpha=phi[c$ialphaS])
-    corFN  <- correlation(c$Xf, matrix(xstar, ncol=1), theta=phi[c$ithetaB], alpha=phi[c$ialphaB])
+    corFN  <- correlation(c$Xf, matrix(xstar, ncol=c$p), theta=phi[c$ithetaB], alpha=phi[c$ialphaB])
     covND  <- matrix(c(phi[c$isigma2S]*corKN + phi[c$isigma2B]*corFN, phi[c$isigma2S]*corSN), ncol=1)
 
     pMean <- phi[c$imuB] + (t(covND) %*% InvCov %*% res)
@@ -52,7 +52,7 @@ predict.fbc <- function(object, newdata, type="Bayesian") {
       InvCov <- compute_covs(phi, c$Xf, c$Xs, Xk, inds)
       res    <- matrix(c$y - phi[c$imuB], ncol = 1)
       for (j in 1:nx) {
-        prediction    <- compute_prediction(Xstar[j, ], phi, InvCov, res)
+        prediction    <- compute_prediction(Xstar[j, ,drop=F], phi, InvCov, res)
         predMean[i,j] <- prediction$pMean
         predVar[i,j]  <- prediction$pVar
       }
@@ -72,7 +72,7 @@ predict.fbc <- function(object, newdata, type="Bayesian") {
     res      <- matrix(c$y - phi[c$imuB], ncol = 1)
 
     for (j in 1:nx) {
-      prediction <- compute_prediction(Xstar[j, ], phi, InvCov, res)
+      prediction <- compute_prediction(Xstar[j, ,drop=F], phi, InvCov, res)
       preds[j]   <- prediction$pMean
       vars[j]    <- prediction$pVar
     }
