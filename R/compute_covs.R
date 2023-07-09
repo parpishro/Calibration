@@ -13,7 +13,6 @@
 #'
 #' @return numeric matrix representing the inverse of augmented covariance matrix
 #' @noRd
-#' @examples
 compute_covs <- function(phi, Xf, Xs, Xk, ind) {
   CorKK  <- correlation(Xk,     theta=phi[ind$ithetaS], alpha=phi[ind$ialphaS])
   CorKS  <- correlation(Xk, Xs, theta=phi[ind$ithetaS], alpha=phi[ind$ialphaS])
