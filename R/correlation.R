@@ -16,7 +16,12 @@
 #' @returns      a correlation matrix between the rows of given matrices
 #' @example      examples/ex_correlation.R
 #' @export
-correlation <- function (X, Y=NULL, theta = 1, alpha = 2) {
+correlation <- function (X, Y = NULL, theta = 1, alpha = 2) {
+  stopifnot(is.matrix(X))
+  stopifnot(length(theta) == 1 || length(theta) == ncol(X))
+  stopifnot(length(alpha) == 1 || length(alpha) == ncol(X))
+  stopifnot(sum(theta <= 0) == 0)
+  stopifnot(sum(alpha < 1) == 0 && sum(alpha > 2) == 0)
   nx <- nrow(X)
   if (is.null(Y)) {
     R  <- matrix(0, nrow=nx, ncol=nx)
@@ -27,6 +32,8 @@ correlation <- function (X, Y=NULL, theta = 1, alpha = 2) {
     }
     R <- R+ t(R) + diag(1, nrow=nx, ncol=nx)
   } else {
+    stopifnot(is.matrix(Y))
+    stopifnot(ncol(X) == ncol(Y))
     ny <- nrow(Y)
     R  <- matrix(0, nrow=nx, ncol=ny)
     for (i in 1:nx) {
