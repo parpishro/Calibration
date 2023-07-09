@@ -55,12 +55,12 @@ output <- function() {
                                  lwr50 = param50Lwr, upr50 = param50Upr,
                                  lwr80 = param80Lwr, upr80 = param80Upr, sd = paramSd)
   obj  <- list(Phi        = round(Params, 2),
-              estimates  = estimates,
-              logPost    = cache$logPost,
-              priors     = cache$priors,
-              acceptance = cache$acceptance,
-              vars       = paramNames,
-              cache      = cache)
+               estimates  = estimates,
+               logPost    = cache$logPost,
+               priors     = cache$priors,
+               acceptance = cache$acceptance,
+               vars       = paramNames,
+               cache      = cache)
   fbcObj <- fbc(obj)
   return(fbcObj)
 }
