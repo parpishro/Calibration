@@ -6,6 +6,13 @@ output: github_document
 
  <!-- badges: start -->
   [![R-CMD-check](https://github.com/parpishro/FBC/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/parpishro/FBC/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/parpishro/FBC/branch/main/graph/badge.svg)](https://codecov.io/gh/parpishro/FBC)
+[![CRAN status](https://www.r-pkg.org/badges/version/FBC)](https://CRAN.R-project.org/package=FBC)
+[![Dependencies](https://img.shields.io/badge/dependencies-0/0-brightgreen?style=flat)](#)
+[![R CMD Check](https://github.com/parpishro/FBC/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/parpishro/FBC/actions/workflows/R-CMD-check.yaml)
+[![License: GPL-2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://choosealicense.com/licenses/gpl-2.0/)
+[![LifeCycle](https://img.shields.io/badge/lifecycle-experimental-orange)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Project Status: Concept](https://www.repostatus.org/badges/latest/concept.svg)](https://www.repostatus.org/#concept)
   <!-- badges: end -->
 
 ---
