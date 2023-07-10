@@ -10,23 +10,34 @@
 #' @param type       type of plotting
 #'
 #' @export
+#' @import graphics
 #'
-#' @examples
-plot.fbc <- function(x, parameter= "kappa", type = "density", main = NULL, xlab = NULL, ylab = NULL, ...) {
+#' @example examples/ex_plot.R
+#' @export
+plot.fbc <- function(x, parameter = "kappa", type = "density", xlab = NULL) {
 
-  object <- x
-  c   <- object$cache
-  pr  <- object$priors[parameter][[1]]
-  Phi <- object$Phi
-  ind <- c$indices[paste0("i", parameter)][[1]]
+  stopifnot(parameter %in% c("kappa", "thetaS", "alphaS", "thetaB", "alphaB", "sigma2S",
+                             "sigma2B", "sigma2E"))
+  stopifnot(type %in% c("density", "trace", "fits"))
+
+  obj       <- x
+  Phi       <- obj$Phi
+  estimates <- obj$estimates
+  priorFns  <- obj$priorFns
+  indices   <- obj$indices
+  scale     <- obj$scale
+  ind       <- indices[paste0("i", parameter)][[1]]
 
   if (type == "density") {
     for (i in ind) {
-      label <- if (parameter %in% c("sigma2S", "sigma2B", "sigma2E", "muB")) parameter else paste0(parameter, i-ind[1]+1)
+      if (parameter %in% c("sigma2S", "sigma2B", "sigma2E", "muB"))
+        label    <- parameter
+      else
+        label    <- paste0(parameter, i - ind[1] + 1)
 
-      prior_fn <- c$priorFns[[i]]
+      prior_fn <- priorFns[[i]]
       prX      <- switch(parameter,
-                         kappa  = (seq(0,1,0.001) * c$scale$calRange[i]) + c$scale$calMin[i],
+                         kappa  = (seq(0,1,0.001) * scale$calRange[i]) + scale$calMin[i],
                          thetaS = seq(0,5,0.001),
                          thetaB = seq(0,5,0.001),
                          alphaS = seq(1,2,0.001),
@@ -34,7 +45,7 @@ plot.fbc <- function(x, parameter= "kappa", type = "density", main = NULL, xlab 
                          muB    = seq(-1,1,0.001),
                          seq(0,5,0.001))
       prY      <- switch(parameter,
-                         kappa = exp(prior_fn(seq(0,1,0.001)))/c$scale$calRange[i],
+                         kappa  = exp(prior_fn(seq(0,1,0.001)))/scale$calRange[i],
                          thetaS = exp(prior_fn(seq(0,5,0.001))),
                          thetaB = exp(prior_fn(seq(0,5,0.001))),
                          alphaS = exp(prior_fn(seq(1,2,0.001))),
@@ -42,40 +53,56 @@ plot.fbc <- function(x, parameter= "kappa", type = "density", main = NULL, xlab 
                          muB    = exp(prior_fn(seq(-1,1,0.001))),
                          exp(prior_fn(seq(0,5,0.001))))
       prY[1]   <- 0
-      posX     <- density(Phi[ ,label], from=min(prX), to=max(prX))$x
-      posY     <- density(Phi[ ,label], from=min(prX), to=max(prX))$y
+      posX     <- density(Phi[ ,label], from = min(prX), to = max(prX))$x
+      posY     <- density(Phi[ ,label], from = min(prX), to = max(prX))$y
       xlimit   <- c(min(c(prX, posX)), max(c(prX, posX))) * c(0.95, 1.05)
       ylimit   <- c(0, min(max(c(prY, posY)), 100)) * 1.2
-      pMode    <- object$estimates[label, 'mode']
-
-      plot(posX, posY, main="Density Plot", xlab=label, ylab= "density", type="l", lwd=2, col="blue", xlim=xlimit, ylim=ylimit)
-      lines(prX, prY,  type="l")
-      abline(v=pMode, col="lightblue", lty=2)
-      legend("top", c("Posterior", "Prior", "Mode"), lty=c(1,1,2), text.font = 4, col=c("blue", "black", "lightblue"),  cex = 0.4, horiz=T)
+      pMode    <- estimates[label, 'mode']
+      plot(posX, posY,
+           main = "Density Plot", xlab = label, ylab = "density", xlim = xlimit, ylim = ylimit,
+           type = "l", lwd = 2, col = "blue")
+      lines(prX, prY,  type = "l")
+      abline(v = pMode, col = "lightblue", lty = 2)
+      legend("top", c("Posterior", "Prior", "Mode"),
+             lty = c(1,1,2), col = c("blue", "black", "lightblue"), cex = 0.4, horiz = T)
     }
   } else if (type == "trace") {
     for (i in ind) {
-      label <- if (parameter %in% c("sigma2S", "sigma2B", "sigma2E", "muB")) parameter else paste0(parameter, i-ind[1]+1)
-      plot(Phi[, i], type="l", xlab="index", ylab=label, main="Trace Plot")
+      if (parameter %in% c("sigma2S", "sigma2B", "sigma2E", "muB"))
+        label <- parameter
+      else
+        label <- paste0(parameter, i - ind[1] + 1)
+      plot(Phi[, i], type = "l", xlab = "index", ylab = label, main = "Trace Plot")
     }
   } else if (type == "fits") {
-    X       <- matrix(scale(unique(c$Xf), center=-(c$scale$expMin/c$scale$expRange), scale=1/c$scale$expRange), ncol = ncol(c$Xf), byrow = T)
-    preds   <- predict.fbc(object = object, newdata = X, type = "MAP")
-    actuals <- (c$y[1:c$n]*c$scale$sdYs)+c$scale$meanYs
+    X       <- matrix(scale(unique(obj$data$Xf),
+                            center = -(scale$expMin/scale$expRange),
+                            scale = 1/scale$expRange), ncol = ncol(obj$data$Xf),
+                      byrow = T)
+    preds   <- predict.fbc(obj = obj, newdata = X, type = "MAP")
+    actuals <- (obj$data$y[1:indices$n] * scale$sdYs) + scale$meanYs
     fits    <- preds$pred
-    lower95 <- fits-(2*preds$se)
-    upper95 <- fits+(2*preds$se)
+    lower95 <- fits - (2*preds$se)
+    upper95 <- fits + (2*preds$se)
 
-    for (i in 1:ncol(c$Xf)) {
+    xlab    <- if (is.null(xlab)) paste0("x", 1:ncol(obj$data$Xf))
+    stopifnot(length(xlab) == ncol(obj$data$Xf))
+
+    for (i in 1:ncol(obj$data$Xf)) {
 
       ylimit <- c(min(c(lower95, actuals)), max(c(upper95, actuals))) * c(0.8, 1.2)
-      xf <- (c$Xf[, i] * c$scale$expRange[i]) + c$scale$expMin[i]
-      plot(xf,      actuals, cex = 0.65, pch = 1,  col = "black", main="Fits Plot", xlab=paste0("x", i), ylab="field response", ylim=ylimit)
-      lines(X[, i], fits,    cex = 0.65, pch = 15, col = "blue",      type="o")
-      lines(X[, i], upper95, cex = 0.65, pch = 0,  col = "lightblue", type="o", lty=2)
-      lines(X[, i], lower95, cex = 0.65, pch = 0,  col = "lightblue", type="o", lty=2)
-      legend("top", legend = c("Field Response", "Prediction", "95% P.I."), lty=c(0,1,2), text.font = 4,
-             col = c("black", "blue", "lightblue"), pch = c(1, 15, 0), cex = 0.4, horiz=T)
+      xf     <- (obj$data$Xf[, i] * scale$expRange[i]) + scale$expMin[i]
+
+      plot(xf, actuals,
+           main = "Fits Plot",
+           xlab = xlab[i], ylab = "field response", ylim = ylimit,
+           cex = 0.65, pch = 1,  col = "black")
+      lines(X[, i], fits,    cex = 0.65, pch = 15, col = "blue",      type = "o")
+      lines(X[, i], upper95, cex = 0.65, pch = 0,  col = "lightblue", type = "o", lty = 2)
+      lines(X[, i], lower95, cex = 0.65, pch = 0,  col = "lightblue", type = "o", lty = 2)
+      legend("top", legend = c("Field Response", "Prediction", "95% P.I."),
+             col = c("black", "blue", "lightblue"),
+             lty = c(0,1,2), pch = c(1, 15, 0), cex = 0.4, horiz = T)
     }
   } else {
     stop("Invalid plot type!")
