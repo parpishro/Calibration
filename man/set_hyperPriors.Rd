@@ -5,32 +5,136 @@
 \title{Set Calibration Hyperparameter Priors}
 \usage{
 set_hyperPriors(
-  thetaS = list(dist = "gamma", init = 0.1, p1 = 1.5, p2 = 0.5),
-  alphaS = list(dist = "betashift", init = 1.5, p1 = 5, p2 = 2),
-  thetaB = list(dist = "gamma", init = 0.1, p1 = 1.5, p2 = 0.5),
-  alphaB = list(dist = "betashift", init = 1.5, p1 = 5, p2 = 2),
-  sigma2S = list(dist = "inversegamma", init = 1, p1 = 100, p2 = 0.1),
-  sigma2B = list(dist = "inversegamma", init = 1, p1 = 1, p2 = 1),
-  sigma2E = list(dist = "inversegamma", init = 1, p1 = 10, p2 = 1),
-  muB = list(dist = "uniform", init = 0, p1 = -1, p2 = 1)
+  thetaSDist = "gamma",
+  thetaSInit = 0.1,
+  thetaSP1 = 1.5,
+  thetaSP2 = 0.5,
+  alphaSDist = "betashift",
+  alphaSInit = 1.5,
+  alphaSP1 = 5,
+  alphaSP2 = 2,
+  thetaBDist = "gamma",
+  thetaBInit = 0.1,
+  thetaBP1 = 1.5,
+  thetaBP2 = 0.5,
+  alphaBDist = "betashift",
+  alphaBInit = 1.5,
+  alphaBP1 = 5,
+  alphaBP2 = 2,
+  sigma2SDist = "inversegamma",
+  sigma2SInit = 1,
+  sigma2SP1 = 100,
+  sigma2SP2 = 0.1,
+  sigma2BDist = "inversegamma",
+  sigma2BInit = 1,
+  sigma2BP1 = 1,
+  sigma2BP2 = 1,
+  sigma2EDist = "inversegamma",
+  sigma2EInit = 1,
+  sigma2EP1 = 10,
+  sigma2EP2 = 1,
+  muBDist = "uniform",
+  muBInit = 0,
+  muBP1 = -1,
+  muBP2 = 1
 )
 }
 \arguments{
-\item{thetaS}{prior specification of simulator correlation scale}
+\item{thetaSDist}{string (vector of strings) to specify the prior distribution type(s) for
+simulator correlation scale parameters}
 
-\item{alphaS}{prior specification of simulator correlation smoothness}
+\item{thetaSInit}{double (vector of doubles) that represent initial value(s) of simulator
+correlation scale parameter parameters to start the MCMC}
 
-\item{thetaB}{prior specification of bias-correction correlation scale}
+\item{thetaSP1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s) for simulator correlation scale}
 
-\item{alphaB}{prior specification of bias-correction correlation smoothness}
+\item{thetaSP2}{double (vector of doubles) representing the second parameter(s) of the
+chosen distribution(s) for simulator correlation scale}
 
-\item{sigma2S}{prior specification of simulator marginal variance}
+\item{alphaSDist}{string (vector of strings) to specify the prior distribution type(s) for
+simulator correlation smoothness parameters}
 
-\item{sigma2B}{prior specification of bias-correction marginal variance}
+\item{alphaSInit}{double (vector of doubles) that represent initial value(s) of simulator
+correlation smoothness parameter parameters to start the MCMC}
 
-\item{sigma2E}{prior specification of measurement error variance}
+\item{alphaSP1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s) for simulator correlation smoothness}
 
-\item{muB}{prior specification of bias-correction constant mean}
+\item{alphaSP2}{double (vector of doubles) representing the second parameter(s) of the
+chosen distribution(s) for simulator correlation smoothness}
+
+\item{thetaBDist}{string (vector of strings) to specify the prior distribution type(s) for
+bias-correction correlation scale parameters}
+
+\item{thetaBInit}{double (vector of doubles) that represent initial value(s) of
+bias-correction correlation scale parameter parameters to start the MCMC}
+
+\item{thetaBP1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s) for bias-correction correlation scale}
+
+\item{thetaBP2}{double (vector of doubles) representing the second parameter(s) of the
+chosen distribution(s) for bias-correction correlation scale}
+
+\item{alphaBDist}{string (vector of strings) to specify the prior distribution type(s) for
+bias-correction correlation smoothness parameters}
+
+\item{alphaBInit}{double (vector of doubles) that represent initial value(s) of
+bias-correction  correlation smoothness parameter parameters to start the MCMC}
+
+\item{alphaBP1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s) for bias-correction correlation smoothness}
+
+\item{alphaBP2}{double (vector of doubles) representing the second parameter(s) of the
+chosen distribution(s) for bias-correction correlation smoothness}
+
+\item{sigma2SDist}{string (vector of strings) to specify the prior distribution type(s) for
+simulator marginal variance parameter}
+
+\item{sigma2SInit}{double (vector of doubles) that represent initial value(s) of simulator
+marginal variance parameter parameters to start the MCMC}
+
+\item{sigma2SP1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s) for simulator marginal variance}
+
+\item{sigma2SP2}{double (vector of doubles) representing the second parameter(s) of the
+chosen distribution(s) for simulator marginal variance}
+
+\item{sigma2BDist}{string (vector of strings) to specify the prior distribution type(s) for
+bias-correction marginal variance parameter}
+
+\item{sigma2BInit}{double (vector of doubles) that represent initial value(s) of
+bias-correction marginal variance parameter parameters to start the MCMC}
+
+\item{sigma2BP1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s) for bias-correction marginal variance}
+
+\item{sigma2BP2}{double (vector of doubles) representing the second parameter(s) of the
+chosen distribution(s) for bias-correction marginal variance}
+
+\item{sigma2EDist}{string (vector of strings) to specify the prior distribution type(s) for
+measurement variance  parameter}
+
+\item{sigma2EInit}{double (vector of doubles) that represent initial value(s) of measurement
+variance parameter parameters to start the MCMC}
+
+\item{sigma2EP1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s) for measurement variance}
+
+\item{sigma2EP2}{double (vector of doubles) representing the second parameter(s) of the
+chosen distribution(s) for measurement variance}
+
+\item{muBDist}{string (vector of strings) to specify the prior distribution type(s) for
+bias-correction mean parameter}
+
+\item{muBInit}{double (vector of doubles) that represent initial value(s) of
+bias-correction mean parameter parameters to start the MCMC}
+
+\item{muBP1}{double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s) for bias-correction mean}
+
+\item{muBP2}{double (vector of doubles) representing the second parameter(s) of the
+chosen distribution(s) for bias-correction mean}
 }
 \value{
 nested list containing the prior specification for all calibration hyperparameters
@@ -49,4 +153,27 @@ All hyperparameters have default values to work with variety of models. Therefor
 is recommended to use this function without any argument (to use default values) to set
 \code{hypers} argument of \code{calibrate()} function.
 }
+}
+\details{
+\itemize{
+\item \code{dist}:
+* \code{p1}:
+* \code{p2}:   double (vector of doubles) representing the first parameter(s) of the
+chosen distribution(s)
+* \code{init}:
+}
+}
+\examples{
+# set hyperparameter priors by provide argument. All prior setting has reasonable default values
+
+pr1   <- set_hyperPriors(sigma2SDist = "jeffreys")
+cal1  <- calibrate(sim = Ds1, field = Df1,
+                   Nmcmc = 5, nBurn = 0, thinning = 1,
+                   hypers = pr1)
+pr2   <- set_hyperPriors(alphaSDist = c("gamma", "beta"),
+                         alphaSP1 = c(1, 2),
+                         alphaSP2 = c(2, 4))
+cal2  <- calibrate(sim = Ds1, field = Df1,
+                   Nmcmc = 5, nBurn = 0, thinning = 1,
+                   hypers = pr2)
 }

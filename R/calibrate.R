@@ -30,49 +30,51 @@
 #' calibration parameters (\eqn{\kappa}), simulator GP hyperparameters (marginal variance
 #' \eqn{\sigma^2_S}, scale \eqn{\theta_S}, and smoothness \eqn{\alpha_S}), bias-correction
 #' GP hyperparameters (\eqn{\sigma^2_B}, \eqn{\theta_B}, and \eqn{\alpha_B}), and finally
-#' field measurement error  variance (\eqn{\sigma^2_E}). If
-#'                  calibration parameters have different initial values, a double vector
-#'                  of same length as number of calibration inputs (determined internally
-#'                  by subtracting the number of columns in `sim` and `field`) can be used.
+#' field measurement error  variance (\eqn{\sigma^2_E}). If calibration parameters have
+#' different initial values, a double vector of same length as number of calibration
+#' inputs (determined internally by subtracting the number of columns in `sim` and
+#' `field`) can be used.
 #'
-#' @section Data:
+#' @param sim        \eqn{m \times (1+p+q+1)} numeric matrix, representing simulation
+#'                    data, where m is the number of simulation runs, p is number of
+#'                    experimental inputs, and q is the number of calibration inputs. The
+#'                    plus one column represents the response which is the output of the
+#'                    computer code.
+#' @param field       \eqn{n \times (1+p)} numeric matrix, representing field data, where n
+#'                    is the number of field observations and p is number of experimental
+#'                    inputs. Plus one (the first column) represents the field response.
 #'
-#' @param sim     \eqn{m \times (1+p+q+1)} numeric matrix, representing simulation data,
-#' where m is the number of simulation runs, p is number of experimental inputs, and q is
-#' thenumber of calibration inputs. The plus one column represents the response which is
-#' the output of the computer code.
-#' @param field  \eqn{n \times (1+p)} numeric matrix, representing field data, where n is
-#' the number of field observations and p is number of experimental inputs. Plus one (the
-#' first column) represents the field response.
+#' @param Nmcmc       integer for number of MCMC runs.
+#' @param nBurn       integer for number of MCMC burn ins.
+#' @param thinning     integer representing sampling frequency of MCMC results to remove
+#'                    auto-correlation.
 #'
-#' @section MCMC:
-#'
-#' @param Nmcmc     integer for number of MCMC runs.
-#' @param nBurn     integer for number of MCMC burn ins.
-#' @param thining   integer representing sampling frequency of MCMC results to remove
-#'                  auto-correlation.
-#'
-#' @section Priors:
-#'
-#' @param kappa_dist     string (vector of strings) to specify the prior distribution type(s)
-#'                  for calibration parameters.
-#' @param init        double (vector of doubles) representing initial value(s) for
-#' @param p1        double (vector of doubles) representing the first parameter(s) of the
-#'                  chosen distribution(s)
-#' @param p2        double (vector of doubles) representing the first parameter(s) of the
-#'                  chosen distribution(s)
-#' @param hypers    a nested list containing the priors and initial values for all
-#'                  hyperparameters. The notation for the list members are explained below.
-#'                  Each member contains four fields: the distribution type (`dist`), the
-#'                  initial value (`init`), first distribution parameter (`p1`), and
-#'                  second distribution parameter (`p2`). The default list (`hyperPriors`)
-#'                  fully specifies the priors for all hyperparameters of the calibration
-#'                  model except calibration parameter(s). They are specified based on
-#'                  literature consensus and in most cases user does not need to change
-#'                  them. However, when needed, user can change the priors using
-#'                  `control()` function. Note that the default value will be changed until next
-#'                  restart of the package.
-#'
+#' @param kappa       list containing following fields to specify the prior distribution
+#'                    for calibration parameters:
+#'                       * `dist`: string (vector of strings) to specify the prior distribution type(s)
+#'                                 for calibration parameters.
+#'                       * `p1`:   double (vector of doubles) representing the first parameter(s) of the
+#'                                 chosen distribution(s)
+#'                       * `p2`:   double (vector of doubles) representing the first parameter(s) of the
+#'                                 chosen distribution(s)
+#'                       * `init`: double (vector of doubles) that represent initial
+#'                                 value(s) of calibration parameters to start the MCMC.
+#'                                 The default(NA) automates choosing initial value for
+#'                                 calibration parameters based on their range in simulation
+#'                                 data.
+#' @param hypers      nested list containing the priors and initial values for all
+#'                    hyperparameters. The notation for the list members are explained
+#'                    below. Each member contains four fields (similar to `kappa`): the
+#'                    distribution type (`dist`), the initial value (`init`), first
+#'                    distribution parameter (`p1`), and second distribution parameter
+#'                    (`p2`). The default is a call to `set_hyperPriors()` without
+#'                    argument to build the nested list. All arguments of
+#'                    `set_hyperPriors()`. In most cases there is no need to change the
+#'                    default values. Nevertheless, when needed, user can specify the
+#'                    prior distribution for any of the model hyperparameters by supplying
+#'                    the changed arguments and their values.
+#' @param showProgress  logical indicating whether progress must be displayed at console.
+#'                    Default is False.
 #'
 #' @return a `fbc` object containing:
 #'  * Phi:            A numeric matrix in which each row represents a draw from joint
@@ -90,39 +92,39 @@
 #'  * cache:          an environment containing original datasets and indexing variables
 #'                    that is used in `predict()` function.
 #'
-#' @export
-#'
-#' @examples examples/calib (TODO)
+#' @example man/examples/ex_calibrate.R
 #' @references
 #' Kennedy MC, O’Hagan A (2001). “Bayesian calibration of computer models.”
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
-calibrate <- function(sim, field,                                                      # Data
-                      Nmcmc=2200L, nBurn=200L, thinning=20L,                               # MCMC
-                      kappa_dist="beta", init=NA, p1=1.1, p2=1.1, hypers=set_hyperPriors()) { # Priors
+#' @export
+calibrate <- function(sim, field,                                                   # Data
+                      Nmcmc  = 2200, nBurn = 200, thinning = 20,                    # MCMC
+                      kappa  = list(dist = "beta", init = NA, p1 = 1.1, p2 = 1.1),# Priors
+                      hypers = set_hyperPriors(),
+                      showProgress = FALSE) {                  # Hyperparameter Priors
   stopifnot((is.matrix(sim) || is.data.frame(sim)),
             (is.matrix(field) || is.data.frame(field)),
             ncol(sim) > 1, ncol(field) > 0)
-  stopifnot(is.integer(Nmcmc), Nmcmc > 1,
-            is.integer(nBurn), nBurn >= 0,
-            is.integer(thinning), thinning > 0)
-  stopifnot(is.character(kappa_dist), kappa_dist %in% c("beta", "betashift", "logistic", "gamma",
-            "uniform", "gaussian", "inversegamma", "exponential", "jeffreys","lognormal"),
-            (is.double(init) || is.na(init)), is.double(p1), is.double(p2),
-            length(kappa_dist) == length(p1), length(kappa_dist) == length(p2))
+  stopifnot(Nmcmc > 1, nBurn >= 0, thinning > 0)
   stopifnot(is.list(hypers), names(hypers) == c("thetaS", "alphaS", "thetaB", "alphaB",
-            "sigma2S", "sigma2B", "sigma2E", "muB"))
-  for (param in names(hypers))
-    stopifnot(length(hypers[param]['dist']) == length(hypers[param]['init']),
-              length(hypers[param]['dist']) == length(hypers[param]['p1']),
-              length(hypers[param]['dist']) == length(hypers[param]['p2']))
-  ical  <- (ncol(field) + 1):ncol(sim)
-  if (is.na(init))
-    init   <- apply(sim[, ical, drop = F], 2, mean)
-  priors <- c(list(kappa = list(dist = kappa_dist, init = init, p1 = p1, p2 = p2)), hypers)
-  init   <- setup_cache(sim, field, priors, Nmcmc)
-  inds   <- seq(nBurn+1, Nmcmc, by=thinning)
-  output <- mcmc(init, Nmcmc, inds)
+                                                "sigma2S", "sigma2B", "sigma2E", "muB"))
+  priors <- c(list(kappa = kappa), hypers)
+  for (param in names(priors))
+    stopifnot(is.character(priors[[param]][['dist']]))
+    stopifnot(priors[[param]][['dist']] %in% c("beta", "betashift", "logistic", "gamma",
+                                               "uniform", "gaussian", "inversegamma",
+                                               "exponential", "jeffreys","lognormal"))
+    stopifnot(is.double(priors[[param]][['init']]),
+              is.double(priors[[param]][['p1']]),
+              is.double(priors[[param]][['p2']]))
+    stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['init']]))
+    stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p1']]))
+    stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p2']]))
+
+  init   <- setup_cache(sim, field, priors, Nmcmc, showProgress)
+  inds   <- seq(nBurn + 1, Nmcmc, by = thinning)
+  output <- mcmc(init, Nmcmc, inds, showProgress)
   return(output)
 }
 

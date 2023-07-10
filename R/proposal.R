@@ -17,6 +17,7 @@
 #' @param sdLast     the last proposal sd used
 #'
 #' @noRd
+#' @importFrom stats rnorm
 #' @return a list consisting of the proposed value of the parameter and the proposal sd used
 proposal <- function(param, iparam, iteration, accepRate, sdLast) {
   init <- cache$sdRates[iparam]

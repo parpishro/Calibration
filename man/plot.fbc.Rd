@@ -4,15 +4,7 @@
 \alias{plot.fbc}
 \title{Plot Calibration Model}
 \usage{
-\method{plot}{fbc}(
-  x,
-  parameter = "kappa",
-  type = "density",
-  main = NULL,
-  xlab = NULL,
-  ylab = NULL,
-  ...
-)
+\method{plot}{fbc}(x, parameter = "kappa", type = "density", xlab = NULL, ...)
 }
 \arguments{
 \item{x}{\code{fbc} object (output of \code{calibrate()} function)}
@@ -20,6 +12,10 @@
 \item{parameter}{character string representing the parameter class}
 
 \item{type}{type of plotting}
+
+\item{xlab}{character string (or vector) representing the x axis labels for "fits" plot}
+
+\item{...}{other arguments}
 }
 \description{
 Given a parameter, \code{plot.fbc()} can plot three types of plots:
@@ -28,4 +24,35 @@ Given a parameter, \code{plot.fbc()} can plot three types of plots:
 \item "trace":   plots the trace of the chosen parameter over MCMC runs (afte thinning)
 \item "fits":    plots the fit of field training data to calibrated model (using "MAP" method)
 }
+}
+\examples{
+# Build a simple calibration model (1 experimental input + 1 calibration input)
+cal1    <- calibrate(sim = Ds1, field = Df1,
+                     Nmcmc = 5, nBurn = 0, thinning = 1,
+                     kappa = list(dist = "gaussian", init = 0.5, p1 = 0.5, p2 = 0.25))
+
+# plot default plots the density plot of calibration parameter
+plot(cal1)
+
+# plot other model parameters (note that since there are two correlation scale parameters for
+# simulator GP, there will be two plots)
+par(mfrow = c(1, 2))
+plot(cal1, parameter = "thetaS")
+
+# plot the trace of MCMC draws (note that this plot is useful to determine convergence and
+# stationarity of the parameter draws. This minimal example dhas only few draws!)
+par(mfrow = c(1, 2))
+plot(cal1, parameter = "alphaS", type = "trace")
+
+
+# plot the fitted values of the calibration model. It will plot the fitted values versus all
+# experimental inputs, in this example only one!
+plot(cal1, type = "fits")
+
+# Build more complex calibration model (2 experimental input + 2 calibration input)
+cal2    <- calibrate(sim = Ds2, field = Df2, Nmcmc = 20, nBurn = 0, thinning = 1)
+
+# plot default plots the density plot of calibration parameters (two plots for two
+# calibration parameters)
+plot(cal2)
 }
