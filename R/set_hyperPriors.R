@@ -22,9 +22,9 @@
 #' @param muB     prior specification of bias-correction constant mean
 #'
 #' @return nested list containing the prior specification for all calibration hyperparameters
-#' @export
 #'
-#' @examples
+#' @example examples/ex_set_hyperPriors.R
+#' @export
 set_hyperPriors <- function(thetaSDist  = "gamma",        thetaSInit  = 0.1, thetaSP1  = 1.5, thetaSP2  = 0.5,
                             alphaSDist  = "betashift",    alphaSInit  = 1.5, alphaSP1  = 5,   alphaSP2  = 2,
                             thetaBDist  = "gamma",        thetaBInit  = 0.1, thetaBP1  = 1.5, thetaBP2  = 0.5,
@@ -33,30 +33,26 @@ set_hyperPriors <- function(thetaSDist  = "gamma",        thetaSInit  = 0.1, the
                             sigma2BDist = "inversegamma", sigma2BInit = 1,   sigma2BP1 = 1,   sigma2BP2 = 1,
                             sigma2EDist = "inversegamma", sigma2EInit = 1,   sigma2EP1 = 10,  sigma2EP2 = 1,
                             muBDist     = "uniform",      muBInit     = 0,   muBP1     = -1,  muBP2     = 1) {
-  stopifnot(thetaSDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
-                                   "betashift", "exponential", "inversegamma", "jeffreys", "fixed")  &&
+  stopifnot(sum(!(thetaSDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
+                                    "betashift", "exponential", "inversegamma", "jeffreys", "fixed"))) == 0  &&
               is.double(thetaSInit) && is.double(thetaSP1) && is.double(thetaSP2) &&
               length(thetaSDist) == length(thetaSP1) &&
-              length(thetaSDist) == length(thetaSP2) &&
-              length(thetaSDist) == length(thetaSInit))
-  stopifnot(alphaSDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
-                                   "betashift", "exponential", "inversegamma", "jeffreys", "fixed") &&
+              length(thetaSDist) == length(thetaSP2))
+  stopifnot(sum(!(alphaSDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
+                                    "betashift", "exponential", "inversegamma", "jeffreys", "fixed"))) == 0 &&
               is.double(alphaSInit) && is.double(alphaSP1) && is.double(alphaSP2) &&
               length(alphaSDist) == length(alphaSP1) &&
-              length(alphaSDist) == length(alphaSP2) &&
-              length(alphaSDist) == length(alphaSInit))
-  stopifnot(thetaBDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
-                                   "betashift", "exponential", "inversegamma", "jeffreys", "fixed") &&
+              length(alphaSDist) == length(alphaSP2))
+  stopifnot(sum(!(thetaBDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
+                                    "betashift", "exponential", "inversegamma", "jeffreys", "fixed"))) == 0 &&
               is.double(thetaBInit) && is.double(thetaBP1) && is.double(thetaBP2) &&
               length(thetaBDist) == length(thetaBP1) &&
-              length(thetaBDist) == length(thetaBP2) &&
-              length(thetaBDist) == length(thetaBInit))
-  stopifnot(alphaBDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
-                               "betashift", "exponential", "inversegamma", "jeffreys", "fixed") &&
+              length(thetaBDist) == length(thetaBP2))
+  stopifnot(sum(!(alphaBDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
+                                    "betashift", "exponential", "inversegamma", "jeffreys", "fixed"))) == 0 &&
               is.double(alphaBInit) && is.double(alphaBP1) && is.double(alphaBP2) &&
               length(alphaBDist) == length(alphaBP1) &&
-              length(alphaBDist) == length(alphaBP2) &&
-              length(alphaBDist) == length(alphaBInit))
+              length(alphaBDist) == length(alphaBP2))
   stopifnot(sigma2SDist %in% c("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic",
                                    "betashift", "exponential", "inversegamma", "jeffreys", "fixed")  &&
               is.double(sigma2SInit) && is.double(sigma2SP1) && is.double(sigma2SP2))
