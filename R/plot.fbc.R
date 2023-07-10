@@ -8,13 +8,16 @@
 #' @param x         `fbc` object (output of `calibrate()` function)
 #' @param parameter  character string representing the parameter class
 #' @param type       type of plotting
+#' @param xlab       character string (or vector) representing the x axis labels for "fits" plot
+#' @param ...        other arguments
 #'
 #' @export
 #' @import graphics
+#' @importFrom stats density
 #'
-#' @example examples/ex_plot.R
+#' @example man/examples/ex_plot.R
 #' @export
-plot.fbc <- function(x, parameter = "kappa", type = "density", xlab = NULL) {
+plot.fbc <- function(x, parameter = "kappa", type = "density", xlab = NULL, ...) {
 
   stopifnot(parameter %in% c("kappa", "thetaS", "alphaS", "thetaB", "alphaB", "sigma2S",
                              "sigma2B", "sigma2E"))
@@ -79,7 +82,7 @@ plot.fbc <- function(x, parameter = "kappa", type = "density", xlab = NULL) {
                             center = -(scale$expMin/scale$expRange),
                             scale = 1/scale$expRange), ncol = ncol(obj$data$Xf),
                       byrow = T)
-    preds   <- predict.fbc(obj = obj, newdata = X, type = "MAP")
+    preds   <- predict.fbc(object = obj, newdata = X, method = "MAP")
     actuals <- (obj$data$y[1:indices$n] * scale$sdYs) + scale$meanYs
     fits    <- preds$pred
     lower95 <- fits - (2*preds$se)

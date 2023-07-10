@@ -14,6 +14,7 @@
 #'
 #' @return A list consisting of initialized `Phi` matrix and `logPost` vector, and prior
 #' function list `priorFns`
+#' @importFrom stats sd
 #' @noRd
 setup_cache <- function(sim, field, priors, Nmcmc, showProgress) {
 

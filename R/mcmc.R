@@ -12,6 +12,7 @@
 #' @param showProgress  logical indicating whether progress must be displayed at console.
 #'                    Default is False.
 #'
+#' @importFrom stats runif
 #' @noRd
 #' @return fbc object containing:
 #'            * Phi         matrix of posterior estimates: each row represents a draw from

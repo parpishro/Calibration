@@ -20,6 +20,7 @@
 #'  * vars:           name of all parameters (based on below notation)
 #'  * cache:          an environment containing original datasets and indexing variables
 #'                    that is used in `predict()` function.
+#' @import stats
 #' @noRd
 output <- function() {
   paramNames   <- character(cache$l)

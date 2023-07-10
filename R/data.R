@@ -10,10 +10,8 @@
 #'   \item{time}{The time in seconds for the ball to hit the ground}
 #'   \item{height}{Height of the ball in meters before dropping}
 #' }
-#' @export
 #' @source <https://bobby.gramacy.com/surrogates/ball.csv>
-#' "ballField"
-
+"ballField"
 
 #' @title ballSim
 #'
@@ -29,8 +27,7 @@
 #'   \item{height}{height of the ball in meters before dropping}
 #'   \item{gravity}{Height of the ball (in meters) before dropping}
 #' }
-#' @export
-
+"ballSim"
 
 #' @title Df1
 #'
@@ -40,8 +37,7 @@
 #'              experimental input.
 #' @format      Matrix with 5 rows that represent simulation runs and two columns that
 #'              represent field response and a single experimental input.
-#' @export
-
+"Df1"
 
 
 #' @title Ds1
@@ -54,8 +50,7 @@
 #'
 #' @format      Matrix with 15 rows that represent simulation runs and three columns that
 #'              represent code response, experimental input, and calibration input.
-#' @export
-
+"Ds1"
 
 
 #' @title Df2
@@ -66,8 +61,7 @@
 #'              two experimental inputs.
 #' @format      Matrix with 50 rows that represent simulation runs and three columns that
 #'              represent field response and two experimental inputs.
-#' @export
-
+"Df2"
 
 
 #' @title Ds2
@@ -80,7 +74,30 @@
 #'
 #' @format      Matrix with 100 rows that represent simulation runs and five columns that
 #'              represent code response, 2 experimental inputs, and 2 calibration inputs.
-#' @export
+"Ds2"
 
+
+#' @title swField
+#'
+#' @description A simple analytic example with random simulated data, known functional
+#'              components, and specified error terms. It has three columns. The first
+#'              column represent the field response, and the next two columns represent
+#'              two experimental inputs.
+#' @format      Matrix with 50 rows that represent simulation runs and three columns that
+#'              represent field response and two experimental inputs.
+"swField"
+
+
+#' @title swSim
+#'
+#' @description A simple analytic example with random simulated data, known functional
+#'              components, and specified error terms. It has five columns. The first
+#'              column represents the the simulated code response, the next two columns
+#'              (second and third) represent two experimental inputs, and the last two
+#'              columns (fourth and fifth) represent two calibration inputs.
+#'
+#' @format      Matrix with 100 rows that represent simulation runs and five columns that
+#'              represent code response, 2 experimental inputs, and 2 calibration inputs.
+"swSim"
 
 

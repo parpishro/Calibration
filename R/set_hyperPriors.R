@@ -12,18 +12,80 @@
 #' is recommended to use this function without any argument (to use default values) to set
 #' `hypers` argument of `calibrate()` function.
 #'
-#' @param thetaS  prior specification of simulator correlation scale
-#' @param alphaS  prior specification of simulator correlation smoothness
-#' @param thetaB  prior specification of bias-correction correlation scale
-#' @param alphaB  prior specification of bias-correction correlation smoothness
-#' @param sigma2S prior specification of simulator marginal variance
-#' @param sigma2B prior specification of bias-correction marginal variance
-#' @param sigma2E prior specification of measurement error variance
-#' @param muB     prior specification of bias-correction constant mean
+#' * `dist`:
+#'                       * `p1`:
+#'                       * `p2`:   double (vector of doubles) representing the first parameter(s) of the
+#'                                 chosen distribution(s)
+#'                       * `init`:
+#'
+#' @param thetaSDist     string (vector of strings) to specify the prior distribution type(s) for
+#'                       simulator correlation scale parameters
+#' @param thetaSInit     double (vector of doubles) that represent initial value(s) of simulator
+#'                       correlation scale parameter parameters to start the MCMC
+#' @param thetaSP1       double (vector of doubles) representing the first parameter(s) of the
+#'                       chosen distribution(s) for simulator correlation scale
+#' @param thetaSP2       double (vector of doubles) representing the second parameter(s) of the
+#'                       chosen distribution(s) for simulator correlation scale
+#' @param alphaSDist     string (vector of strings) to specify the prior distribution type(s) for
+#'                       simulator correlation smoothness parameters
+#' @param alphaSInit     double (vector of doubles) that represent initial value(s) of simulator
+#'                       correlation smoothness parameter parameters to start the MCMC
+#' @param alphaSP1       double (vector of doubles) representing the first parameter(s) of the
+#'                       chosen distribution(s) for simulator correlation smoothness
+#' @param alphaSP2       double (vector of doubles) representing the second parameter(s) of the
+#'                       chosen distribution(s) for simulator correlation smoothness
+#' @param thetaBDist     string (vector of strings) to specify the prior distribution type(s) for
+#'                       bias-correction correlation scale parameters
+#' @param thetaBInit     double (vector of doubles) that represent initial value(s) of
+#'                       bias-correction correlation scale parameter parameters to start the MCMC
+#' @param thetaBP1       double (vector of doubles) representing the first parameter(s) of the
+#'                       chosen distribution(s) for bias-correction correlation scale
+#' @param thetaBP2       double (vector of doubles) representing the second parameter(s) of the
+#'                       chosen distribution(s) for bias-correction correlation scale
+#' @param alphaBDist     string (vector of strings) to specify the prior distribution type(s) for
+#'                       bias-correction correlation smoothness parameters
+#' @param alphaBInit     double (vector of doubles) that represent initial value(s) of
+#'                       bias-correction  correlation smoothness parameter parameters to start the MCMC
+#' @param alphaBP1       double (vector of doubles) representing the first parameter(s) of the
+#'                       chosen distribution(s) for bias-correction correlation smoothness
+#' @param alphaBP2       double (vector of doubles) representing the second parameter(s) of the
+#'                       chosen distribution(s) for bias-correction correlation smoothness
+#' @param sigma2SDist    string (vector of strings) to specify the prior distribution type(s) for
+#'                       simulator marginal variance parameter
+#' @param sigma2SInit    double (vector of doubles) that represent initial value(s) of simulator
+#'                       marginal variance parameter parameters to start the MCMC
+#' @param sigma2SP1      double (vector of doubles) representing the first parameter(s) of the
+#'                       chosen distribution(s) for simulator marginal variance
+#' @param sigma2SP2      double (vector of doubles) representing the second parameter(s) of the
+#'                       chosen distribution(s) for simulator marginal variance
+#' @param sigma2BDist    string (vector of strings) to specify the prior distribution type(s) for
+#'                       bias-correction marginal variance parameter
+#' @param sigma2BInit    double (vector of doubles) that represent initial value(s) of
+#'                       bias-correction marginal variance parameter parameters to start the MCMC
+#' @param sigma2BP1      double (vector of doubles) representing the first parameter(s) of the
+#'                       chosen distribution(s) for bias-correction marginal variance
+#' @param sigma2BP2      double (vector of doubles) representing the second parameter(s) of the
+#'                       chosen distribution(s) for bias-correction marginal variance
+#' @param sigma2EDist    string (vector of strings) to specify the prior distribution type(s) for
+#'                       measurement variance  parameter
+#' @param sigma2EInit    double (vector of doubles) that represent initial value(s) of measurement
+#'                       variance parameter parameters to start the MCMC
+#' @param sigma2EP1      double (vector of doubles) representing the first parameter(s) of the
+#'                       chosen distribution(s) for measurement variance
+#' @param sigma2EP2      double (vector of doubles) representing the second parameter(s) of the
+#'                       chosen distribution(s) for measurement variance
+#' @param muBDist        string (vector of strings) to specify the prior distribution type(s) for
+#'                       bias-correction mean parameter
+#' @param muBInit        double (vector of doubles) that represent initial value(s) of
+#'                       bias-correction mean parameter parameters to start the MCMC
+#' @param muBP1          double (vector of doubles) representing the first parameter(s) of the
+#'                       chosen distribution(s) for bias-correction mean
+#' @param muBP2          double (vector of doubles) representing the second parameter(s) of the
+#'                       chosen distribution(s) for bias-correction mean
 #'
 #' @return nested list containing the prior specification for all calibration hyperparameters
 #'
-#' @example examples/ex_set_hyperPriors.R
+#' @example man/examples/ex_set_hyperPriors.R
 #' @export
 set_hyperPriors <- function(thetaSDist  = "gamma",        thetaSInit  = 0.1, thetaSP1  = 1.5, thetaSP2  = 0.5,
                             alphaSDist  = "betashift",    alphaSInit  = 1.5, alphaSP1  = 5,   alphaSP2  = 2,

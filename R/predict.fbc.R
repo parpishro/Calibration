@@ -7,23 +7,25 @@
 #' response conditioned on parameter samples. Full Bayesian framework of this package
 #' enables also uncertainty quantification.
 #'
-#' @param obj     class fbc (output of `calibrate()` function)
+#' @param object     class fbc (output of `calibrate()` function)
 #' @param newdata matrix of new field input configuration (\eqn{\bf{X}_f^*}), where each
 #'                row represents a vector of field input configuration (\eqn{\bf{x}_f^*})
 #'                and columns represent experimental inputs
+#' @param method character string from "MAP" or "Bayesian" (default) as method of prediction
+#' @param ...     other arguments
 #'
 #' @return list containing two vectors:
 #'            - `pred` representing the estimate (\eqn{\bf{y}_f^*})
 #'            - `se` represents the uncertainty about estimates (\eqn{\bf{\sigma^2_y}})
-#'
-#' @example examples/ex_predict.R
+#' @importFrom stats var
+#' @example man/examples/ex_predict.R
 #' @export
-predict.fbc <- function(obj, newdata, type="Bayesian") {
-  Phi                 <- obj$Phi
-  estimates           <- obj$estimates
-  priorFns            <- obj$priorFns
-  indices             <- obj$indices
-  scale               <- obj$scale
+predict.fbc <- function(object, newdata, method = "Bayesian", ...) {
+  Phi                 <- object$Phi
+  estimates           <- object$estimates
+  priorFns            <- object$priorFns
+  indices             <- object$indices
+  scale               <- object$scale
 
   np                  <- nrow(Phi)
   nx                  <- nrow(newdata)
@@ -42,11 +44,11 @@ predict.fbc <- function(obj, newdata, type="Bayesian") {
 
   compute_prediction <- function(xstar, phi, InvCov, res) {
     xkStar <- matrix(c(xstar, phi[indices$ikappa]), nrow = 1)
-    corSN  <- correlation(obj$data$Xs, xkStar,
+    corSN  <- correlation(object$data$Xs, xkStar,
                           theta = phi[indices$ithetaS], alpha = phi[indices$ialphaS])
     corKN  <- correlation(Xk, xkStar,
                           theta = phi[indices$ithetaS], alpha = phi[indices$ialphaS])
-    corFN  <- correlation(obj$data$Xf, matrix(xstar, ncol = indices$p),
+    corFN  <- correlation(object$data$Xf, matrix(xstar, ncol = indices$p),
                           theta = phi[indices$ithetaB], alpha = phi[indices$ialphaB])
     covND  <- matrix(c(phi[indices$isigma2S]*corKN + phi[indices$isigma2B]*corFN,
                        phi[indices$isigma2S]*corSN), ncol = 1)
@@ -58,13 +60,13 @@ predict.fbc <- function(obj, newdata, type="Bayesian") {
     return(list(pMean = pMean, pVar = pVar))
   }
 
-  if (type == "Bayesian") {
+  if (method == "Bayesian") {
     for (i in 1:np) {
       phi    <- as.double(Phi[i, ,drop = T])
-      Xk     <- cbind(obj$data$Xf,
+      Xk     <- cbind(object$data$Xf,
                       matrix(as.double(replicate(indices$n, phi[indices$ikappa])), nrow = indices$n))
-      InvCov <- compute_covs(phi, obj$data$Xf, obj$data$Xs, Xk, indices)
-      res    <- matrix(obj$data$y - phi[indices$imuB], ncol = 1)
+      InvCov <- compute_covs(phi, object$data$Xf, object$data$Xs, Xk, indices)
+      res    <- matrix(object$data$y - phi[indices$imuB], ncol = 1)
       for (j in 1:nx) {
         prediction    <- compute_prediction(Xstar[j, ,drop = F], phi, InvCov, res)
         predMean[i,j] <- prediction$pMean
@@ -78,13 +80,13 @@ predict.fbc <- function(obj, newdata, type="Bayesian") {
 
     preds    <- round(apply(predMean, 2, mean), 3)
     vars     <- varMean + meanVar
-  } else if (type == "MAP") {
-    iMAP     <- which.max(obj$logPost)
+  } else if (method == "MAP") {
+    iMAP     <- which.max(object$logPost)
     phi      <- as.double(Phi[iMAP, ,drop = T])
-    Xk       <- cbind(obj$data$Xf,
+    Xk       <- cbind(object$data$Xf,
                       matrix(as.double(replicate(indices$n, phi[indices$ikappa])), nrow = indices$n))
-    InvCov   <- compute_covs(phi, obj$data$Xf, obj$data$Xs, Xk, indices)
-    res      <- matrix(obj$data$y - phi[indices$imuB], ncol = 1)
+    InvCov   <- compute_covs(phi, object$data$Xf, object$data$Xs, Xk, indices)
+    res      <- matrix(object$data$y - phi[indices$imuB], ncol = 1)
 
     for (j in 1:nx) {
       prediction <- compute_prediction(Xstar[j, ,drop = F], phi, InvCov, res)
@@ -94,7 +96,7 @@ predict.fbc <- function(obj, newdata, type="Bayesian") {
     preds    <- (preds*scale$sdYs) + scale$meanYs
     vars     <- vars*(scale$sdYs^2)
   } else {
-    stop("Invalid prediction type!")
+    stop("Invalid prediction method!")
   }
 
   return(list(pred = preds, se = round(sqrt(vars), 4)))

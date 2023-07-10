@@ -46,7 +46,7 @@
 #'
 #' @param Nmcmc       integer for number of MCMC runs.
 #' @param nBurn       integer for number of MCMC burn ins.
-#' @param thining     integer representing sampling frequency of MCMC results to remove
+#' @param thinning     integer representing sampling frequency of MCMC results to remove
 #'                    auto-correlation.
 #'
 #' @param kappa       list containing following fields to specify the prior distribution
@@ -92,7 +92,7 @@
 #'  * cache:          an environment containing original datasets and indexing variables
 #'                    that is used in `predict()` function.
 #'
-#' @example examples/ex_calibrate.R
+#' @example man/examples/ex_calibrate.R
 #' @references
 #' Kennedy MC, O’Hagan A (2001). “Bayesian calibration of computer models.”
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464

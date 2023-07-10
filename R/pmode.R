@@ -16,8 +16,9 @@
 #'
 #' @return double represent estimated mode of given vector
 #' @export
+#' @importFrom stats sd
 #'
-#' @example examples/ex_pmode.R
+#' @example man/examples/ex_pmode.R
 pmode <- function(x, breaks = NA) {
   if (length(x) < 6)
     return(mean(x))
