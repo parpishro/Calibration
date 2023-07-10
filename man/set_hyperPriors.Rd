@@ -5,14 +5,38 @@
 \title{Set Calibration Hyperparameter Priors}
 \usage{
 set_hyperPriors(
-  thetaS = list(dist = "gamma", init = 0.1, p1 = 1.5, p2 = 0.5),
-  alphaS = list(dist = "betashift", init = 1.5, p1 = 5, p2 = 2),
-  thetaB = list(dist = "gamma", init = 0.1, p1 = 1.5, p2 = 0.5),
-  alphaB = list(dist = "betashift", init = 1.5, p1 = 5, p2 = 2),
-  sigma2S = list(dist = "inversegamma", init = 1, p1 = 100, p2 = 0.1),
-  sigma2B = list(dist = "inversegamma", init = 1, p1 = 1, p2 = 1),
-  sigma2E = list(dist = "inversegamma", init = 1, p1 = 10, p2 = 1),
-  muB = list(dist = "uniform", init = 0, p1 = -1, p2 = 1)
+  thetaSDist = "gamma",
+  thetaSInit = 0.1,
+  thetaSP1 = 1.5,
+  thetaSP2 = 0.5,
+  alphaSDist = "betashift",
+  alphaSInit = 1.5,
+  alphaSP1 = 5,
+  alphaSP2 = 2,
+  thetaBDist = "gamma",
+  thetaBInit = 0.1,
+  thetaBP1 = 1.5,
+  thetaBP2 = 0.5,
+  alphaBDist = "betashift",
+  alphaBInit = 1.5,
+  alphaBP1 = 5,
+  alphaBP2 = 2,
+  sigma2SDist = "inversegamma",
+  sigma2SInit = 1,
+  sigma2SP1 = 100,
+  sigma2SP2 = 0.1,
+  sigma2BDist = "inversegamma",
+  sigma2BInit = 1,
+  sigma2BP1 = 1,
+  sigma2BP2 = 1,
+  sigma2EDist = "inversegamma",
+  sigma2EInit = 1,
+  sigma2EP1 = 10,
+  sigma2EP2 = 1,
+  muBDist = "uniform",
+  muBInit = 0,
+  muBP1 = -1,
+  muBP2 = 1
 )
 }
 \arguments{

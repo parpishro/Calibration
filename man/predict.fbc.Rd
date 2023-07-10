@@ -4,10 +4,10 @@
 \alias{predict.fbc}
 \title{Predict based on Calibrated Model}
 \usage{
-\method{predict}{fbc}(object, newdata, type = "Bayesian")
+\method{predict}{fbc}(obj, newdata, type = "Bayesian")
 }
 \arguments{
-\item{object}{class fbc (output of \code{calibrate()} function)}
+\item{obj}{class fbc (output of \code{calibrate()} function)}
 
 \item{newdata}{matrix of new field input configuration (\eqn{\bf{X}_f^*}), where each
 row represents a vector of field input configuration (\eqn{\bf{x}_f^*})
