@@ -30,6 +30,9 @@ inputs. Plus one (the first column) represents the field response.}
 
 \item{nBurn}{integer for number of MCMC burn ins.}
 
+\item{thinning}{integer representing sampling frequency of MCMC results to remove
+auto-correlation.}
+
 \item{kappa}{list containing following fields to specify the prior distribution
 for calibration parameters:
 * \code{dist}: string (vector of strings) to specify the prior distribution type(s)
@@ -58,9 +61,6 @@ the changed arguments and their values.}
 
 \item{showProgress}{logical indicating whether progress must be displayed at console.
 Default is False.}
-
-\item{thining}{integer representing sampling frequency of MCMC results to remove
-auto-correlation.}
 }
 \value{
 a \code{fbc} object containing:

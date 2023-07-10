@@ -4,10 +4,12 @@
 \alias{summary.fbc}
 \title{Calibration Object Summary}
 \usage{
-\method{summary}{fbc}(object)
+\method{summary}{fbc}(object, ...)
 }
 \arguments{
 \item{object}{\code{fbc} object}
+
+\item{...}{other arguments}
 }
 \value{
 dataframe where rows represent model parameters and columns represent: mean,
@@ -15,4 +17,11 @@ median, mode, lwr50, upr50, lwr80, upr80, sd
 }
 \description{
 \code{summary.fbc()} produces a dataframe of summary statistics for all model parameters
+}
+\examples{
+# build a simple calibration model and provide summary of the model estimates
+cal1    <- calibrate(sim = Ds1, field = Df1,
+                     Nmcmc = 5, nBurn = 0, thinning = 1,
+                     kappa = list(dist = "gaussian", init = 0.5, p1 = 0.5, p2 = 0.25))
+summary(cal1)
 }

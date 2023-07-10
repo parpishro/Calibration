@@ -23,7 +23,7 @@ size as number of columns as X}
 }
 \description{
 If only one matrix is provided, \code{correlation} would compute the correlation between
-the rows of the given matrix. Each entry R\link{i, j} in the returned correlation matrix is
+the rows of the given matrix. Each entry \eqn{R[i, j]} in the returned correlation matrix is
 correlation between row i of X and row j of Y (X if Y is null) using given smoothness
 and scale parameters. To compute correlation, separable power exponential correlation
 structure is assumed and using Euclidean notion of distance between rows.

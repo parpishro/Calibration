@@ -4,11 +4,20 @@
 \alias{print.fbc}
 \title{Calibration Object Print}
 \usage{
-\method{print}{fbc}(x)
+\method{print}{fbc}(x, ...)
 }
 \arguments{
 \item{x}{\code{fbc} object}
+
+\item{...}{other arguments}
 }
 \description{
 \code{print.fbc()} prints the prior specification and parameter summary for all model parameters
+}
+\examples{
+# build a simple calibration model and print the model estimates
+cal1    <- calibrate(sim = Ds1, field = Df1,
+                     Nmcmc = 5, nBurn = 0, thinning = 1,
+                     kappa = list(dist = "gaussian", init = 0.5, p1 = 0.5, p2 = 0.25))
+print(cal1)
 }

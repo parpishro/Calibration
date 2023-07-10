@@ -4,7 +4,7 @@
 \alias{plot.fbc}
 \title{Plot Calibration Model}
 \usage{
-\method{plot}{fbc}(x, parameter = "kappa", type = "density", xlab = NULL)
+\method{plot}{fbc}(x, parameter = "kappa", type = "density", xlab = NULL, ...)
 }
 \arguments{
 \item{x}{\code{fbc} object (output of \code{calibrate()} function)}
@@ -12,6 +12,10 @@
 \item{parameter}{character string representing the parameter class}
 
 \item{type}{type of plotting}
+
+\item{xlab}{character string (or vector) representing the x axis labels for "fits" plot}
+
+\item{...}{other arguments}
 }
 \description{
 Given a parameter, \code{plot.fbc()} can plot three types of plots:
