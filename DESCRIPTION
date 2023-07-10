@@ -4,16 +4,17 @@ Title: Full Bayesian Calibration
 Version: 1.0
 Author: Parham Pishrobat
 Maintainer: The package maintainer <par.pishrobat@ubc.ca>
-Description: Full Bayesian calibration of simulator model using both field 
-    observations and simulator outputs based on Kennedy and O'Hagan (2001) 
-    calibration model
+Description: FBC provides employs a Full Bayesian Calibration method to calibrate the simulator 
+             model using both field observations and simulator outputs. It is based on Kennedy and 
+             O'Hagan (2001) calibration model and used Metropolis-Within Gibbs MCMC algorithm with 
+             adaptive proposal.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 2.10)
 RoxygenNote: 7.2.3
 Suggests: 
-    testthat (>= 3.0.0), knitr, rmarkdown
+    testthat (>= 3.5.0), knitr, rmarkdown
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
