@@ -123,7 +123,7 @@ calibrate <- function(sim, field,                                               
     stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p2']]))
 
   init   <- setup_cache(sim, field, priors, Nmcmc, showProgress)
-  inds   <- seq(nBurn + 1, Nmcmc, by=thinning)
+  inds   <- seq(nBurn + 1, Nmcmc, by = thinning)
   output <- mcmc(init, Nmcmc, inds, showProgress)
   return(output)
 }

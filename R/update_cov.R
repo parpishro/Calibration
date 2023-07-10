@@ -26,22 +26,16 @@ update_cov <- function(phi, ichanged) {
 
   } else if (ichanged %in% cache$ithetaB | ichanged %in% cache$ialphaB) {
     cache$CorFF   <- correlation(cache$Xf, theta = phi[cache$ithetaB], alpha = phi[cache$ialphaB])
-  } else if (ichanged %in% cache$imuB) {
-    return()
   }
 
-  AugCov  <- rbind(cbind(phi[cache$isigma2S]*cache$CorKK +
-                         phi[cache$isigma2B]*cache$CorFF +
-                         phi[cache$isigma2E]*cache$Inn ,
-                         phi[cache$isigma2S]*cache$CorKS),
-                   cbind(phi[cache$isigma2S]*cache$CorSK,
-                         phi[cache$isigma2S]*cache$CorSS))
+  AugCov          <- rbind(cbind(phi[cache$isigma2S]*cache$CorKK +
+                                   phi[cache$isigma2B]*cache$CorFF +
+                                   phi[cache$isigma2E]*cache$Inn ,
+                                 phi[cache$isigma2S]*cache$CorKS),
+                           cbind(phi[cache$isigma2S]*cache$CorSK,
+                                 phi[cache$isigma2S]*cache$CorSS))
 
-  CholCov <- try(chol(AugCov), silent = T)
-
-  if (length(class(CholCov)) == 1 && class(CholCov) == "try-error")
-    return(NULL)
-
+  CholCov         <- chol(AugCov)
   cache$InvCov    <- chol2inv(CholCov)
   cache$logDetCov <- 2 * sum(log(diag(CholCov)))
 }

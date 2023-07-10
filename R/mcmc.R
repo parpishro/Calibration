@@ -33,41 +33,38 @@ mcmc <- function(init, Nmcmc, inds, showProgress) {
   accepted   <- double(l)
   accepRate  <- double(l)
   sdProp     <- double(l)
-  res        <- cache$y-Phi[1, cache$imuB]
+  res        <- cache$y - Phi[1, cache$imuB]
   for (i in 2:Nmcmc) {
-    logPost[i]  <- logPost[i-1]
+    logPost[i]  <- logPost[i - 1]
     for (j in 1:l) {
       if (j %in% ifixed) next
-      out       <- proposal(Phi[i-1, j], j, i, accepRate[j], sdProp[j])
+      out       <- proposal(Phi[i - 1, j], j, i, accepRate[j], sdProp[j])
       changed   <- out$proposed
       sdProp[j] <- out$sd
 
       if (j == 1) {
-        params <- c(changed, Phi[i-1, 2:l])
-        update_cov(params, ichanged=j)
+        params <- c(changed, Phi[i - 1, 2:l])
+        update_cov(params, ichanged = j)
       } else if (j == l) {
-        params <- c(Phi[i, 1:(l-1)], changed)
-        res    <- cache$y-params[cache$imuB]
+        params <- c(Phi[i, 1:(l - 1)], changed)
+        res    <- cache$y - params[cache$imuB]
       } else {
-        params <- c(Phi[i, 1:(j-1)], changed, Phi[(i-1), (j+1):l])
+        params <- c(Phi[i, 1:(j - 1)], changed, Phi[(i - 1), (j + 1):l])
         update_cov(params, ichanged = j)
       }
 
-      if (is.null(cache$InvCov))
-        lPost  <- -.Machine$double.xmax
-      else {
-        logPrior       <- 0
-        for (h in 1:l)
-          logPrior     <- logPrior + priorFns[[h]](params[h])
-        lPost  <- logPrior - 0.5*(cache$logDetCov+drop(t(res)%*%(cache$InvCov)%*%res))
-      }
+      logPrior       <- 0
+      for (h in 1:l)
+        logPrior     <- logPrior + priorFns[[h]](params[h])
+      lPost  <- logPrior - 0.5*(cache$logDetCov + drop(t(res) %*% (cache$InvCov) %*% res))
 
-      if (is.finite(lPost) && (lPost-logPost[i] > log(runif(1)))) {
+
+      if (is.finite(lPost) && (lPost - logPost[i] > log(runif(1)))) {
         Phi[i, j]   <- changed
         logPost[i]  <- lPost
         accepted[j] <- accepted[j] + 1
       } else {
-        Phi[i, j]      <- Phi[i-1, j]
+        Phi[i, j]      <- Phi[i - 1, j]
       }
     }
 

@@ -21,9 +21,11 @@
 pmode <- function(x, breaks = NA) {
   if (length(x) < 6)
     return(mean(x))
+  else if (sd(x) == 0)
+    return(x[1])
   if (is.na(breaks))
     breaks <- floor(length(x)/5)
-  bounds <- seq(min(x), max(x), length.out = breaks+1)
+  bounds <- seq(min(x), max(x), length.out = breaks + 1)
   counts <- double(breaks)
   bins   <- list()
   for (i in 1:breaks) {

@@ -28,6 +28,7 @@ prior_builder <- function(prior, p1, p2) {
                       exponential  = function(x) return(dexp(x,    rate=p1,                log=T)),
                       inversegamma = function(x) return(p1*log(p2) - log(gamma(p1)) - (p1+1)*log(x) - p2/x),
                       jeffreys     = function(x) return(-0.5*log(x)),
+                      fixed        = function(x) 0,
                       stop("at least one prior missing or invalid!"))
   return(prior_fn)
 }
