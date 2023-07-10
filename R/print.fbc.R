@@ -4,9 +4,8 @@
 #'
 #' @param x  `fbc` object
 #'
+#' @example examples/ex_print.R
 #' @export
-#'
-#' @examples
 print.fbc <- function(x) {
   print(x$estimates)
 }
