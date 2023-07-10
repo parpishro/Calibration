@@ -9,7 +9,10 @@
 #' @param init     list containing initialized `Phi` mtrix and `logPost` vector
 #' @param Nmcmc    integer representing total number of MCMC runs
 #' @param inds     indices of final MCMC draws after burn-in and thinning
+#' @param showProgress  logical indicating whether progress must be displayed at console.
+#'                    Default is False.
 #'
+#' @importFrom stats runif
 #' @noRd
 #' @return fbc object containing:
 #'            * Phi         matrix of posterior estimates: each row represents a draw from
@@ -21,7 +24,7 @@
 #'            * acceptance  vector representing acceptance rate of each parameter
 #'            * vars        name of parameters (column headers of `Phi`)
 #'            * cache       environment containing original data and indices
-mcmc <- function(init, Nmcmc, inds) {
+mcmc <- function(init, Nmcmc, inds, showProgress) {
   Phi        <- init$Phi
   logPost    <- init$logPost
   priorFns   <- cache$priorFns
@@ -31,41 +34,38 @@ mcmc <- function(init, Nmcmc, inds) {
   accepted   <- double(l)
   accepRate  <- double(l)
   sdProp     <- double(l)
-  res        <- cache$y-Phi[1, cache$imuB]
+  res        <- cache$y - Phi[1, cache$imuB]
   for (i in 2:Nmcmc) {
-    logPost[i]  <- logPost[i-1]
+    logPost[i]  <- logPost[i - 1]
     for (j in 1:l) {
       if (j %in% ifixed) next
-      out       <- proposal(Phi[i-1, j], j, i, accepRate[j], sdProp[j])
+      out       <- proposal(Phi[i - 1, j], j, i, accepRate[j], sdProp[j])
       changed   <- out$proposed
       sdProp[j] <- out$sd
 
       if (j == 1) {
-        params <- c(changed, Phi[i-1, 2:l])
-        update_cov(params, ichanged=j)
+        params <- c(changed, Phi[i - 1, 2:l])
+        update_cov(params, ichanged = j)
       } else if (j == l) {
-        params <- c(Phi[i, 1:(l-1)], changed)
-        res    <- cache$y-params[cache$imuB]
+        params <- c(Phi[i, 1:(l - 1)], changed)
+        res    <- cache$y - params[cache$imuB]
       } else {
-        params <- c(Phi[i, 1:(j-1)], changed, Phi[(i-1), (j+1):l])
+        params <- c(Phi[i, 1:(j - 1)], changed, Phi[(i - 1), (j + 1):l])
         update_cov(params, ichanged = j)
       }
 
-      if (is.null(cache$InvCov))
-        lPost  <- -.Machine$double.xmax
-      else {
-        logPrior       <- 0
-        for (h in 1:l)
-          logPrior     <- logPrior + priorFns[[h]](params[h])
-        lPost  <- logPrior - 0.5*(cache$logDetCov+drop(t(res)%*%(cache$InvCov)%*%res))
-      }
+      logPrior       <- 0
+      for (h in 1:l)
+        logPrior     <- logPrior + priorFns[[h]](params[h])
+      lPost  <- logPrior - 0.5*(cache$logDetCov + drop(t(res) %*% (cache$InvCov) %*% res))
 
-      if (is.finite(lPost) && (lPost-logPost[i] > log(runif(1)))) {
+
+      if (is.finite(lPost) && (lPost - logPost[i] > log(runif(1)))) {
         Phi[i, j]   <- changed
         logPost[i]  <- lPost
         accepted[j] <- accepted[j] + 1
       } else {
-        Phi[i, j]      <- Phi[i-1, j]
+        Phi[i, j]      <- Phi[i - 1, j]
       }
     }
 
@@ -79,7 +79,7 @@ mcmc <- function(init, Nmcmc, inds) {
     }
 
 
-    if (i %% floor(Nmcmc/100) == 0 && i/floor(Nmcmc/100) <= 100) {   #
+    if (showProgress && i %% floor(Nmcmc/100) == 0 && i/floor(Nmcmc/100) <= 100) {   #
       cat("------------------------------------------------------------------------", "\n")
       cat("finished ",  (i/floor(Nmcmc/100)), "% of MCMC runs...", "\n")
       cat("acceptance ratio in the last batch:   ", round(accepRate, 2), "\n")
@@ -88,9 +88,12 @@ mcmc <- function(init, Nmcmc, inds) {
       cat("total acceptance ratio:               ", round(accepted/i, 2), "\n")
     }
   }
-  cat("------------------------------------------------------------------------", "\n")
-  cat("Completed MCMC runs.", "\n")
-  cat("total acceptance ratio ", round(accepted/Nmcmc, 2), "\n")
+  if (showProgress) {
+    cat("------------------------------------------------------------------------", "\n")
+    cat("Completed MCMC runs.", "\n")
+    cat("total acceptance ratio ", round(accepted/Nmcmc, 2), "\n")
+  }
+
   cache$Params     <- Phi[inds, ]
   cache$logPost    <- logPost[inds]
   cache$acceptance <- accepted/Nmcmc

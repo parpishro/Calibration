@@ -20,6 +20,7 @@
 #'  * vars:           name of all parameters (based on below notation)
 #'  * cache:          an environment containing original datasets and indexing variables
 #'                    that is used in `predict()` function.
+#' @import stats
 #' @noRd
 output <- function() {
   paramNames   <- character(cache$l)
@@ -55,12 +56,17 @@ output <- function() {
                                  lwr50 = param50Lwr, upr50 = param50Upr,
                                  lwr80 = param80Lwr, upr80 = param80Upr, sd = paramSd)
   obj  <- list(Phi        = round(Params, 2),
-              estimates  = estimates,
-              logPost    = cache$logPost,
-              priors     = cache$priors,
-              acceptance = cache$acceptance,
-              vars       = paramNames,
-              cache      = cache)
+               estimates  = estimates,
+               logPost    = cache$logPost,
+               priors     = cache$priors,
+               acceptance = cache$acceptance,
+               vars       = paramNames,
+               data       = list(Xf = cache$Xf, Xs = cache$Xs, y = cache$y),
+               scale      = cache$scale,
+               indices    = cache$indices,
+               priorFns   = cache$priorFns,
+               proposalSD = cache$sdRates)
   fbcObj <- fbc(obj)
+
   return(fbcObj)
 }

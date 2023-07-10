@@ -12,14 +12,11 @@ prior_builder(prior, p1, p2)
 \item{p1}{double representing the first parameter of the prior distribution}
 
 \item{p2}{double representing the second parameter of the prior distribution}
-
-\item{ln}{logical denoting whether the output prior function return log of value.
-Default is True as it log priors are needed in computations and they
-simplifies the computation.}
 }
 \value{
 function that given its input, x, computes the log of the chosen prior
 probability density function
+@import stats
 }
 \description{
 \code{prior_builder} uses user-given prior types and parameters to select and parametrize
