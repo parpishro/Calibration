@@ -1,8 +1,16 @@
+FBC: Full Bayesian Calibration
+================
+Parham Pishrobat
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/parpishro/FBC/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/parpishro/FBC/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 ------------------------------------------------------------------------
 
 ``` r
 library(FBC)
-load("output.RData")
+#load("output.RData")
 ```
 
 ## Introduction
@@ -323,7 +331,7 @@ $C_D = \sigma^2_s \begin{bmatrix} R_{ff}^s & R_{fs}^s \\ R_{sf}^s & R_{ss}^s \en
 
 ## `mcmc()`
 
-**Input:** Prior Functions and MCMCM Parameters
+**Input:** Prior Functions and MCMC Parameters
 
 **Output:** NO Output
 
@@ -440,8 +448,6 @@ $$t = \sqrt{\frac{2h}{g}}$$
 
 ## Data
 
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
-
 ## Results
 
 - Sample Markov Chains
@@ -454,291 +460,43 @@ $$t = \sqrt{\frac{2h}{g}}$$
 
 **Calibration Parameter (Gravity)**
 
-![](README_files/figure-gfm/pressure-1.png)<!-- -->
-
 ## Markov Chains
 
 **Simulation Correlation Hyperparameters**
-
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ## Markov Chains
 
 **Bias-Correction Correlation Hyperparameters**
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
-
 ## Markov Chains
 
 **Variance (Precision) Parameters**
-
-![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ## Estimated Posterior Densities
 
 **Posterior Density for Calibration Parameter**
 
-![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
-
 ## Estimated Posterior Densities
 
 **Posterior Density for Simulation GP Hyperparameters**
-
-![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ## Estimated Posterior Densities
 
 **Posterior Density for Bias-Correction GP Hyperparameters**
 
-![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-
 ## Estimated Posterior Densities
 
 **Posterior Density for Variance Parameters**
-
-![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ## Estimated Posterior Densities
 
 **Posterior Density for Measurement Variance**
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
-
 ## Parameter Estimates
-
-<table>
-<thead>
-<tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:right;">
-Sample MEan
-</th>
-<th style="text-align:right;">
-Sample SD
-</th>
-<th style="text-align:right;">
-5% Quantile
-</th>
-<th style="text-align:right;">
-95% Quantile
-</th>
-<th style="text-align:right;">
-Mode
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-kappa1
-</td>
-<td style="text-align:right;">
-9.15
-</td>
-<td style="text-align:right;">
-1.80
-</td>
-<td style="text-align:right;">
-7.27
-</td>
-<td style="text-align:right;">
-12.22
-</td>
-<td style="text-align:right;">
-8.50
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-thetaS1
-</td>
-<td style="text-align:right;">
-0.40
-</td>
-<td style="text-align:right;">
-0.16
-</td>
-<td style="text-align:right;">
-0.22
-</td>
-<td style="text-align:right;">
-0.61
-</td>
-<td style="text-align:right;">
-0.37
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-thetaS2
-</td>
-<td style="text-align:right;">
-0.17
-</td>
-<td style="text-align:right;">
-0.08
-</td>
-<td style="text-align:right;">
-0.09
-</td>
-<td style="text-align:right;">
-0.28
-</td>
-<td style="text-align:right;">
-0.15
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-alphaS1
-</td>
-<td style="text-align:right;">
-1.63
-</td>
-<td style="text-align:right;">
-0.10
-</td>
-<td style="text-align:right;">
-1.50
-</td>
-<td style="text-align:right;">
-1.76
-</td>
-<td style="text-align:right;">
-1.63
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-alphaS2
-</td>
-<td style="text-align:right;">
-1.54
-</td>
-<td style="text-align:right;">
-0.12
-</td>
-<td style="text-align:right;">
-1.38
-</td>
-<td style="text-align:right;">
-1.70
-</td>
-<td style="text-align:right;">
-1.55
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-thetaB1
-</td>
-<td style="text-align:right;">
-0.11
-</td>
-<td style="text-align:right;">
-0.10
-</td>
-<td style="text-align:right;">
-0.01
-</td>
-<td style="text-align:right;">
-0.25
-</td>
-<td style="text-align:right;">
-0.09
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-alphaB1
-</td>
-<td style="text-align:right;">
-1.77
-</td>
-<td style="text-align:right;">
-0.17
-</td>
-<td style="text-align:right;">
-1.52
-</td>
-<td style="text-align:right;">
-1.96
-</td>
-<td style="text-align:right;">
-1.80
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-sigma2S
-</td>
-<td style="text-align:right;">
-3.69
-</td>
-<td style="text-align:right;">
-1.59
-</td>
-<td style="text-align:right;">
-1.89
-</td>
-<td style="text-align:right;">
-5.88
-</td>
-<td style="text-align:right;">
-3.42
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-sigma2B
-</td>
-<td style="text-align:right;">
-1.27
-</td>
-<td style="text-align:right;">
-1.32
-</td>
-<td style="text-align:right;">
-0.10
-</td>
-<td style="text-align:right;">
-2.94
-</td>
-<td style="text-align:right;">
-0.89
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-sigma2E
-</td>
-<td style="text-align:right;">
-0.11
-</td>
-<td style="text-align:right;">
-0.03
-</td>
-<td style="text-align:right;">
-0.09
-</td>
-<td style="text-align:right;">
-0.14
-</td>
-<td style="text-align:right;">
-0.11
-</td>
-</tr>
-</tbody>
-</table>
 
 ## Point Prediction of Physical Mean Response
 
-![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
-
 ## Effects of Initial values
-
-![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 ## Future Work/Improvement
 
