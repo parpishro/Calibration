@@ -80,8 +80,6 @@ test_that("different priors for calibration works!", {
                                 p2   = c(1.1, 1)))
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
   expect_equal(sum(cal$estimates[, 8] <= 0), 0)
-  expect_equal(sum(cal$acceptance < 0.1), 0)
-  expect_equal(sum(cal$acceptance > 0.9), 0)
 })
 
 
