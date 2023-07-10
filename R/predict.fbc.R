@@ -16,9 +16,8 @@
 #'            - `pred` representing the estimate (\eqn{\bf{y}_f^*})
 #'            - `se` represents the uncertainty about estimates (\eqn{\bf{\sigma^2_y}})
 #'
+#' @example examples/ex_predict.R
 #' @export
-#'
-#' @example
 predict.fbc <- function(obj, newdata, type="Bayesian") {
   Phi                 <- obj$Phi
   estimates           <- obj$estimates
