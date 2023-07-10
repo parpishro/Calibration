@@ -60,7 +60,12 @@ output <- function() {
                priors     = cache$priors,
                acceptance = cache$acceptance,
                vars       = paramNames,
-               cache      = cache)
+               data       = list(Xf = cache$Xf, Xs = cache$Xs, y = cache$y),
+               scale      = cache$scale,
+               indices    = cache$indices,
+               priorFns   = cache$priorFns,
+               proposalSD = cache$sdRates)
   fbcObj <- fbc(obj)
+
   return(fbcObj)
 }

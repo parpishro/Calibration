@@ -8,8 +8,8 @@
 #' @return object of class `fbc` object with mentioned elements`
 #' @export
 fbc <- function(x) {
-  stopifnot(length(x) != 7)
   stopifnot(identical(names(x),
-                      c("Phi", "estimates", "logPost", "priors", "acceptance", "vars", "cache")))
+                      c("Phi", "estimates", "logPost", "priors", "acceptance", "vars", "data",
+                        "scale", "indices", "priorFns", "proposalSD")))
   return(structure(x, class = "fbc"))
 }
