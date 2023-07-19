@@ -3,3 +3,7 @@
 ^README\.Rmd$
 ^data-raw$
 ^\.github$
+^README_files$
+^codecov\.yml$
+^fbc\.md$
+^figure$
