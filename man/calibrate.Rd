@@ -10,7 +10,10 @@ calibrate(
   Nmcmc = 2200,
   nBurn = 200,
   thinning = 20,
-  kappa = list(dist = "beta", init = NA, p1 = 1.1, p2 = 1.1),
+  kappaDist = "beta",
+  kappaInit = NA,
+  kappaP1 = 1.1,
+  kappaP2 = 1.1,
   hypers = set_hyperPriors(),
   showProgress = FALSE
 )
@@ -31,21 +34,23 @@ inputs. Plus one (the first column) represents the field response.}
 \item{nBurn}{integer for number of MCMC burn ins.}
 
 \item{thinning}{integer representing sampling frequency of MCMC results to remove
-auto-correlation.}
+auto-correlation.
 
-\item{kappa}{list containing following fields to specify the prior distribution
-for calibration parameters:
-* \code{dist}: string (vector of strings) to specify the prior distribution type(s)
-for calibration parameters.
-* \code{p1}:   double (vector of doubles) representing the first parameter(s) of the
-chosen distribution(s)
-* \code{p2}:   double (vector of doubles) representing the first parameter(s) of the
-chosen distribution(s)
-* \code{init}: double (vector of doubles) that represent initial
-value(s) of calibration parameters to start the MCMC.
-The default(NA) automates choosing initial value for
-calibration parameters based on their range in simulation
-data.}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{                            data.
+}\if{html}{\out{</div>}}}
+
+\item{kappaDist}{string (vector of strings) to specify the prior distribution type(s) for
+calibration parameters.}
+
+\item{kappaInit}{double (vector of doubles) that represent initial value(s) of calibration
+parameters to start the MCMC. The default(NA) automates choosing initial value
+for calibration parameters based on their range in simulation}
+
+\item{kappaP1}{double (vector of doubles) representing the first parameter(s) of the chosen
+distribution(s)}
+
+\item{kappaP2}{double (vector of doubles) representing the first parameter(s) of the chosen
+distribution(s)}
 
 \item{hypers}{nested list containing the priors and initial values for all
 hyperparameters. The notation for the list members are explained
@@ -117,7 +122,7 @@ inputs (determined internally by subtracting the number of columns in \code{sim}
 \examples{
 cal1    <- calibrate(sim = Ds1, field = Df1,
                      Nmcmc = 5, nBurn = 0, thinning = 1,
-                     kappa = list(dist = "gaussian", init = 0.5, p1 = 0.5, p2 = 0.25))
+                     kappaDist = "gaussian", kappaInit = 0.5, kappaP1 = 0.5, kappaP2 = 0.25)
 summary(cal1)
 
 cal2    <- calibrate(sim = Ds2, field = Df2, Nmcmc = 20, nBurn = 0, thinning = 1)

@@ -49,18 +49,6 @@
 #' @param thinning     integer representing sampling frequency of MCMC results to remove
 #'                    auto-correlation.
 #'
-#' @param kappa       list containing following fields to specify the prior distribution
-#'                    for calibration parameters:
-#'                       * `dist`: string (vector of strings) to specify the prior distribution type(s)
-#'                                 for calibration parameters.
-#'                       * `p1`:   double (vector of doubles) representing the first parameter(s) of the
-#'                                 chosen distribution(s)
-#'                       * `p2`:   double (vector of doubles) representing the first parameter(s) of the
-#'                                 chosen distribution(s)
-#'                       * `init`: double (vector of doubles) that represent initial
-#'                                 value(s) of calibration parameters to start the MCMC.
-#'                                 The default(NA) automates choosing initial value for
-#'                                 calibration parameters based on their range in simulation
 #'                                 data.
 #' @param hypers      nested list containing the priors and initial values for all
 #'                    hyperparameters. The notation for the list members are explained
@@ -75,6 +63,15 @@
 #'                    the changed arguments and their values.
 #' @param showProgress  logical indicating whether progress must be displayed at console.
 #'                    Default is False.
+#' @param kappaDist  string (vector of strings) to specify the prior distribution type(s) for
+#'                   calibration parameters.
+#' @param kappaInit  double (vector of doubles) that represent initial value(s) of calibration
+#'                   parameters to start the MCMC. The default(NA) automates choosing initial value
+#'                   for calibration parameters based on their range in simulation
+#' @param kappaP1    double (vector of doubles) representing the first parameter(s) of the chosen
+#'                   distribution(s)
+#' @param kappaP2    double (vector of doubles) representing the first parameter(s) of the chosen
+#'                   distribution(s)
 #'
 #' @return a `fbc` object containing:
 #'  * Phi:            A numeric matrix in which each row represents a draw from joint
@@ -98,9 +95,9 @@
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 #' @export
-calibrate <- function(sim, field,                                                   # Data
-                      Nmcmc  = 2200, nBurn = 200, thinning = 20,                    # MCMC
-                      kappa  = list(dist = "beta", init = NA, p1 = 1.1, p2 = 1.1),# Priors
+calibrate <- function(sim, field,                                                       # Data
+                      Nmcmc  = 2200, nBurn = 200, thinning = 20,                        # MCMC
+                      kappaDist = "beta", kappaInit = NA, kappaP1 = 1.1, kappaP2 = 1.1, # Priors
                       hypers = set_hyperPriors(),
                       showProgress = FALSE) {                  # Hyperparameter Priors
   stopifnot((is.matrix(sim) || is.data.frame(sim)),
@@ -109,7 +106,8 @@ calibrate <- function(sim, field,                                               
   stopifnot(Nmcmc > 1, nBurn >= 0, thinning > 0)
   stopifnot(is.list(hypers), names(hypers) == c("thetaS", "alphaS", "thetaB", "alphaB",
                                                 "sigma2S", "sigma2B", "sigma2E", "muB"))
-  priors <- c(list(kappa = kappa), hypers)
+
+  priors <- c(list(kappa = list(dist = kappaDist, init = kappaInit, p1 = kappaP1, p2 = kappaP2)), hypers)
   for (param in names(priors))
     stopifnot(is.character(priors[[param]][['dist']]))
     stopifnot(priors[[param]][['dist']] %in% c("beta", "betashift", "logistic", "gamma",

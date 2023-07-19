@@ -57,8 +57,7 @@ test_that("adaptive proposal results in proper mixing!", {
   cal <- calibrate(sim = Ds1, field = Df1, Nmcmc = 10, nBurn = 0, thinning = 1)
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
   expect_equal(sum(cal$estimates[, 8] <= 0), 0)
-  expect_equal(sum(cal$acceptance < 0.1), 0)
-  expect_equal(sum(cal$acceptance > 0.9), 0)
+  expect_equal(sum(cal$acceptance == 0), 0)
 })
 
 
@@ -67,17 +66,16 @@ test_that("fixed parameter works!", {
   cal <- calibrate(sim = Ds1, field = Df1, Nmcmc = 10, nBurn = 0, thinning = 1, hypers = pr)
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
   expect_equal(sum(cal$estimates[, 8] < 0), 0)
-  expect_equal(sum(cal$acceptance[c(1:3, 6:11)] < 0.1), 0)
-  expect_equal(sum(cal$acceptance[c(1:3, 6:11)] > 0.9), 0)
+  expect_equal(sum(cal$acceptance[c(1:3, 6:11)] == 0), 0)
 })
 
 
 test_that("different priors for calibration works!", {
   cal <- calibrate(sim = Ds2, field = Df2, Nmcmc = 15, nBurn = 0, thinning = 1,
-                   kappa = list(dist = c("beta", "uniform"),
-                                init = c(0.5, 0.3),
-                                p1   = c(1.1, 0),
-                                p2   = c(1.1, 1)))
+                   kappaDist = c("beta", "uniform"),
+                                kappaInit = c(0.5, 0.3),
+                                kappaP1   = c(1.1, 0),
+                                kappaP2   = c(1.1, 1))
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
   expect_equal(sum(cal$estimates[, 8] <= 0), 0)
 })
@@ -87,8 +85,7 @@ test_that("progressBar works!", {
   cal <- calibrate(sim = Ds1, field = Df1, Nmcmc = 200, nBurn = 0, thinning = 1, showProgress = TRUE)
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
   expect_equal(sum(cal$estimates[, 8] <= 0), 0)
-  expect_equal(sum(cal$acceptance < 0.1), 0)
-  expect_equal(sum(cal$acceptance > 0.9), 0)
+  expect_equal(sum(cal$acceptance == 0), 0)
 })
 
 
@@ -151,6 +148,5 @@ test_that("adaptive proposal results in proper mixing!", {
   cal <- calibrate(sim = Ds2, field = Df2, Nmcmc = 10, nBurn = 0, thinning = 1)
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
   expect_equal(sum(cal$estimates[, 8] <= 0), 0)
-  expect_equal(sum(cal$acceptance < 0.1), 0)
-  expect_equal(sum(cal$acceptance > 0.9), 0)
+  expect_equal(sum(cal$acceptance == 0), 0)
 })

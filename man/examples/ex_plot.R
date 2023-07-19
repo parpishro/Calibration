@@ -1,7 +1,7 @@
 # Build a simple calibration model (1 experimental input + 1 calibration input)
 cal1    <- calibrate(sim = Ds1, field = Df1,
                      Nmcmc = 5, nBurn = 0, thinning = 1,
-                     kappa = list(dist = "gaussian", init = 0.5, p1 = 0.5, p2 = 0.25))
+                     kappaDist = "gaussian", kappaInit = 0.5, kappaP1 = 0.5, kappaP2 = 0.25)
 
 # plot default plots the density plot of calibration parameter
 plot(cal1)
