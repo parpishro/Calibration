@@ -44,7 +44,7 @@
 #'                    is the number of field observations and p is number of experimental
 #'                    inputs. Plus one (the first column) represents the field response.
 #'
-#' @param Nmcmc       integer for number of MCMC runs.
+#' @param nMCMC       integer for number of MCMC runs.
 #' @param nBurn       integer for number of MCMC burn ins.
 #' @param thinning     integer representing sampling frequency of MCMC results to remove
 #'                    auto-correlation.
@@ -96,14 +96,14 @@
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 #' @export
 calibrate <- function(sim, field,                                                       # Data
-                      Nmcmc  = 2200, nBurn = 200, thinning = 20,                        # MCMC
+                      nMCMC  = 2200, nBurn = 200, thinning = 20,                        # MCMC
                       kappaDist = "beta", kappaInit = NA, kappaP1 = 1.1, kappaP2 = 1.1, # Priors
                       hypers = set_hyperPriors(),
                       showProgress = FALSE) {                  # Hyperparameter Priors
   stopifnot((is.matrix(sim) || is.data.frame(sim)),
             (is.matrix(field) || is.data.frame(field)),
             ncol(sim) > 1, ncol(field) > 0)
-  stopifnot(Nmcmc > 1, nBurn >= 0, thinning > 0)
+  stopifnot(nMCMC > 1, nBurn >= 0, thinning > 0)
   stopifnot(is.list(hypers), names(hypers) == c("thetaS", "alphaS", "thetaB", "alphaB",
                                                 "sigma2S", "sigma2B", "sigma2E", "muB"))
 
@@ -120,9 +120,9 @@ calibrate <- function(sim, field,                                               
     stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p1']]))
     stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p2']]))
 
-  init   <- setup_cache(sim, field, priors, Nmcmc, showProgress)
-  inds   <- seq(nBurn + 1, Nmcmc, by = thinning)
-  output <- mcmc(init, Nmcmc, inds, showProgress)
+  init   <- setup_cache(sim, field, priors, nMCMC, showProgress)
+  inds   <- seq(nBurn + 1, nMCMC, by = thinning)
+  output <- mcmc(init, nMCMC, inds, showProgress)
   return(output)
 }
 
