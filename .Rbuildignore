@@ -7,3 +7,5 @@
 ^codecov\.yml$
 ^fbc\.md$
 ^figure$
+^LICENSE\.md$
+^inst/vigPDF\.Rmd$

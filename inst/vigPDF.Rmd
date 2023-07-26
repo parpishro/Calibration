@@ -97,7 +97,7 @@ The ball example is a suitable pedagogical example as it has only one experiment
 
 ```{r calibrate, eval=FALSE}
 output <- calibrate(sim = ballSim, field = ballField,                                 # Data 
-                    Nmcmc = 11000, nBurn = 1000, thinning = 50,                       # MCMC
+                    nMCMC = 11000, nBurn = 1000, thinning = 50,                       # MCMC
                     kappaDist = "beta", kappaInit = NA, kappaP1 = 1.1, kappaP2 = 1.1, # Priors
                     hypers = set_hyperPriors(),
                     showProgress = FALSE) 
@@ -121,7 +121,7 @@ $$
 \end{aligned}
 $$
 
-The second set of arguments consists of MCMC parameters such as number of total iterations `Nmcmc`, number of burn-in iterations to be removed from the beginning of the chain `nBurn`, and `thinning`, which indicate the sampling rate to remove the autocorrelation from the sampled draws. For example, when `thinning = 50`, for every 50 draws from the result only one will be kept in order to remove the correlation between draws. 
+The second set of arguments consists of MCMC parameters such as number of total iterations `nMCMC`, number of burn-in iterations to be removed from the beginning of the chain `nBurn`, and `thinning`, which indicate the sampling rate to remove the autocorrelation from the sampled draws. For example, when `thinning = 50`, for every 50 draws from the result only one will be kept in order to remove the correlation between draws. 
 
 
 The third and last set of arguments consists of prior specification for each parameter of the model. The main goal of calibration is to estimate the calibration parameters ($g$ in ball example). However, employing KOH calibration model introduces seven additional classes of hyperparameters to the model. All eight classes of parameters are unknown and must be estimated. As `FBC` employs a full Bayesian framework, the priors for all model parameters must be specified in advance. Throughout the package implementation and current guide a consistent notation is used to denote parameters: $\bf{\kappa}$ (calibration parameters), $\bf{\theta_s}$ (simulator correlation scale parameters), $\bf{\alpha_s}$ (simulator correlation smoothness parameters), $\bf{\theta_b}$ (bias-correction correlation scale parameters), $\bf{\alpha_b}$ (bias-correction correlation smoothness parameters), $\sigma^2_s$ (marginal simulator variance), $\sigma^2_b$ (marginal bias-correction variance), $\sigma^2_{\epsilon}$ (measurement error variance), and $\mu_b$ (mean of bias-correction Gaussian Process. All calibration model components along with the introduced parameters are explained in more detail in next section. 

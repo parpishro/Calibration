@@ -8,7 +8,8 @@ Description: FBC provides employs a Full Bayesian Calibration method to calibrat
              model using both field observations and simulator outputs. It is based on Kennedy and 
              O'Hagan (2001) calibration model and used Metropolis-Within Gibbs MCMC algorithm with 
              adaptive proposal.
-License: GPL-2
+License: GPL (>= 3) + file LICENSE
+License_is_FOSS: TRUE
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 2.10)
