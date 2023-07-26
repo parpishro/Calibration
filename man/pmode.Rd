@@ -4,7 +4,7 @@
 \alias{pmode}
 \title{Estimate Mode from a Sample}
 \usage{
-pmode(x, breaks = NA)
+pmode(x, breaks = NULL)
 }
 \arguments{
 \item{x}{numeric vector}
@@ -29,4 +29,5 @@ suitable to use when dealing with double vectors. Therefore, for integer vectors
 # find the estimated mode of a vector
 vec <- runif(100, 0, 10)
 pmode(vec)
+pmode(vec, breaks = 10)
 }

@@ -19,12 +19,12 @@
 #' @importFrom stats sd
 #'
 #' @example man/examples/ex_pmode.R
-pmode <- function(x, breaks = NA) {
+pmode <- function(x, breaks = NULL) {
   if (length(x) < 6)
     return(mean(x))
   else if (sd(x) == 0)
     return(x[1])
-  if (is.na(breaks))
+  if (is.null(breaks))
     breaks <- floor(length(x)/5)
   bounds <- seq(min(x), max(x), length.out = breaks + 1)
   counts <- double(breaks)
