@@ -28,7 +28,7 @@ Given a parameter, \code{plot.fbc()} can plot three types of plots:
 \examples{
 # Build a simple calibration model (1 experimental input + 1 calibration input)
 cal1    <- calibrate(sim = Ds1, field = Df1,
-                     Nmcmc = 5, nBurn = 0, thinning = 1,
+                     nMCMC = 5, nBurn = 0, thinning = 1,
                      kappaDist = "gaussian", kappaInit = 0.5, kappaP1 = 0.5, kappaP2 = 0.25)
 
 # plot default plots the density plot of calibration parameter
@@ -50,7 +50,7 @@ plot(cal1, parameter = "alphaS", type = "trace")
 plot(cal1, type = "fits")
 
 # Build more complex calibration model (2 experimental input + 2 calibration input)
-cal2    <- calibrate(sim = Ds2, field = Df2, Nmcmc = 20, nBurn = 0, thinning = 1)
+cal2    <- calibrate(sim = Ds2, field = Df2, nMCMC = 20, nBurn = 0, thinning = 1)
 
 # plot default plots the density plot of calibration parameters (two plots for two
 # calibration parameters)

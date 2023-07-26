@@ -7,7 +7,7 @@
 calibrate(
   sim,
   field,
-  Nmcmc = 2200,
+  nMCMC = 2200,
   nBurn = 200,
   thinning = 20,
   kappaDist = "beta",
@@ -29,7 +29,7 @@ computer code.}
 is the number of field observations and p is number of experimental
 inputs. Plus one (the first column) represents the field response.}
 
-\item{Nmcmc}{integer for number of MCMC runs.}
+\item{nMCMC}{integer for number of MCMC runs.}
 
 \item{nBurn}{integer for number of MCMC burn ins.}
 
@@ -121,11 +121,11 @@ inputs (determined internally by subtracting the number of columns in \code{sim}
 }
 \examples{
 cal1    <- calibrate(sim = Ds1, field = Df1,
-                     Nmcmc = 5, nBurn = 0, thinning = 1,
+                     nMCMC = 5, nBurn = 0, thinning = 1,
                      kappaDist = "gaussian", kappaInit = 0.5, kappaP1 = 0.5, kappaP2 = 0.25)
 summary(cal1)
 
-cal2    <- calibrate(sim = Ds2, field = Df2, Nmcmc = 20, nBurn = 0, thinning = 1)
+cal2    <- calibrate(sim = Ds2, field = Df2, nMCMC = 20, nBurn = 0, thinning = 1)
 summary(cal2)
 }
 \references{

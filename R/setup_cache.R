@@ -8,7 +8,7 @@
 #' @param sim       numeric matrix containing the simulation data
 #' @param field     numeric matrix containing the field data
 #' @param priors    nested list containing prior specification for all parameters
-#' @param Nmcmc     integer representing number of MCMC runs
+#' @param nMCMC     integer representing number of MCMC runs
 #' @param showProgress  logical indicating whether progress must be displayed at console.
 #'                    Default is False.
 #'
@@ -16,7 +16,7 @@
 #' function list `priorFns`
 #' @importFrom stats sd
 #' @noRd
-setup_cache <- function(sim, field, priors, Nmcmc, showProgress) {
+setup_cache <- function(sim, field, priors, nMCMC, showProgress) {
 
   cache$m   <- m <- nrow(sim)               # number of simulation runs
   cache$n   <- n <- nrow(field)             # number of field observations
@@ -48,7 +48,7 @@ setup_cache <- function(sim, field, priors, Nmcmc, showProgress) {
 
 
   # parameters (initialize first row of Phi matrix)
-  Phi      <- matrix(nrow = Nmcmc, ncol = l)
+  Phi      <- matrix(nrow = nMCMC, ncol = l)
   ifixed   <- c()
   phi1     <- c()
   priorFns <- list()
@@ -81,7 +81,7 @@ setup_cache <- function(sim, field, priors, Nmcmc, showProgress) {
         priorFns         <- c(priorFns, prior_builder(prior =  dist[j], p1 = p1[j], p2 = p2[j]))
         if (dist[j] == "fixed") {
           ifixed           <- c(ifixed, iparam[j])
-          Phi[, iparam[j]] <- matrix(rep(phi1[iparam[j]], Nmcmc), ncol = 1)
+          Phi[, iparam[j]] <- matrix(rep(phi1[iparam[j]], nMCMC), ncol = 1)
         }
       }
     } else
@@ -151,7 +151,7 @@ setup_cache <- function(sim, field, priors, Nmcmc, showProgress) {
 
   # computes posterior log likelihood of augmented response given the augmented
   #   covariance matrix (its inverse and determinant) and residuals
-  logPost        <- double(Nmcmc)
+  logPost        <- double(nMCMC)
   res            <- y - phi1[imuB]
   logPrior       <- 0
   for (i in 1:length(priorFns)) {

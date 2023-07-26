@@ -7,7 +7,7 @@
 #' distribution of parameters.
 #'
 #' @param init     list containing initialized `Phi` mtrix and `logPost` vector
-#' @param Nmcmc    integer representing total number of MCMC runs
+#' @param nMCMC    integer representing total number of MCMC runs
 #' @param inds     indices of final MCMC draws after burn-in and thinning
 #' @param showProgress  logical indicating whether progress must be displayed at console.
 #'                    Default is False.
@@ -24,7 +24,7 @@
 #'            * acceptance  vector representing acceptance rate of each parameter
 #'            * vars        name of parameters (column headers of `Phi`)
 #'            * cache       environment containing original data and indices
-mcmc <- function(init, Nmcmc, inds, showProgress) {
+mcmc <- function(init, nMCMC, inds, showProgress) {
   Phi        <- init$Phi
   logPost    <- init$logPost
   priorFns   <- cache$priorFns
@@ -35,7 +35,7 @@ mcmc <- function(init, Nmcmc, inds, showProgress) {
   accepRate  <- double(l)
   sdProp     <- double(l)
   res        <- cache$y - Phi[1, cache$imuB]
-  for (i in 2:Nmcmc) {
+  for (i in 2:nMCMC) {
     logPost[i]  <- logPost[i - 1]
     for (j in 1:l) {
       if (j %in% ifixed) next
@@ -79,9 +79,9 @@ mcmc <- function(init, Nmcmc, inds, showProgress) {
     }
 
 
-    if (showProgress && i %% floor(Nmcmc/100) == 0 && i/floor(Nmcmc/100) <= 100) {   #
+    if (showProgress && i %% floor(nMCMC/100) == 0 && i/floor(nMCMC/100) <= 100) {   #
       cat("------------------------------------------------------------------------", "\n")
-      cat("finished ",  (i/floor(Nmcmc/100)), "% of MCMC runs...", "\n")
+      cat("finished ",  (i/floor(nMCMC/100)), "% of MCMC runs...", "\n")
       cat("acceptance ratio in the last batch:   ", round(accepRate, 2), "\n")
       cat("parameter sample:                     ", round(Phi[i, ], 2), "\n")
       cat("proposal sd:                          ", round(sdProp, 2), "\n")
@@ -91,12 +91,12 @@ mcmc <- function(init, Nmcmc, inds, showProgress) {
   if (showProgress) {
     cat("------------------------------------------------------------------------", "\n")
     cat("Completed MCMC runs.", "\n")
-    cat("total acceptance ratio ", round(accepted/Nmcmc, 2), "\n")
+    cat("total acceptance ratio ", round(accepted/nMCMC, 2), "\n")
   }
 
   cache$Params     <- Phi[inds, ]
   cache$logPost    <- logPost[inds]
-  cache$acceptance <- accepted/Nmcmc
+  cache$acceptance <- accepted/nMCMC
   return(output())
 
 }

@@ -21,7 +21,7 @@ median, mode, lwr50, upr50, lwr80, upr80, sd
 \examples{
 # build a simple calibration model and provide summary of the model estimates
 cal1    <- calibrate(sim = Ds1, field = Df1,
-                     Nmcmc = 5, nBurn = 0, thinning = 1,
+                     nMCMC = 5, nBurn = 0, thinning = 1,
                      kappaDist = "gaussian", kappaInit = 0.5, kappaP1 = 0.5, kappaP2 = 0.25)
 summary(cal1)
 }

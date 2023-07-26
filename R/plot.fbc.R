@@ -88,7 +88,7 @@ plot.fbc <- function(x, parameter = "kappa", type = "density", xlab = NULL, ...)
     lower95 <- fits - (2*preds$se)
     upper95 <- fits + (2*preds$se)
 
-    xlab    <- if (is.null(xlab)) paste0("x", 1:ncol(obj$data$Xf))
+    xlab    <- if (is.null(xlab)) paste0("x", 1:ncol(obj$data$Xf)) else xlab
     stopifnot(length(xlab) == ncol(obj$data$Xf))
 
     for (i in 1:ncol(obj$data$Xf)) {
