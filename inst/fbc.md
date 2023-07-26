@@ -146,7 +146,7 @@ arguments have reasonable default values for ball example.
 
 ```r
 output <- calibrate(sim = ballSim, field = ballField,                                 # Data 
-                    Nmcmc = 11000, nBurn = 1000, thinning = 50,                       # MCMC
+                    nMCMC = 11000, nBurn = 1000, thinning = 50,                       # MCMC
                     kappaDist = "beta", kappaInit = NA, kappaP1 = 1.1, kappaP2 = 1.1, # Priors
                     hypers = set_hyperPriors(),
                     showProgress = FALSE) 
@@ -175,7 +175,7 @@ $$
 \end{aligned}
 $$
 
-The second set of arguments consists of MCMC parameters such as number of total iterations `Nmcmc`, 
+The second set of arguments consists of MCMC parameters such as number of total iterations `nMCMC`, 
 number of burn-in iterations to be removed from the beginning of the chain `nBurn`, and `thinning`, 
 which indicate the sampling rate to remove the autocorrelation from the sampled draws. For example,
 when `thinning = 50`, for every 50 draws from the result only one will be kept in order to remove 
