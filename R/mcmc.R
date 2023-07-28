@@ -1,4 +1,4 @@
-#' Adaptive Metropolis-within-Gibbs MCMC
+#' Adaptive Metropolis-within-Gibbs MCMC Sampling
 #'
 #' Runs an adaptive Metropolis-within-Gibbs MCMC that computes posterior log likelihood in
 #' each run and updates the model parameters. New parameters are proposed according to a
