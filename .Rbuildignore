@@ -9,3 +9,6 @@
 ^figure$
 ^LICENSE\.md$
 ^inst/vigPDF\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
