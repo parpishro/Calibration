@@ -7,6 +7,7 @@ output: github_document
  <!-- badges: start -->
 [![R-CMD-check](https://github.com/parpishro/FBC/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/parpishro/FBC/actions/workflows/R-CMD-check.yaml)
 
+[![codecov](https://codecov.io/gh/parpishro/FBC/branch/main/graph/badge.svg)](https://codecov.io/gh/parpishro/FBC)
 
 [![CRAN status](https://www.r-pkg.org/badges/version/FBC)](https://CRAN.R-project.org/package=FBC)
 
