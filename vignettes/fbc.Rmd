@@ -22,7 +22,29 @@ options(width = 100)
 
 ## Introduction
 
-`FBC` is a package that uses the data from both physical experiment and computer simulation to calibrate the simulator model. Calibration is the process of fitting a statistical model to the observed data by adjusting calibration parameters. These parameters can represent various aspects of the simulation model, such as tuning hyperparameter of the model itself or unknown but fixed physical properties that are governed by physical system. 
+#' This implementation is based on Kennedy-O'Hagan (KOH) calibration model. In
+#' their seminal paper*, Kennedy and O'Hagan augmented simulator output with
+#' field observation and fit a three-component model that accounts for simulator
+#' input and bias correction using two independent Gaussian Processes (GP) and a
+#' third term representing measurement error.
+#' \deqn{z_i = \eta (x_i, \kappa) + \delta(x_i) + e_i}
+#' In the original paper, the authors proposed a two-stage hierarchical Bayesian
+#' model. In the first stage, point estimates of GP hyperparameters are computed
+#' using maximum likelihood estimation (MLE) method. In the second stage, these
+#' hyperparameters are fixed at their estimated value and run a MCMC algorithm
+#' to sample calibration parameters.
+#' In contrast, `calibrate` runs MCMC algorithm to sample the posterior
+#' distribution of all parameters/hyperparameters. As a result, priors must be
+#' specified carefully to reflect the prior expert belief about the distribution
+#' and initial values must be chosen as close as possible to prior means.
+
+`FBC` is a package that uses the data from both field experiment and computer simulation to calibrate the simulator model [^1]. A physical experiment relates a set of experimental variables as inputs to a response as output. A computer experiment also relates the same experimental variables as inputs to the response as output but also include calibration inputs. These inputs either represent unknown but fixed physical properties that are governed by the physical system in field experiments (and therefore need not be specified in field experiments) or represent various aspects of the simulation model such as tuning hyperparameter of the model. In both cases, the calibration parameters must be estimated for a simulator model to mimic the physical system adequately. The goal of the calibration is to estimate calibration parameters by fitting a statistical model to the observed data using both field and simulator data. Estimated parameters of the calibration model can be used for inference or calibrated prediction. 
+
+<p>This is a <em>paragraph</em> with emphasized text.</p>
+\
+
+[^1]: *Field experiments, which are sometimes called physical experiments in other texts, will be represented by f subscript (for field) and computer simulations, which are sometimes called computer experiments in other texts, will be represented by s subscript (for simulation) throughout this vignette.*</em>.
+
 
 The `FBC` package is a based on the well-known Kennedy and O'Hagan (KOH) calibration model (2001). In its original formulation, KOH formulates a hierarchical Bayesian framework with two sequential phases. In the first phase, model hyperparameters are predicted using maximum likelihood estimation (MLE) method. In the second phase, Bayesian analysis is used to derive the posterior distribution of calibration parameters while fixing the hyperparameters found in the first phase. Neither KOH's 
 original formulation nor later suggestions are fully Bayesian as they use MLE methods to estimate hyperparameters, largely due to computational infeasibility (CITATION: Higdon, Berger, other). 
@@ -385,11 +407,11 @@ A computer experiment or simulation is simply running a computer code at differe
 
 On the other hand, a physical experiment consists of $n$ observations of a physical property, each with $p$ experimental inputs. The calibration inputs are implicit in physical experiment and their values are unknown but assumed to be fixed throughout observations. To represent both experiments in a unified structure, the unknown calibration inputs of field experiment $\kappa$ must be augmented to experimental inputs, so that both physical and computer experiments have $(p+q)$ inputs ($h$ and $g$ in ball example) and a univariate response ($t$ in ball example). Assuming vector $\bf{x}_f$ represent experimental input, the augmented input vector is denoted by $\bf{x}_{\kappa}$. Since $\bf{x}_f$ has $p$ elements and $\bf{\kappa}$ has $q$ elements, both will have $(p+q)$ elements similar to $\bf{x}_s$. Stacking the input vectors, we can represent all field and augmented input vectors using $\bf{X_f}$ and $\bf{X_{\kappa}}$. Similarly, vector $\bf{y_f}$ represents all field observations. Subscripts $f$ and $\kappa$are used to denote field and augmented data respectively. 
 
-Elements of vector $\kappa$ are parameters of the calibration model and will be estimated by `calibrate()` [^1]. 
+Elements of vector $\kappa$ are parameters of the calibration model and will be estimated by `calibrate()` [^2]. 
 
 \
 
-[^1]: *The first $q$ columns of matrix `Phi` in `calibrate` output represent the MCMC samples of posterior densities for calibration parameters. In our ball example, there is only one calibration parameter (gravity), which is denoted by $\kappa_1$ and represented by `kappa1` in `Phi`.*</em>.
+[^2]: *The first $q$ columns of matrix `Phi` in `calibrate` output represent the MCMC samples of posterior densities for calibration parameters. In our ball example, there is only one calibration parameter (gravity), which is denoted by $\kappa_1$ and represented by `kappa1` in `Phi`.*</em>.
 
 \pagebreak
 
@@ -571,43 +593,69 @@ row by row. MCMC algorithm creates a Markov chain by updating parameters in each
 At the end of the MCMC run, sample of the joint posterior distribution for each parameter (a column in matrix `Phi`) can be used as an approximation of marginal posterior distribution. Center measures such as mean, mode, or median are provided as parameter estimate depending on the application and distribution shape. Furthermore, 50% and 80% credible sets are formed for each parameters to quantify the uncertainty in estimation. These statistics are provided in `summary` element in the output of `calibrate()` and additionally. (TODO: fix estimate->summary)
 
 
-```{r summary}
-#output$estimates
+```{r parameter estimates}
+output$estimates
 ```
 
 Alternatively, posterior density kernels can be visualized over their assumed prior to investigate the effect of data on priors for each parameter. 
 
 
 ```{r plots}
-# plot(output)
+plot(output)
 ```
 
 
-\pagebreak
-
 ## 4. Prediction
 
-TODO
+As mentioned earlier, building a calibration model results in a `fbc` object, which contains matrix `Phi` as a MCMC-based sample from joint posterior distribution of all parameters of the model. This sample can be used to to predict the physical response, simulator response, and bias for new input configurations. in `FBC`, two methods have been implemented for prediction. In the first method `Bayesian`, which is the default value of `method` argument in `predict()` function, all joint samples (all rows of matrix `Phi`) are used to form a sample distribution for the new input configuration. Using the distribution, a point prediction is made along with the uncertainty associated with it. In the second method "MAP", the row of matrix `Phi` that results in maximum posterior log likelihood, is chosen to form the point prediction.
 
 
-\pagebreak
+### 4.1 Setup:
+
+The input data for the `predict()` function is taken by two arguments: `object` argument which takes a `fbc` object as calibration model and `newdata` argument which takes the new input configuration data in matrix format. Each row represents a new input configuration and columns represent experimental variables. It is similar to the `field` argument of the `calibrate()` function, except the first column in `field`, which is the physical response. `predict()` aims to predict the physical response for all row of `newdata` in the form of a vector of predicted responses and a vector of standard error. Both vectors will be the same length as number of rows in `newdata`. The third argument `method` characterized the method of prediction and must be chosen from one of the character string "Bayesian" and "MAP".
+
+### 4.2 Bayesian Method
+
+In the Bayesian method, the posterior distribution of the response, conditional on hyperparameter estimates (matrix `Phi`), is also a GP
+
+$$
+E(y_f(\bf{x_f}^*) | \phi) = \mu_b + \begin{bmatrix}
+\bf{y}_f  \\
+\bf{y}_s \\ 
+\end{bmatrix}
+$$
+
+
+$$
+\begin{aligned}
+\bf{y} \  &=
+ = 
+(y_1, \ ... \ , \ y_{n+m})^T
+\ \ &\text{(joint vector of responses)}  \\ \\
+\bf{X}   &=
+\begin{bmatrix}
+\bf{X_{\kappa}}  \\
+\bf{X_s} \\
+\end{bmatrix} =
+\begin{bmatrix}
+\bf{x_1} \ \bf{x_2}  \ ... \ \bf{x_{p+q}} \\
+\end{bmatrix}
+\ \ &\text{(joint input matrix)}  \\ \\
+\bf{x_i} &= (x_1, x_2, ..., x_{n+m}) \ \ \ \ \forall i \in \{1, 2, ..., p+q\} \ 
+\end{aligned}
+$$
+### 4.3 MAP Method
 
 ## 5. Implementation
 
-TODO
-
-\pagebreak
 
 ## 6. Application
 
-### Ball Example
+### 6.1 Analytic Example:
 
-##### Data: 
+### 6.2 Ball Example:
 
-
-\pagebreak
-
-### Spot Weld Example
+### 6.3 Spot Weld Example:
 
 ##### Description:
 
@@ -644,15 +692,14 @@ $$
 \end{aligned}
 $$
 
-\pagebreak
 
-### Kinetic Example
 
-\pagebreak
+### 6.4 Kinetic Example
+
 
 ## Appendix
 
-### MCMC Algorithm
+### A.1 MCMC Algorithm:
 
 \rule{\linewidth}{1pt}
 $$\textbf{Implementation of Metropolis within Gibbs algorithm}$$
@@ -732,7 +779,7 @@ quantification (credible interval).
 \rule{\linewidth}{2pt}
 
 
-### Bayesian Analysis
+### A.2 Bayesian Analysis:
 
 In the Bayesian framework, the joint probability distribution of all parameters
 and hyperparameters of the calibration model given data 
@@ -866,90 +913,12 @@ $C_{\eta}(X_s, X_s)$ to optimize the computation.
 
 
 
-
-
-
-\pagebreak
-
 ## References
-
-
-
-
-
-
-
-
-
-
-
-
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
-
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
-
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
-```
-
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes, and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
-Also a quote using `>`:
 
 > "He who gives up [code] safety for [code] speed deserves neither."
 ([via](https://twitter.com/hadleywickham/status/504368538874703872))
 
 
-#' ## Calibration Model
-#'
-#' This implementation is based on Kennedy-O'Hagan (KOH) calibration model. In
-#' their seminal paper*, Kennedy and O'Hagan augmented simulator output with
-#' field observation and fit a three-component model that accounts for simulator
-#' input and bias correction using two independent Gaussian Processes (GP) and a
-#' third term representing measurement error.
-#' \deqn{z_i = \eta (x_i, \kappa) + \delta(x_i) + e_i}
-#' In the original paper, the authors proposed a two-stage hierarchical Bayesian
-#' model. In the first stage, point estimates of GP hyperparameters are computed
-#' using maximum likelihood estimation (MLE) method. In the second stage, these
-#' hyperparameters are fixed at their estimated value and run a MCMC algorithm
-#' to sample calibration parameters.
-#' In contrast, `calibrate` runs MCMC algorithm to sample the posterior
-#' distribution of all parameters/hyperparameters. As a result, priors must be
-#' specified carefully to reflect the prior expert belief about the distribution
-#' and initial values must be chosen as close as possible to prior means.
 
 
 
@@ -957,8 +926,6 @@ Also a quote using `>`:
 
 
 
-
-### Introduction
 
 ### KOH Calibration Model
 
