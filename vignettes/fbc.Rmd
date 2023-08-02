@@ -33,7 +33,7 @@ The `FBC` package is a based on the well-known Kennedy and O'Hagan (KOH) calibra
 
 Neither KOH's original formulation nor later suggestions are fully Bayesian as they use MLE methods to estimate hyperparameters and fix the hyperparameters in the second phase which ignores the added uncertainty of the estimated hyperparameters, largely due to computational infeasibility (Kennedy & O'Hagan, 2001; Higdon et al., 2004; Liu et al., 2009). On the other hand, `FBC` runs a fully Bayesian model that includes both calibration parameters and model hyperparameters in its Bayesian framework. Implementation of the package optimizes the calibration process and memory management to increase computational efficiency. Moreover, the fully implemented Bayesian framework, enables the user to apply the expert knowledge about any of the model parameters using prior specifications. All common prior distribution are implemented in `FBC` to allows for high degree of flexibility in specifying the prior information or the lack thereof. `FBC` runs a variation of Markov Chain Monte Carlo (MCMC) algorithm called Metropolis-Within-Gibbs algorithm to find the posterior distribution of calibration parameters and model hyperparameters. Furthermore, `FBC` enables calibrated prediction for new input configurations using the calibration model. 
 
-The current vignette is structured into following sections: The first section, Using `FBC`, explains the package functionality through a simple pedagogic example. Also in this section, the notation for inputs and outputs of both computer and physical experiments are introduced. In the second section, Calibration Model, generalizes the example introduced in the first section to build model components and shows how a calibration model based on KOH model is built internally. Using the general notation, while referencing the example, modelling choices are justified. In the third section, Parameter Estimation, the theoretical results to characterize the posterior distribution of model parameters are presented along with procedure for MCMC-based estimation of parameters. In the fourth section, Calibrated Prediction, the theoretical results to derive calibrated predictions for new input configuration using the estimated parameters are offered. In the fifth section, Implementation, some of the implementation features and choices of `FBC` package are explained along with its limitations. In the sixth and last section, Applications, three more examples are presented to demonstrate the full functionality and limitations of the `FBC` package. And finally, the Appendix provides deeper discussion and further details to some of the concepts presented in the sections.
+The current vignette is structured into following sections: The first section, Using `FBC`, explains the package functionality through a simple pedagogic example. Also in this section, the notation for inputs and outputs of both computer and physical experiments are introduced. In the second section, Calibration Model, generalizes the example introduced in the first section to build model components and shows how a calibration model based on KOH model is built internally. Using the general notation, while referencing the example, modelling choices are justified. In the third section, Parameter Estimation, the theoretical results to characterize the posterior distribution of model parameters are presented along with procedure for MCMC-based estimation of parameters. In the fourth section, Calibrated Prediction, the theoretical results to derive calibrated predictions for new input configuration using the estimated parameters are offered. In the fifth section, Implementation, some of the implementation features and choices of `FBC` package are explained along with its limitations. In the sixth and last section, Applications, three more examples are presented to demonstrate the full functionality and limitations of the `FBC` package. And finally, the Appendix provides further details to some of the concepts presented in the sections.
 
 
 
@@ -78,7 +78,7 @@ t = \sqrt{\frac{2h}{g}}
 $$
 
 
-The simulation code takes $h$ and $g$ are taken as experimental and calibration inputs and returns $t$ as simulator response based on above mathematical equation. A common method to choose the different combination of the inputs from acceptable ranges is Latin Hypercube Sampling (LHS) method (McKaThe `FBC` package requires the training data to be in matrix format, where for both matrices, the first column always represents response vector and following columns represent experimental inputs (for both data matrices) and calibration inputs (only for simulation data matrix). The data matrices for ball example are produced in advance and loaded into the package environment under the name of `ballField` and `ballSim` [^5].  
+The simulation code takes $h$ and $g$ are taken as experimental and calibration inputs and returns $t$ as simulator response based on above mathematical equation. A common method to choose the different combination of the inputs from acceptable ranges is Latin Hypercube Sampling (LHS) method (McKay et al., 1979) [^4]. The `FBC` package requires the training data to be in matrix format, where for both matrices, the first column always represents response vector and following columns represent experimental inputs (for both data matrices) and calibration inputs (only for simulation data matrix). The data matrices for ball example are produced in advance and loaded into the package environment under the name of `ballField` and `ballSim` [^5].  
 
 [^4]: *To produce the design matrix, `lhs` R package (Rob Carnell, 2022) is used. For more information on LHS method please click [here](https://en.wikipedia.org/wiki/Latin_hypercube_sampling#cite_note-C3M-1) and for information on `lhs` package please click [here](https://cran.r-project.org/web/packages/lhs/index.html).*
 
@@ -117,7 +117,9 @@ The ball example is a simple pedagogical example as it has only one experimental
 ### 1.3 Building a Calibration Model:
 
 
-The `calibrate()` function takes three sets of arguments from user: data, MCMC, and prior specification parameters. Other than data arguments which must be supplied by user, all other arguments have reasonable default values for ball example.
+The `calibrate()` function takes three sets of arguments from user: data, MCMC, and prior specification parameters. Other than data arguments which must be supplied by user, all other arguments have reasonable default values for ball example [^6].
+
+[^6]: *Running the `calibrate()` function with reasonable number of MCMC runs is too lengthy to run while knitting the current vignette. However, this command is run beforehand and the result is saved in package data to be loaded and used in the vignette. This `fbc` object, which is called `calMod`, can be found [here](https://github.com/parpishro/FBC/blob/main/inst/calMod.rda).*
 
 ```{r calibrate, eval=FALSE}
 calMod <- calibrate(sim = ballSim, field = ballField,                                 # Data 
@@ -150,13 +152,13 @@ The second set of arguments consists of MCMC parameters: `nMCMC` represents the 
 
 The third and last set of arguments consists of prior specification for each parameter of the model. The main goal of calibration is to estimate the calibration parameters ($g$ in ball example). However, employing KOH calibration model introduces eight additional classes of hyperparameters to the model. The parameters in all eight classes are not known in advance and must be estimated. As `FBC` employs a full Bayesian framework, the priors for all model parameters must be specified in advance. Throughout the package implementation and current guide a consistent notation is used to denote parameters: $\bf{\kappa}$, $\bf{\theta_s}$, $\bf{\alpha_s}$, $\bf{\theta_b}$,  $\bf{\alpha_b}$, $\sigma^2_s$, $\sigma^2_b$, $\sigma^2_e$, and $\mu_b$ denote calibration parameters, correlation scale parameters of simulator GP, correlation smoothness parameters of simulator GP, correlation scale parameters of bias-correction GP, correlation smoothness parameters of bias-correction GP, marginal variance of  simulator GP, marginal variance of bias-correction GP, measurement error variance, and mean of bias-correction GP respectively.
 
-For each class of parameters, there are four associated arguments. 1) distribution type, which is a character string determining the prior distribution family (suffixed with "dist" in argument names). Currently, `FBC` supports almost all common distributions and can be chosen from "uniform", "gaussian", "gamma", "beta", "lognormal", "logistic", "betashift", "exponential", "inversegamma", "jeffreys", and "fixed" [^6]. 2) Initial value, which is double representing starting point of the parameter in MCMC algorithm (suffixed with "init" in argument names). 3) First distribution parameter (suffixed with "p1" in argument names) and 4) second distribution parameter (suffixed with "p2" in argument names) are doubles representing the two parameters of the chosen distribution [^7], [^8]. Table 1 summarizes all classes of parameters along with their corresponding argument names for prior specifications.
+For each class of parameters, there are four associated arguments. 1) distribution type, which is a character string determining the prior distribution family (suffixed with "dist" in argument names). Currently, `FBC` supports almost all common distributions and can be chosen from "uniform", "gaussian", "gamma", "beta", "lognormal", "logistic", "betashift", "exponential", "inversegamma", "jeffreys", and "fixed" [^7]. 2) Initial value, which is double representing starting point of the parameter in MCMC algorithm (suffixed with "init" in argument names). 3) First distribution parameter (suffixed with "p1" in argument names) and 4) second distribution parameter (suffixed with "p2" in argument names) are doubles representing the two parameters of the chosen distribution [^8], [^9]. Table 1 summarizes all classes of parameters along with their corresponding argument names for prior specifications.
 
-[^6]: *"betashift" refers to a beta distribution that is shifted one unit to right to cover [1 2] interval and it is used to specify the priors for correlation smoothness parameters which must be constrained to [1 2] interval. Moreover, choosing "fixed" as distribution will exclude that class of parameters from the MCMC sampling. In this case, the given initial value will be used as fixed parameter value and p1 and p2 arguments will be used.*
+[^7]: *"betashift" refers to a beta distribution that is shifted one unit to right to cover [1 2] interval and it is used to specify the priors for correlation smoothness parameters which must be constrained to [1 2] interval. Moreover, choosing "fixed" as distribution will exclude that class of parameters from the MCMC sampling. In this case, the given initial value will be used as fixed parameter value and p1 and p2 arguments will be used.*
 
-[^7]: *For example, if "gaussian" distribution is used, p1 and p2 represent mean and variance of the distribution and if "uniform" distribution is used, p1 and p2 represent lower and upper bound of the distribution.*
+[^8]: *For example, if "gaussian" distribution is used, p1 and p2 represent mean and variance of the distribution and if "uniform" distribution is used, p1 and p2 represent lower and upper bound of the distribution.*
 
-[^8]: *Not all distribution types require two arguments. In particular, "exponential" distribution only requires rate parameter (p1) and "jeffreys" requires none. In these cases the unused arguments are ignored.*
+[^9]: *Not all distribution types require two arguments. In particular, "exponential" distribution only requires rate parameter (p1) and "jeffreys" requires none. In these cases the unused arguments are ignored.*
 
 
 
@@ -166,35 +168,28 @@ For each class of parameters, there are four associated arguments. 1) distributi
 |Parameter Class                                   |Distribution |Initial Value|Shape Parameters         |
 |:-------------                                    |:------      |:-----       |:-----------             |
 |True field calibration inputs ($\kappa$)          |`kappaDist`  |`kappaInit`  |`kappaP1`   &  `kappaP2` |
-|                                                  |             |             |                         |
 |Simulation GP scale ($\theta_s$)                  |`thetaSDist` |`thetaSInit` |`thetaSP1`  & `thetaSP2` |
-|                                                  |             |             |                         |
-|Simulation GP smoothness ($\alpha_s$)             |`alphaSDist` |`alphaSInit` |`alphaSP1`  & `alphaSP2` |
-|                                                  |             |             |                         | 
+|Simulation GP smoothness ($\alpha_s$)             |`alphaSDist` |`alphaSInit` |`alphaSP1`  & `alphaSP2` | 
 |Bias-correction GP scale ($\theta_b$)             |`thetaBDist` |`thetaBInit` |`thetaBP1`  & `thetaBP2` | 
-|                                                  |             |             |                         |
 |Bias-correction GP smoothness ($\alpha_b$)        |`alphaBDist` |`alphaBInit` |`alphaBP1`  &`alphaBP2`  | 
-|                                                  |             |             |                         |
 |Simulation marginal variance ($\sigma^2_s$)       |`sigma2SDist`|`sigma2SInit`|`sigma2SP1` & `sigma2SP2`|
-|                                                  |             |             |                         | 
 |Bias-correction marginal variance ($\sigma^2_b$)  |`sigma2BDist`|`sigma2BInit`|`sigma2BP1` & `sigma2BP2`|
-|                                                  |             |             |                         | 
 |Measurement error variance ($\sigma^2_{\epsilon}$)|`sigma2EDist`|`sigma2EInit`|`sigma2EP1` & `sigma2EP2`| 
-|                                                  |             |             |                         | 
 |Bias-correction mean ($\mu_b$)                    |`muBDist`    |`muBInit`    |`muBP1`     & `muBP2`    |
 
 
-From the classes of parameters mentioned, the prior for calibration parameters should be specified by user based on field knowledge as these parameters are problem-specific [^9]. In contrast, all other parameters have reasonable default values based on KOH calibration model literature (Kennedy & O'Hagan, 2001; Higdon et al. 2004; Chen et al. 2017). For this reason and to avoid unwanted complexity, the priors for all other classes of parameters are specified with `hypers` argument and using a helper function `set_hyperPriors()`. In particular, the default value of `hypers` argument is `set_hyperPriors()` without any argument. Nevertheless, expert knowledge about one or more of these parameters can be supplied using arguments of the `set_hyperPriors()` function, which are defined in Table 1, to change the default prior specifications.  
+From the classes of parameters mentioned, the prior for calibration parameters should be specified by user based on field knowledge as these parameters are problem-specific [^10]. In contrast, all other parameters have reasonable default values based on KOH calibration model literature (Kennedy & O'Hagan, 2001; Higdon et al. 2004; Chen et al. 2017). For this reason and to avoid unwanted complexity, the priors for all other classes of parameters are specified with `hypers` argument and using a helper function `set_hyperPriors()`. In particular, the default value of `hypers` argument is `set_hyperPriors()` without any argument. Nevertheless, expert knowledge about one or more of these parameters can be supplied using arguments of the `set_hyperPriors()` function, which are defined in Table 1, to change the default prior specifications.  
 
-[^9]: *Although a vague prior is specified as default for calibration parameters values, the user is encouraged to specify the prior based on the field knowledge. The default vague prior is specified using a uniform distribution with lower bound of 0 and upper bound of 1, which characterize the lower and upper bound of parameter domain after standardization ($U(0, 1$).*
+[^10]: *Although a vague prior is specified as default for calibration parameters values, the user is encouraged to specify the prior based on the field knowledge. The default vague prior is specified using a uniform distribution with lower bound of 0 and upper bound of 1, which characterize the lower and upper bound of parameter domain after standardization ($U(0, 1$).*
 
 
-Distribution arguments must be chosen from the string list of implemented prior distributions and initial value and the two shape parameter arguments must be numeric. Note that some classes of parameters may contain more than one parameters. In this case, the argument values can be vector instead of default scaler. In this case all four fields of that parameter class must be in vector
-format with same length as number of parameters in the same class. For example if there are five calibration parameters, `kappaDist` can either be a scaler, in which case the distribution for all calibration parameters will be set to that scaler value (and `kappaInit`, `kappaP1`, and `kappaP2` must be also scaler), or a vector of length five that supplies the distribution types for all calibration parameters (and `kappaInit`, `kappaP1`, and `kappaP2` must also be vector of length 5).
+Note that some classes of parameters may contain more than one parameters. In this case, the argument values can be vector instead of default scaler. In this case all four fields of that parameter class must be also in vector format with same length as number of parameters in the class. For example, if there are five calibration parameters, `kappaDist` can either be a scaler, in which case the distribution for all calibration parameters will be set to that scaler value and `kappaInit`, `kappaP1`, and `kappaP2` must be also scaler, or can be a vector of length five that supplies the distribution types for all calibration parameters and `kappaInit`, `kappaP1`, and `kappaP2` must also be vector of length 5.
 
-Moreover, there is a logical argument `showProgress` that indicate whether function must show the progress in calibration on console. This will put the `calibrate()` in interactive mode and will show the percentage of the MCMC draws along with sample draws. 
+Moreover, there is a logical argument `showProgress` that indicate whether function must show the progress in calibration on console. This will put the `calibrate()` in interactive mode and will show the percentage of the MCMC draws along with sample draws [^11]. 
 
-**Output:** The output of the `calibrate()` function is a `fbc` object that contains the samples from posterior joint distribution of parameters, along with other model information.
+[^11]: *Running `calibrate()` with high number of parameters or MCMC runs will be a lengthy process. This argument shows the progress of algorithm on percentage basis, along with sample of results, which can be useful for debugging purposes.*
+
+The output of the `calibrate()` function is an object of class `fbc` that contains the samples from posterior joint distribution of parameters, along with other model information. Below, the components of the a `fbc` object is displayed.
 
 
 ```{r load calMod, include=FALSE}
@@ -208,7 +203,7 @@ names(calMod)
 ```
 
 
-The first and main component of the calMod is matrix `Phi` whose columns represent the sample of posterior densities for each unknown parameter of the model in the same order as parameter classes in table 1. Since $\kappa$, $\theta_s$, $\alpha_s$, $\theta_b$, $\alpha_b$ parameter classes may contain more than one parameter, they are suffixed by a number that represents the index of the parameter in the class. For example, if there are 3 calibration inputs, the first $p$ columns of the matrix `Phi` represent posterior density of calibration parameters and the column headers will be `kappa1`, `kappa2`, and `kappa3`. In the ball example, there is only one calibration parameter $g$, which is denoted by $\kappa_1$ and represented by `kappa1` in matrix `Phi`. Each row of the matrix `Phi` represents a MCMC draw.
+The first and main component of the `calMod` is matrix `Phi` whose columns represent the sample of posterior densities for each unknown parameter of the model in the same order as parameter classes in table 1. Since $\kappa$, $\theta_s$, $\alpha_s$, $\theta_b$, $\alpha_b$ parameter classes may contain more than one parameter, they are suffixed by a number that represents the index of the parameter in the class. For example, if there are 3 calibration inputs, the first 3 columns of the matrix `Phi` represent posterior density of calibration parameters and the column headers will be `kappa1`, `kappa2`, and `kappa3`. In the ball example, there is only one calibration parameter $g$, which is denoted by $\kappa_1$ and represented by `kappa1` in matrix `Phi`. Each row of the matrix `Phi` represents a MCMC draw.
 
 
 ```{r Phi columns}
@@ -216,7 +211,7 @@ head(calMod$Phi, 3)
 ```
 
 
-All other columns of matrix `Phi` represent the samples for other model hyperparameters. Table 2 provides an overview of the model parameters and the notation to represent them in ball example. Later sections will explain in detail why are these hyperparameters introduced, what do they represent, and how they are estimated.
+Table 2 provides an overview of the model parameters and the notation to represent them in ball example. Later sections will explain in detail why are these hyperparameters introduced, what do they represent, and how they are estimated.
 
 
 **Table 2:** Notation used in matrix `Phi` to represent parameters in ball example.
@@ -224,37 +219,26 @@ All other columns of matrix `Phi` represent the samples for other model hyperpar
 |Column   |Notation             |Description                                                       |
 |:---     |:---                 |:-------------------                                              |
 |`kappa1` |$\kappa_1$           |Unknown value of true calibration input $g$                       |
-|         |                     |                                                                  |
 |`thetaS1`|$\theta_{s1}$        |Scale parameter of $h$ input for simulator correlation            |
-|         |                     |                                                                  |
 |`thetaS2`|$\theta_{s2}$        |Scale parameter of $g$ input for simulator correlation            |
-|         |                     |                                                                  |
 |`alphaS1`|$\alpha_{s1}$        |Smoothness parameter of $h$ input for simulator correlation       |
-|         |                     |                                                                  |
 |`alphaS2`|$\alpha_{s2}$        |Smoothness parameter of $g$ input for simulator correlation       |
-|         |                     |                                                                  |
 |`thetaB1`|$\theta_{b1}$        |Scale parameter of $h$ input for bias-correction correlation      |
-|         |                     |                                                                  |
 |`alphaB1`|$\alpha_{b1}$        |Smoothness parameter of $h$ input for bias-correction correlation |
-|         |                     |                                                                  |
 |`sigma2S`|$\sigma^2_s$         |Marginal variance of simulator covariance                         |
-|         |                     |                                                                  |
 |`sigma2B`|$\sigma^2_b$         |Marginal variance of bias-correction covariance                   |
-|         |                     |                                                                  |
 |`sigma2E`|$\sigma^2_{\epsilon}$|Variance of random measurement error in field                     |
-|         |                     |                                                                  |
 |`muB`    |$\mu_b$              |bias-correction mean                                              |
 
 
 
-`estimates` is a data frame that provides a summary table of all model parameters. `summary()` function also provides the same statistics given a `fbc` object. `logPost` is vector of computed posterior log likelihood given a parameter draw from `Phi` matrix. Therefore, the length of the `logPost` vector is same as number of rows in `Phi`. `priors` is a nested list that contains prior specifications for all parameters (including calibration parameters). `acceptance` is a vector of same length as number of unknown parameters and represent the acceptance rate of each parameter in MCMC algorithm. The current implementation of MCMC algorithm employs Metropolis-Within-Gibbs variation, which is a one-dimensional proposal scheme and the optimal acceptance rate must be close to 0.44. `vars` is a vector of character string with the same length as number of parameters and contains the parameter notation used in code and as column headers. `data` is a list consisting of training data in the form of vectors and matrices. `scale` is a numeric vector that contains scaling factors used during calibration to scale the training data. `indices` is a list of vectors containing the indices of parameters in each row of `Phi` matrix. `priorFns` is a list of prior functions that are created during calibration based on given prior specifications. And finally, `proposalSD` is a numeric vector that represents the final standard deviation of proposal for each parameter.
+There are ten more elements in `caqlMod` other than matrix `Phi`, which are listed here along with a brief description. The data frame `estimates`, which provides a summary table of all model parameters, includes the mean, mode, median, standard deviation, and 50% and 80% upper and lower quantiles of the marginal distribution of all parameters. The vector `logPost` contains the posterior log likelihood given a parameter draw from `Phi` matrix. The nested list `priors` contains prior specifications for all parameters. The vector `acceptance` represent the acceptance rate of each parameter after running the MCMC algorithm with adaptive proposal. It is important to note that, the current implementation of MCMC algorithm employs Metropolis-Within-Gibbs variation, which is a one-dimensional proposal scheme and the optimal acceptance rate must be close to 0.44. The vector of strings `vars` contains the parameter notation used in code and as `Phi` column headers. The rest of the components in `Phi` are not of great importance for user, however, they are needed for calibrated prediction. The list of matrices and vectors  `data` includes the training data in the forms that match KOH model components. The numeric vector `scale` contains scaling factors that are used to scale the training data during calibration. The named list `indices` contain the indices of parameters in each row of `Phi` matrix. The function list `priorFns` includes the prior functions that are created during calibration based on given prior specifications. And finally, `proposalSD` is a numeric vector that represents the final standard deviation of proposal for each parameter.
 
 
 
-### 1.3 \ \ `predict()`
+### 1.4 Calibrated Prediction
 
-**Arguments:** Similar to any other predict function, `predict()` requires a model object argument called `object`, which in `FBC` package must be a `fbc` object, along with an argument representing a new input configuration called `newdata`. Moreover, current implementation of the `predict()`, support to different methods of prediction: Maximum A Posteriori ("MAP") and MCMC-based fully Bayesian ("Bayesian") methods. The method can be selected using `method` argument that can take a
-character string value of either "MAP" or "Bayesian".
+Similar to any other predict function, `predict()` requires a model object argument called `object`, which in `FBC` package must be a `fbc` object, along with an argument representing a new input configuration called `newdata`. Moreover, current implementation of the `predict()`, support two different methods of prediction: Maximum A Posteriori ("MAP") and MCMC-based fully Bayesian ("Bayesian") methods. The method can be selected using `method` argument that can take a character string value of either "MAP" or "Bayesian". 
 
 ```{r predict}
 predsMAP   <- predict(object = calMod, newdata = matrix(c(2.2, 2.4), ncol = 1), method = "MAP")
@@ -262,21 +246,21 @@ predsBayes <- predict(object = calMod, newdata = matrix(c(2.2, 2.4), ncol = 1), 
 ```
 
 
-**Output:** `predict()` returns a list consisting of two fields: `pred`, which is a vector of the predicted response ($\hat{t}$ in ball example) with same length as `newdata` rows, and `se`, which is a vector of the predicted response's standard errors, again with the same length as `newdata` rows.
+The return value of `predict()` is a list consisting of two fields: `pred`, which is a vector of the predicted response for every new input configuration (rows of `newdata`), and `se`, which is a vector of the predicted response's standard errors. 
 
 ```{r}
 predsMAP  
 predsBayes
 ```
 
-In "Bayesian" method, which is the default method, MCMC draws of calibration model parameters are used to form a distribution of each predicted value. In particular, each rows of matrix `Phi` from the output of the calibration model, is used to predict the response for a single row (a new input configuration) of `newdata`. Therefore, for each observation a MCMC-based distribution of predicted responses are computed. Then, the predictive mean and variance of this  distribution are used to computed point predictions as well as standard errors for predictions.
+In "Bayesian" method, which is the default value of `method` argument, MCMC draws of calibration model parameters are used to form a distribution of each predicted value. In particular, each rows of matrix `Phi` from the output of the calibration model, is used to predict the response for every row of `newdata`. Therefore, a distribution of response is created for each new input configuration. Then, the predictive mean and variance of the resulting distribution are used to compute the point predictions as well as standard errors for predictions. 
 
-In "MAP" method, the row of `Phi` matrix that results in maximum log posterior, is extracted and taken as model parameters to compute both point estimates and standard errors. This method is much faster than the "Bayesian" method as it only computes the prediction for each row of observation once. More detail on theory behind prediction methods can be found in section  
+In "MAP" method, the row of `Phi` matrix that results in maximum log posterior, is extracted and taken as model parameters to compute both point estimates and standard errors. This method is much faster than the "Bayesian" method as it only computes the prediction for each row of observation once. 
 
 
-### 1.4 \ \ `set_hyperPriors()`:
+### 1.5 Specifying Parameter Priors:
 
-As mentioned hyperparameters of the calibration model can be set using this function. All hyperparameters have reasonable default values. Therefore `set_hyperParameters()` can be used without arguments to set the hyperparameters. In fact, the default value of the `hyper` argument in `calibrate()` is the function `set_hyperParameters()` without any argument. Nevertheless, when there is prior belief about structure of correlation structures (either simulator GP or bias-correction GP), these beliefs can be applied to the model in the form of prior specification using `set_hyperPriors()`
+As mentioned hyperparameters of the calibration model can be set using `set_hyperParameters()` function. All arguments of this function, which collectively specify the priors for all hyperparameters, have reasonable default values. Therefore `set_hyperParameters()` can be used without arguments to set the hyperparameters. In fact, the default value of the `hyper` argument in `calibrate()` is the function `set_hyperParameters()` without any argument. Nevertheless, when there is prior belief about structure of correlation structures (either simulator GP or bias-correction GP), these beliefs can be applied to the model in the form of prior specification using `set_hyperPriors()`. For example in the following snippet, only correlation scale parameters of the simulation GP are set to "beta" distributions and the second parameter of beta distribution is set to 6. The first parameter of the beta distribution, the initial value for these parameters, and all other parameter specification remain unchanged.
 
 ```{r set_hyperPriors}
 priors <- set_hyperPriors(thetaSDist = "beta", thetaBP2 = 6)
@@ -284,26 +268,26 @@ priors <- set_hyperPriors(thetaSDist = "beta", thetaBP2 = 6)
 
 
 
-### 1.5 \ \ `summary()` and `print()`:
+### 1.6 Summarizing the Calibration Model:
 
-Both of these generic functions are implemented to work with the output of `calibrate()` function. In particular, given a `fbc` object, `summary()` displays the summary data frame of calibration parameters which is the `estimate` component of `calibrate()` output. Similarly, `print()` will print the data frame in the console.
+Both `summary()` and `print()` generic functions are implemented to work with the output of `calibrate()` function. In particular, given a `fbc` object, `summary()` returns the `estimate` component of `calibrate()` output, which is a data frame containing statistical summary of calibration parameters. Similarly, `print()` will display the same summary data frame in the console.
 
 ```{r summary and print}
-summary(calMod) # print(calMod) has exactly the same output
+calModSum <- summary(calMod) 
+print(calMod)
 ```
 
 
-### 1.6 \ \ `plot()`
+### 1.7 Visualization of Calibration Model
 
-As name suggests, the implementation of this generic function enables visualization of a calibration model results. Given a calibration model in the form of a `fbc` object, `plot()` can visualize the model in three different mode, which can be chosen by supplying the `type` argument. In particular, `type` must be a character string form "density", "trace", and "fits". 
+The implementation of this generic function `plot()` in `FBC` package enables visualization of a calibration model results. Given a calibration model in the form of a `fbc` object using argument `x`, `plot()` can visualize the model in three different mode, which can be chosen by supplying the `type` argument. 
 
-Using "density", which is the default value of the `type` argument, `plot()` will plot the marginal posterior density distribution for the given parameter. It does so by estimating a density function given the MCMC-based posterior draws of the parameter. It also plots the prior distribution of the given parameter in the same plot for ease of comparison and visualizes the empirical mode of the posterior density. The given parameter must also be given as character string sing the `parameter` argument. The parameter name is consistent with the notation used throughout the package and current vignette and must be chosen from "kappa", "thetaS", "alphaS", "thetaB", "alphaB", "sigma2S", "sigma2B","sigma2E", or "muB". The default value for `parameter` argument is "kappa" (calibration parameters), which usually is the parameter of the interest. Note that `parameter` argument characterizes the class of parameters and when there is more than one parameter in that class,`plot()` will plot
+In particular, `type` must be a character string form "density", "trace", and "fits". Using "density", which is the default value of the `type` argument, `plot()` will plot the marginal posterior density distribution for the given parameter using `parameter` argument. It does so by estimating a density function given the MCMC-based posterior draws of the parameter. It also plots the prior distribution of the given parameter in the same plot for ease of comparison and visualizes the empirical mode of the posterior density. The `parameter` argument must be a character string consistent with the notation used throughout the package and current vignette , namely from "kappa", "thetaS", "alphaS", "thetaB", "alphaB", "sigma2S", "sigma2B","sigma2E", or "muB". The default value for `parameter` argument is "kappa" or calibration parameters, which usually are the parameters of the interest. Note that `parameter` argument characterizes the class of parameters and when there is more than one parameter in that class,`plot()` will plot
 the density distribution for all parameters in that class in separate plots.
 
 
 ```{r plot density}
-# plot other model parameters (note that since there are two correlation scale parameters for
-# simulator GP, there will be two plots)
+# Note that there are two correlation scale parameters in simulator GP and there will be two plots
 plot(calMod, parameter = "thetaS")
 ```
 
@@ -311,28 +295,26 @@ plot(calMod, parameter = "thetaS")
 Using "trace" as `type` argument, `plot()` will plot the progression of the given parameter as MCMC draws are taken. It is similar to the time series of the parameter but indexed with number of iteration in MCMC rather than time. The trace plot can be used to determine whether there is good mixing in MCMC draws. Using "trace" as `type` argument also requires supplying the `parameter` from aforementioned list of possible parameter classes. And similar to density plots, trace plots will be plotted for all of the parameters in the given class in separate plots. 
 
 ```{r plot trace}
-# plot the trace of MCMC draws (note that this plot is useful to determine convergence and
-# stationarity of the parameter draws. This minimal example dhas only few draws!)
+# Note that there are two correlation smoothness parameters in simulator GP and there will be 
+# two plots
 plot(calMod, parameter = "alphaS", type = "trace")
 ```
 
 
-
-And finally using "fits" as `type` argument, `plot()` will plot the fitted values of the response versus all experimental variables in separate plots. The `parameter` argument is not required for this type and will be ignored. Fits plots can be used to visually determine the goodness of fits versus actual response in interpolations. Internally, `plot()` will use `predict()` function (using "MAP" method) to compute the fitted values for the training input configurations and will plot them in conjunct with actual values. Furthermore, `xlab` argument can be supplied with a character string to characterize the experimental variables' names.
+And finally using "fits" as `type` argument, `plot()` will plot the fitted values of the response versus all experimental variables in separate plots. The `parameter` argument is not required for this type and will be ignored. Fits plots can be used to visually determine the goodness of fits versus actual response during interpolations. Internally, `plot()` will use `predict()` function (using "MAP" method) to compute the fitted values for the training input configurations and will plot them in along with actual values. Furthermore, `xlab` argument can be supplied with a character string to characterize the experimental variables' names. If not supplied, the x-axis will labelled by "x1", "x2", until last experimental variable.
 
 
 ```{r plot fits}
-# plot the fitted values of the calibration model. It will plot the fitted values versus all
-# experimental inputs, in this example only one!
+# Plots the fitted values versus all experimental inputs along with actual values in separate plots
 plot(calMod, type = "fits", xlab = "height")
 ```
 
-There are also three more exported functions in `FBC` package that are not required to build calibration models or to
-predict based on calibration models. These functions are used internally in the package but since they offer functionalists that are not supported in base R, they are exported for use.
 
-### 1.7 \ \ `correlation()`:
+There are also three more exported functions in `FBC` package that are not required to build calibration models or to perform calibrated prediction. These functions are used internally in the package but since they offer functionalists that are not supported in base R, they are exported for use.
 
-This function is used to compute the correlation between rows of two given matrices assuming a power exponential correlation family structure. This family is a generalization of correlation where distinct scale and smoothness hyperparameters are used for different dimensions of the given data (columns of given matrices) when computing the correlation. A more thorough definition of power exponential correlation family is explained in section two. `correlation()` function is more general than R's base correlation function `cor()`, as it treats different dimensions using separate scale parameters and also allows for use of smoothness parameters (also for different dimensions) when computing the correlation. Note that only the first matrix, characterized by argument `X` must be supplied and the default value for the second matrix, characterized by `Y` is `NULL`. When only a single matrix is supplied, `correlation()` will compute the correlation of that matrix with itself. Other than the given matrix or matrices, which must have same number of columns, user must supply two vectors with `theta` and `alpha` arguments to characterize scale and smoothness parameters. The length of both vectors either must be same and equal to the number of columns in given matrices, or they must be scaler in which case for all dimensions same values of scale or smoothness will be used.
+### 1.8 Computing Correlation:
+
+This function is used to compute the correlation between rows of two given matrices assuming a power exponential correlation family structure. This family is a generalization of correlation, where distinct scale and smoothness hyperparameters are used for different dimensions of the given data (columns of given matrices) when computing the correlation. In `FBC`, `correlation()` function treats different dimensions using separate scale and smoothness parameters. Note that only the first matrix, characterized by argument `X` must be supplied and the default value for the second matrix, characterized by `Y` is `NULL`. When only a single matrix is supplied, `correlation()` will compute the correlation of that matrix with itself. Other than the given matrix or matrices, which must have same number of columns, user must supply two vectors with `theta` and `alpha` arguments to characterize scale and smoothness parameters. The length of both vectors either must be same and equal to the number of columns in given matrices, or they must be scaler in which case for all dimensions same values of scale or smoothness will be used.
 
 
 ```{r correlation}
@@ -355,9 +337,9 @@ round(correlation(X, Y, theta = sc, alpha = sm), 5)
 
 
 
-### 1.6 \ \ `prior_builder()`
+### 1.9 Building Prior Functions:
 
-This function will create a prior function based on given distribution and distribution parameters. The function has three arguments: `prior` takes a character string from ("uniform", "gaussian", "gamma", "beta", "lognormal", "logistic", "betashift", "exponential", "inversegamma", "jeffreys", "fixed") and characterizes the type of distribution. When `fixed` is used, the prior function is simply `x = 1`. The next two arguments, `p1` and `p2` characterize the parameters of distribution. For example for gamma distribution `p1` and `p2` determine shape and scale of the gamma distribution, or for Gaussian distribution, `p1` and `p2` determine mean and standard deviation of the Gaussian distribution. The output of `prior_builder()` is a function that given a value, computes the probability density of the chosen distribution. To reduce the load of internal computation, `prior_builder()` computes the log of density and if used externally must be transformed.
+This function will create a prior function based on given distribution and distribution parameters. The function arguments are `prior`, which characterize the distribution family of the prior and two other the arguments, `p1` and `p2` that characterize the parameters of the chosen distribution. The `prior` argument can take a character string value from "uniform", "gaussian", "gamma", "beta", "lognormal", "logistic", "betashift", "exponential", "inversegamma", "jeffreys", "fixed". For example for `prior = "gamma"`, `p1` and `p2` determine shape and scale of the gamma distribution, or for Gaussian distribution, `p1` and `p2` determine mean and standard deviation of the Gaussian distribution. When "fixed" is used for `prior`, the prior function is simply `x = 1`. The output of `prior_builder()` is a function that given a value, computes the probability density of the chosen distribution. To reduce the load of internal computation during creation of the calibration model, `prior_builder()` computes the log of density and if used externally must be transformed.
 
 ```{r  prior_builder}
 # create a prior function for beta(2, 5). Note that the function compute log of priors and must be transformed
@@ -374,9 +356,9 @@ round(exp(pr_fun(c(-9, -5, -3, -1, 1, 3, 5, 7, 11))), 3)
 ```
 
 
-### 1.7 \ \ `pmode()`
+### 1.10 Estimating the Mode of a Continious Variable
 
-This function computes an estimate of the mode of a continuous distribution. It works similar to a histogram, in which the domain of the distribution is broken into same length bins. For each bin, the draws of the distribution that fall within that bin is counted and at the end the mean of the bin with highest count is returned as estimated mode. The function also takes the number of bins through `breaks` argument. The default value is `NULL`, which makes `pmode` to determine the number of required bins dynamically based on number of data points and the domain of the distribution.
+The function `pmode()` computes an estimate of the mode for a continuous distribution. It works similar to a histogram, in which the domain of the distribution is broken into same length bins. For each bin, the draws of the distribution that fall within that bin is counted and at the end the mean of the bin with highest count is returned as estimated mode. The function also takes the number of bins through `breaks` argument. The default value is `NULL`, which makes `pmode` to determine the number of required bins dynamically based on number of data points and the domain of the distribution.
 
 ```{r pmode}
 # find the estimated mode of a vector
@@ -388,110 +370,92 @@ pmode(vec, breaks = 10)
 
 ## 2. Calibration Model
 
-Calibration model is statistical model that represent both field and simulator response as function of input configuration. In this section, we explain the theory behind building a calibration model and relate the notation used in the formulation of calibration model and in the package implementation to our ball example.
+Calibration model is statistical model that represent both field and simulator response as function of input configuration. In this section, the theory behind building a calibration model is explained along with the notation to represent the components of the calibration model [^12]. 
+
+[^12]: *Note that the notation to use the calibration model is already described in section 1. In this section the notation used to represent the data and calibration model components are explained, which are used internally in the package.* 
 
 
 ### 2.1 Data
 
-A computer experiment or simulation is simply running a computer code at different input configurations and recording the response. The code is an implementation of the mathematical model that is intended to mimic the physical experiment. In general, a simulation has $p$ experimental inputs but also has $q$ additional calibration inputs that are either tuning parameters or unknown physical properties that are not controllable by field experimenter. Table 2 describes the response and inputs of a computer experiment with $m$ observations using matrix notation. The subscript $s$ is used to denote simulation.
+In general, a field experiment has $n$ observations, each of which require $p$ experimental inputs. On the other hand, a simulation also has $m$ code runs, each of which require $p+q$ experimental and calibration inputs. The calibration inputs, which represent either tuning parameters or physical properties that are not controllable by field experimenter, are implicit in the field experiment and their values are unknown but assumed to be fixed throughout observations. To represent both experiments in a unified structure, the unknown calibration inputs of field experiment, which are represented by $\kappa$ [^13], must be augmented to experimental inputs, so that both physical and computer experiments have $(p+q)$ inputs and a univariate response. Stacking the input vectors, we can represent both field experiment and simulation input data in matrix notation. Similarly the response in both field experiment and simulation can be represented in vector notation. Subscripts $f$ denotes field data, subscript $s$ denotes simulation data, and subscript $\kappa$ denotes augmented field data. Table 3 describes the response and inputs of both field experiment and computer simulation both using both vector and matrix notation.
+
+[^13]: *Elements of vector $\kappa$ are parameters of the calibration model and will be estimated by `calibrate()`.* 
 
 
 \rule{\linewidth}{0.75pt}
-**Table 2:** Notation used to represent simulation data component of calibration model.
+**Table 3:** Notation used to represent field and simulation data component of calibration model along with their corresponding values and identifiers for the ball example.
 
-| ***Notation*** | ***Description***                                 | ***Ball Example***                            |
-| ---            | ---------------                                   | ------                                        |
-| $m$            | Number of simulation runs                         | 100                                           |
-|                |                                                   |                                               |
-| $p$            | Number of experimental inputs                     | 1                                             |
-|                |                                                   |                                               |
-| $q$            | Number of calibration inputs                      | 1                                             |
-|                |                                                   |                                               |
-| $\bf{x}_s$     | Simulation input vector containing $(p+q)$ inputs | ($h$, $g$) (vector of length 2)               |
-|                |                                                   |                                               |
-| $y_s$          | Univariate simulation response                    | $t$ (scaler)                                  |
-|                |                                                   |                                               |
-| $\bf{X}_s$     | $(m \times (p+q))$ simulation input matrix        | [$\bf{h}$ $\bf{g}$] ($(100 \times 2)$ matrix) |
-|                |                                                   |                                               |
-| $\bf{y}_s$     | Vector of $m$ univariate simulation response      | $\bf{t}$ (vector of length $100$)             |
-
-
-
-On the other hand, a physical experiment consists of $n$ observations of a physical property, each with $p$ experimental inputs. The calibration inputs are implicit in physical experiment and their values are unknown but assumed to be fixed throughout observations. To represent both experiments in a unified structure, the unknown calibration inputs of field experiment $\kappa$ must be augmented to experimental inputs, so that both physical and computer experiments have $(p+q)$ inputs ($h$ and $g$ in ball example) and a univariate response ($t$ in ball example). Assuming vector $\bf{x}_f$ represent experimental input, the augmented input vector is denoted by $\bf{x}_{\kappa}$. Since $\bf{x}_f$ has $p$ elements and $\bf{\kappa}$ has $q$ elements, both will have $(p+q)$ elements similar to $\bf{x}_s$. Stacking the input vectors, we can represent all field and augmented input vectors using $\bf{X_f}$ and $\bf{X_{\kappa}}$. Similarly, vector $\bf{y_f}$ represents all field observations. Subscripts $f$ and $\kappa$are used to denote field and augmented data respectively. 
-
-Elements of vector $\kappa$ are parameters of the calibration model and will be estimated by `calibrate()` [^40]. 
-
-\
-
-[^40]: *The first $q$ columns of matrix `Phi` in `calibrate` output represent the MCMC samples of posterior densities for calibration parameters. In our ball example, there is only one calibration parameter (gravity), which is denoted by $\kappa_1$ and represented by `kappa1` in `Phi`.*</em>.
-
-\pagebreak
-
-\rule{\linewidth}{0.75pt}
-**Table 3:** Notation used to represent field data component of calibration model.
-
-| ***Notation***    | ***Description***                                                | ***Ball Example***                         |
-| ---               | ---------------                                                  | -------                                    |
-| $n$               | Number of field observations                                     | 63                                         |
-|                   |                                                                  |                                            |
-| $p$               | Number of experimental inputs                                    | 1                                          |
-|                   |                                                                  |                                            |
-| $\bf{x}_f$        | Field input vector containing $p$ experimental inputs            | $h$ (scaler)[^50]                          |
-|                   |                                                                  |                                            |
-| $\kappa$          | Vector of unknown true calibration inputs in field experiment    | true value of gravity $\kappa_1$           |
-|                   |                                                                  |                                            |
-| $\bf{x}_{\kappa}$ | Augmented field input vector containing $(p+q)$ inputs[^45]       | ($h$, $\kappa_1$)$^2$ (vector of length 2) |
-|                   |                                                                  |                                            |
-| $y_f$             | Univariate field response                                        | $t$ (scaler)                               |
-|                   |                                                                  |                                            |
-| $\bf{X}_f$        | $(n \times p)$ field input matrix                                | $\bf{h}$ (vector$^2$ of length $63$)       |
-|                   |                                                                  |                                            |
-| $\bf{X}_{\kappa}$ | $(n \times (p+q))$ augmented field input matrix                  | $[\bf{h} \quad \bf{\kappa_1}]$[^55]              |
-|                   |                                                                  |                                            |
-| $\bf{y}_f$        | Vector of $n$ univariate field response                          | $\bf{t}$ (vector of length $63$)           |
-|                   |                                                                  |                                            |
-
-[^50]: *In ball example there is only one experimental input and therefore $\bf{x}_f$ is a vector of length one or scaler. Similarly, in its matrix notation, $\bf{X}_f$ is a $(n \times 1)$ matrix or a vector of length $n$.*</em>.
-[^45]: *Note that calibration parameters $\bf{\kappa}$ are often assumed to be unchanged throughout field experiment. Therefore, same ($\kappa$) vector is augmented to all of the field input configurations.*</em>.
-[^55]: *Since calibration input is fixed for all field observation, $\bf{\kappa_1} = (\kappa_1, ... , \kappa_1)$ vector of length 63} ] ($(100 \times 2)$ matrix).*</em>.
+|Notation         |Description                                           |Ball Example                            |
+|:---             |:-----------------                                    |:-------                                |
+|$n$              |Number of field observations                          |63                                      |
+|$m$              |Number of simulation runs                             |100                                     |
+|$p$              |Number of experimental inputs                         |1                                       |
+|$q$              |Number of calibration inputs                          |1                                       |
+|$\bf{x_f}$       |Field input vector containing $p$ experimental inputs |$h$ [^14]                               |
+|$\bf{X_f}$       |Field input matrix ($(n \times p)$)                   |$\bf{h}$ [^15]                          |
+|$y_f$            |Univariate field response                             |$t$ (scaler)                            |
+|$\bf{y_f}$       |Vector of $n$ univariate field response               |$\bf{t}$ (vector of length $63$)        |
+|$\kappa$         |Vector of true calibration inputs in field experiment |True value of gravity $\kappa_1$[^16]   |
+|$\bf{x_{\kappa}}$|Augmented field input vector containing $(p+q)$ inputs|($h$, $\kappa_1$) (vector of length $2$)|
+|$\bf{X_{\kappa}}$|Augmented field input matrix ($(n \times (p+q))$)[^17]|$[\bf{h} \quad \bf{\kappa_1}]$          |
+|$\bf{x_s}$       |Simulation input vector containing $(p+q)$ inputs     |($h$, $g$) (vector of length $2$)       |
+|$\bf{X_s}$       |Simulation input matrix ($(m \times (p+q))$)          |[$\bf{h}$ $\bf{g}$] ($(100 \times 2)$   |
+|$y_s$            |Univariate simulation response                        |$t$ (scaler)                            |
+|$\bf{y_s}$       |Vector of $m$ univariate simulation response          |$\bf{t}$ (vector of length $100$)       |
 
 
+[^14]: *In ball example there is only one experimental input and therefore $\bf{x_f}$ is a vector of length one or scaler.*
 
-All of the data components in Table 2 and 3 are generated internally to build the calibration model. The user is only required to provide two matrices representing the field and simulation datasets in their entirety through `sim` and `field` arguments of `calibrate()`. 
+[^15]: *In matrix notation of the field data, $\bf{X}_f$ is a $(63 \times 1)$ matrix or a vector of length $63$.*
+
+[^16]: *In the ball example, there is only one calibration parameter (gravity), which is denoted by $\kappa_1$ and represented by `kappa1` in `Phi`s column headers.*
+
+[^17]: *Note that calibration parameters $\bf{\kappa}$ are often assumed to be unchanged throughout field experiment. Therefore, same ($\kappa$) vector is augmented to all of the field input configurations.*
+
 
 
 ### 2.2 KOH Model 
 
-#### Random Functions:
-KOH models the functional relationship between simulation input and output as a realization of a random function $\eta(\bf{x_s})$. Similarly, KOH models the functional relationship between field input and output as a realization of random function $\eta(\bf{x}_{\kappa})$ but acknowledges a systemic model discrepancy and measurement errors. As a result, KOH models the discrepancy by adding a bias-correction term as realization of another random function $\delta_{\kappa}(\bf{x}_f)$. The error term $\epsilon$ is considered to be an independent draw from a normal distribution with zero mean and unknown variance $\sigma^2_{\epsilon}$. 
+KOH models the functional relationship between simulation input and output as a realization of a random function $\eta(\bf{x_s})$. Similarly, KOH models the functional relationship between field input and output as a realization of random function $\eta(\bf{x}_{\kappa})$ but acknowledges a systemic model discrepancy and measurement errors. Furthermore, the discrepancy term is modelled using another random function $\delta_{\kappa}(\bf{x}_f)$ [^18] and the error term $\epsilon$ is considered to be an independent draw from a normal distribution with zero mean and unknown variance $\sigma^2_{\epsilon}$. This formulation, emphasizes that model has systemic bias, even under best calibration parameters. However, KOH postulates that reasonable correction can be made through $\delta_{\kappa}(.)$ 
 
+[^18]: *Note that although $\delta_{\kappa}(.)$ is considered to be function of $\bf{x}_f$, it is still dependent on $\kappa$ parameters. This is emphasized by using the $\kappa$ subscript in $\delta_{\kappa}(.)$.*
 
 $$
 \begin{aligned}
-\epsilon  \ \ &\sim  \mathcal{N}(0, \sigma^2_{\epsilon}) \\ \\
 y_f           &=     \eta(\bf{x_\kappa}) + \delta_{\kappa}(\bf{x_f}) + \epsilon \\ \\
-y_s           &=     \eta (\bf{x_s})  \\
+y_s           &=     \eta (\bf{x_s})  \\ \\
+\text{where} \quad \quad \epsilon  \ \ &\sim  \mathcal{N}(0, \sigma^2_{\epsilon}) \\ \\ 
 \end{aligned}
 $$
 
-Therefore other than $\bf{\kappa}$ and $\sigma^2_{\epsilon}$ parameters, the random functions $\eta(.)$ and $\delta_{\kappa}(.)$ are also unknown and must be specified. KOH models $\eta(.)$ and $\delta_{\kappa}(.)$  by two independent Gaussian Processes (GP). 
+
+Therefore other than $\bf{\kappa}$ and $\sigma^2_{\epsilon}$ parameters, the random functions $\eta(.)$ and $\delta_{\kappa}(.)$ are also unknown and must be specified. KOH models $\eta(.)$ and $\delta_{\kappa}(.)$  by two independent GPs. 
 
 
 $$
 \begin{aligned}
 \eta(.) \  &\sim GP \ (0, \ \sigma^2_s . R_s(., .)) \\
-\delta_{\kappa}(.) &\sim GP \ (0, \ \sigma^2_b . R_b(., .)) \\ \\
+\delta_{\kappa}(.) &\sim GP \ (\mu_b, \ \sigma^2_b . R_b(., .)) \\ \\
 \end{aligned}
 $$
 
 
-Where $\sigma^2_s$ and $\sigma^2_b$ are marginal variance of simulator and bias-correction GPs, and $R_s(., .))$ and $R_b(., .))$ are correlation matrix of simulator GP (using full input matrix $\bf{X_s}$ or $\bf{X_{\kappa}}$) and bias-correction GP (using field input matrix $X_f$).
+Where $\mu_b$ represent the mean of the bias-correction GP and considered to be constant and the mean of simulator GP considered to be zero [^19] . Moreover, $\sigma^2_s$ and $\sigma^2_b$ denote marginal variance of simulator and bias-correction GPs, and $R_s(., .)$ [^20] and $R_b(., .)$ [^21] are correlation matrix of simulator and bias-correction GP.
 
-Note that means of GPs are considered to be zero because `calibrate()` function first standardizes simulation response $\bf{y}_s$ (mean zero and standard deviation of one) and then scales field response according to $\bf{y}_s$'s scaling factors. Furthermore, the simulator inputs (both experimental and calibration) are scaled to span $[0, 1]$ and the scaling factors of simulation experimental inputs are used to scale field experimental inputs. As a result considering zero mean for both processes seem reasonable. (TODO: look into the effect of constant mean for discrepancy GP).
+[^19]: *Note that the mean of the simulator GP is considered to be zero because `calibrate()` function first standardizes simulation response $\bf{y}_s$ to have the mean of zero and standard deviation of one. On the other hand, the mean of the bias-correction GP is dependent on the extent of simulator model inadequacy and will vary from one model to another. However, some studies indicate that fitting a linear regression model does not necessarily improve the performance as the GP models are already flexible (Chen et al., 2017). Therefore a constant mean is assumed for the mean of bias-correction GP as a calibration model parameter that may or may not be zero.*
 
-#### Correlation Structure:
-`FBC` employs a power exponential correlation family to represent the correlation structure of both GPs. Assuming $\bf{x}$ and $\bf{x'}$ are two rows of full input matrix (either $\bf{X_s}$ or $\bf{X_{\kappa}}$) and $\bf{x_f}$ and $\bf{x_f'}$ are two rows of field experimental input matrix ($\bf{X_f}$), the correlation matrices $R_s(\bf{x}, \bf{x'})$ and $R_b(\bf{x_f}, \bf{x_f'})$ are defined as following:
 
+[^20]: *The input of $R_s(., .)$ can be either rows of $\bf{X_{\kappa}}$ or $\bf{X_s}$.*
+
+[^21]: *The input of $R_b(., .)$ must be the rows of $\bf{X_f}$.*
+
+
+
+### 2.3 Correlation Structure:
+
+There are many choices to characterize the correlation structure including Gaussian correlation family, Matern, and power exponential family. `FBC` employs a power exponential correlation family to represent the correlation structure of both GPs as it provides the both flexibility and interpretability. Assuming $\bf{x}$ and $\bf{x'}$ are two rows of full input matrix [^22]  and $\bf{x_f}$ and $\bf{x_f'}$ are two rows of field experimental input matrix $\bf{X_f}$, the correlation matrices $R_s(\bf{x}, \bf{x'})$ and $R_b(\bf{x_f}, \bf{x_f'})$ are defined as following:
+
+[^22]: *The full input matrix is considered to be either $\bf{X_s}$ or $\bf{X_{\kappa}}$, which is the augmented field input matrix.*
 
 $$
 \begin{aligned}
@@ -500,24 +464,9 @@ R_b(\bf{x_f}, \ \bf{x_f}')       &= \prod^{p}_{j=1} e^{-\theta_j |x_j - x_j'|^{\
 \end{aligned}
 $$
 
+Where $x_i$, $x'_i$, $x_j$, and $x'_j$ denote the input elements of vectors $\bf{x}$, $\bf{x'}$, $\bf{x_f}$, and $\bf{x'_f}$ respectively. Using separable power exponential correlation family introduces additional four classes of new hyperparameters to calibration model: vector $\bf{\theta_s}$, which denotes the scale parameters of $R_s(.,.)$ ($\theta_i$s for $i \in (1, ... , p+q)$), vector $\bf{\alpha_s}$, which denotes the smoothness parameters of $R_s(.,.)$ ($\alpha_i$s for $i \in (1, ... , p+q)$), vector $\bf{\theta_b}$, which denotes the scale parameters of $R_b(.,.)$ ($\theta_j$s for $j \in (1, ... , p)$), and vector $\bf{\alpha_b}$, which denotes the smoothness parameters of $R_b(.,.)$ ($\alpha_j$s for $j \in (1, ... , p)$). Together, they flexibly determine the shape of correlation structure. To recap, in addition to $\bf{\kappa}$, and $\sigma^2_{\epsilon}$, seven classes of parameters are introduced to the calibration model by using two independent GPs to characterize the unknown random functions $\eta(.)$ and $\delta_{\kappa}(.)$: $\bf{\theta_s}$, $\bf{\alpha_s}$, $\bf{\theta_b}$, $\bf{\alpha_b}$, $\sigma^2_s$, $\sigma^2_b$, $\sigma^2_{\epsilon}$, and $\mu_b$. The joint vector of all parameters in the final calibration model is denoted by vector $\phi$ [^23].
 
-Using separable power exponential correlation family introduces two new hyperparameters for each input: scale ($\theta_i$) and smoothness ($\alpha_i$). Together, they flexibly determine the shape of correlation structure. Table 4 introduce the notation used for hyperparameters of $\eta(.)$ and $\delta_{\kappa}(.)$.
-
-
-\rule{\linewidth}{0.75pt}
-**Table 4:** *New Parameters To Build KOH Calibration Model.*
-
-|**GP**              | **Hyperparameters**                                                          | **Ball Example (Columns of `Phi`)**                  |
-| ---                | ----------                                                                   | --------------                                      |
-|                    |                                                                              |                                                     |
-| $\eta(.)$          |$(\theta_{s1},...,\theta_{s(p+q)},\alpha_{s1},...,\alpha_{s(p+q)},\sigma^2_s)$|(`thetaS1`, `thetaS2`,`alphaS1`,`alphaS2`, `sigma2S`)|
-|                    |                                                                              |                                                     |
-|$\delta_{\kappa}(.)$| $(\theta_{b1},...,\theta_{bp},\alpha_{b1},...,\alpha_{bp},\sigma^2_b)$       | (`thetaB1`, `alphaB1`, `sigma2B`)                   |
-
-
-#### Full Model:
-After augmentation of true calibration inputs (vector $\bf{\kappa}$ to field data, both simulation and field experiment have the same input. KOH combines both components to build a joint model. The joint vector of all parameters in the final calibration model is denoted by:
-
+[^23]: *Note that in the ball example, the column headers of matrix `Phi` exactly match to model parameters. In fact, each rows of matrix `Phi` is a vector $\phi$ that represents a draw from joint parameter space.*
 
 $$
 \phi = (\kappa_1, \ ... , \ \kappa_q, \ 
@@ -525,99 +474,143 @@ $$
 \alpha_{s1}, \ ... , \ \alpha_{s(p+q)}, \
 \theta_{b1}, \ ... , \ \theta_{bp}, \
 \alpha_{b1}, \ ... , \ \alpha_{bp}, \ 
-\sigma^2_s, \ \sigma^2_b, \ \sigma^2_{\epsilon})
+\sigma^2_s, \ \sigma^2_b, \ \sigma^2_{\epsilon}, \
+\mu_b)
+$$
+
+Table 1 in section 1 summarizes all calibration model parameters along with the notation used in current vignette and code. It also indicates the corresponding parameters in each class for the ball example. 
+
+### 2.4 Full Model:
+
+After augmentation of true calibration inputs (vector $\bf{\kappa}$ to field data, both simulation and field experiment have the same input structure. KOH stacks both datasets from field experiment and simulation to build a joint dataset. 
+
+$$
+\begin{aligned}
+\bf{y} \  &= \begin{bmatrix} \bf{y}_f  \\ \bf{y}_s \\ \end{bmatrix} = 
+             (y_1, \ ... \ , \ y_{n+m})^T \ \ &\text{(joint vector of responses)}  \\ \\
+\bf{X}    &= \begin{bmatrix} \bf{X_{\kappa}}  \\ \bf{X_s} \\ \end{bmatrix} =
+             \begin{bmatrix} \bf{x_1} \ \bf{x_2}  \ ... \ \bf{x_{p+q}} \\ \end{bmatrix}
+             \ \ &\text{(joint input matrix)}  \\ \\
+\bf{x_i}  &= (x_1, x_2, ..., x_{n+m}) \ \ \ \ \forall i \in \{1, 2, ..., p+q\} \ 
+\end{aligned}
 $$
 
 
-Note that in the ball example, the column headers of matrix `Phi` exactly match to model parameters.
+And the full model that represents the functional relationship between joint input and response is realization of a random function, denoted by $\zeta(.)$. Where $y$ is the response in full model (an element of vector $\bf{y}$) and $\bf{x}$ is an input configuration in full model (a row in matrix $\bf{X}$). Using matrix notation, the full model can be represented by following equation, which forms the basis for estimating the calibration model parameters.
 
+$$
+\begin{aligned}
+y \         = \zeta(\bf{\bf{x}}) \\
+\text{y} \  = \zeta(X) 
+\end{aligned}
+$$
 
-```{r}
-#head(calMod$Phi, 3)
-```
+Because both $\eta(.)$ and $\delta_{\kappa}(.)$ are modelled by two GPs and the error term is Gaussian, $\zeta(.)$ can also be modelled by a GP (Santner et al., 2018) and its components can be computed using the calibration model components. Moreover, given the data component, computing the mean function $\mu(.)$ and covariance function $\Sigma(.,.)$ result in a mean vector $\mu$ and a covariance matrix $\Sigma$.
 
+$$
+\begin{aligned}
+\zeta(.) &\sim GP \ (\mu(.), \ \Sigma(., .)) \\ \\
+\text{where,} \quad \quad \mu \quad &= \begin{bmatrix} \mu_b \\ 0 \end{bmatrix} \\ \\
+\Sigma \quad &= \sigma^2_s . \begin{bmatrix} R_s(X_{\kappa}, X_{\kappa}) & R_s(X_{\kappa}, X_s) \\ 
+                                              R_s(X_s, X_{\kappa})        & R_s(X_s, X_s)        \\
+                              \end{bmatrix} + 
+                 \sigma^2_s . \begin{bmatrix} R_b(X_f, X_f) & 0  \\
+                                              0             & 0 \\
+                              \end{bmatrix} + 
+         \sigma^2_{\epsilon}. \begin{bmatrix} I_n   &   0  \\
+                                              0     &   0  \\
+                              \end{bmatrix}
+\end{aligned}
+$$
 
-### 2.3 Model Parameters
-
-Table 5 provides a general overview of all model parameters, the notations, and corresponding parameters in the ball example.
-
-
-**Table 5:** General notation used to represent model parameters and an example of corresponding identifiers in `Phi` matrix.
-
-| **Parameter**                     | **General Notation**                               | **Ball Example**      | 
-| --------------                    | --------                                           | -------------         |
-| True field calibration inputs     | $\kappa = (\kappa_1, ... , \kappa_q)$              | (`kappa1`)            | 
-|                                   |                                                    |                       | 
-| Simulation GP scale               | $\theta_s = (\theta_{s,1}, ... , \theta_{s,p+q})$  | (`thetaS1` `thetaS2`) |  
-|                                   |                                                    |                       | 
-| Simulation GP smoothness          | $\alpha_s = (\alpha_{s,1}, ... , \alpha_{s,p+q})$  | (`alphaS1` `alphaS2`) |  
-|                                   |                                                    |                       | 
-| Bias-correction GP scale          | $\theta_b = (\theta_{b,1}, ... , \theta_{b,p})$    | (`thetaB1`)           |  
-|                                   |                                                    |                       | 
-| Bias-correction GP smoothness     | $\alpha_b = (\alpha_{b,1}, ... , \alpha_{b,p})$    | (`alphaB1`)           | 
-|                                   |                                                    |                       | 
-| Simulation marginal variance      | $\sigma^2_s$                                       | `sigma2S`             |
-|                                   |                                                    |                       | 
-| Bias-correction marginal variance | $\sigma^2_b$                                       | `sigma2B`             |
-|                                   |                                                    |                       | 
-| Measurement error variance        | $\sigma^2_{\epsilon}$                              | `sigma2E`             |  
-
-
-
-Each row of matrix `Phi` represents a draw from joint distribution of parameters (MCMC run) and each column represents a parameter in the model. User-given initial values for parameters are used to initialize the first row of the `Phi` matrix. Then, each row will be used to find another sample from joint parameter space to fill the next row of `Phi` until matrix `Phi` is complete.
-
+Note that in the following equation correlation functions are represented using matrix notation. For example, $R_s(X_s, X_s)$ represents the correlation matrix that is created using $R_s(.,.)$ between rows of $X_s$ and itself.
 
 ## 3. Parameter Estimation
 
-`FBC` employs a full Bayesian approach to jointly estimate all parameters. To find the marginal posterior density distribution for each parameter, we need prior specification for each parameter (prior knowledge) and the joint likelihood estimation (full data).
+`FBC` employs a full Bayesian approach to jointly estimate all parameters. Therefore, to find the joint posterior density distribution of all parameters, priors for all parameters must be specified and the joint likelihood must be estimated from full data.
 
 
-### 3.1 Bayesian Analysis
+### 3.1 Joint Prior Distribution:
 
+There are nine classes of parameters in the calibration model, from which at least calibration parameters (vector $\bf{\kappa}$), measurement error variance (scaler $\sigma^2_{\epsilon}$), and bias-correction GP mean (scaler $\mu_b$) are application-dependent. It is recommended for user to specify the prior arguments for these parameters based on prior knowledge or consensus [^24]. Appendix A.1 describes the full prior specification in `FBC` that is based on literature review on computer experiments and calibration models. Collectively, the priors for all model parameters $\bf{\phi}}$ is denoted by $\mathcal{P}[\bf{\phi}]$, which is the product of all parameter priors [^25].
 
-Because `FBC` uses a full Bayesian framework, expert knowledge or opinion can be applied to the model parameters as prior specification. Variety of common prior distributions are implemented in `FBC` and can be used to specify the priors for each parameter (see section 1.2). There are seven classes of parameters and all have been specified in `calibrate()` using default values. Of those
-seven classes, calibration parameters (vector $\bf{\kappa}$) and perhaps measurement error variance (scaler $\sigma^2_{\epsilon}$) are application-dependent. It is recommended for user to specify the prior arguments for these parameters based on prior knowledge or consensus. Nevertheless, prior for calibration parameters is defaulted to Beta(1.1, 1.1) distribution [^65]. It is close to standard uniform distribution (U(0, 1)) but densities approach to zero sharply as samples approach boundaries. This default choice has been made to ensure a somewhat non-informative prior while de-emphasizing on boundary values[^60]. For all other classes of parameters reasonable priors have been specified using default values. Priors for correlation scale parameters (vectors $\theta_s$ and $\theta_b$) have been set to Gamma(1.1, 0.1) distribution. Similarly, the priors for correlation smoothness parameters (vectors $\alpha_s$ and $\alpha_b$) have been set to Beta(5, 2) distribution that is shifted one unit to right to span [1, 2] as is the acceptable range for moothness parameters. This choice emphasizes higher (closer to 2 than 1) smoothness parameters. Finally, the priors for marginal simulator and  bias-correction and measurement error variances (scalers $\sigma^2_s$, $\sigma^2_b$, and $\sigma^2_{\epsilon}$) are set to be Inverse Gamma(1.5, 1.5). This emphasizes very low variances and de-emphasizes higher values.
+[^24]: *Even for these three classes of parameters, the priors has been specified in `FBC` using default values, but the user is encouraged to specify them based on their application.*
 
-[^65]: *Note that the range of Beta distribution is the span of [0, 1], which is the range of calibration inputs for simulator after scaling* </em>.
-[^60]: *Boundary values of [0, 1] corresponds to $-\infty$ and $\infty$ in the original scale of calibration parameters.* </em>.
+[^25]: *The parameters in the calibration model are considered to be independent from one another. Therefore, their joint prior is simply the product of all parameter priors.*
 
+$$
+\begin{aligned}
+\mathcal{P}[\bf{\phi}]\  &\propto \ \prod_{i=1}^q \mathcal{P}[\kappa_i]  
+                              &\text{(priors for calibration parameters)}\\ \\ 
+                         &\times \ \prod_{i=1}^{p+q} \mathcal{P}[\theta_{si}] \
+                          \times \ \prod_{i=1}^{p+q} \mathcal{P}[\alpha_{si}] \ 
+                          \times \ \mathcal{P}[\sigma_s^2] \ 
+                              &\text{(priors for} \ \eta(.) \ \text{GP)} \\ \\
+                        &\times \ \prod_{i=1}^{p} \mathcal{P}[\theta_{bi}] \
+                         \times \ \prod_{i=1}^{p} \mathcal{P}[\alpha_{bi}] \ 
+                         \times \ \mathcal{P}[\sigma_b^2] \
+                         \times \ \mathcal{P}[\mu_b]\
+                              &\text{(priors for}\ \delta_{\kappa}(.) \ \text{GP)}\\ \\
+                       &\times \ \mathcal{P}[\sigma_{\epsilon}^2] 
+                              &\text{(prior for measurement error variance)}\\ 
+\end{aligned}
+$$
 
+### 3.2 Conditional Likelihood:
 
-By representing both data in a joint calibration model, we can compute the conditional likelihood of response given a parameter vector
-(See Appendix). Therefore, given the prior specifications above, we can derive joint posterior distribution of parameters given data:
+Since the full $\bf{y}$ is modelled as a GP, by definition, the conditional likelihood of the full response given a parameter vector $\phi$ is characterized by following equation. 
+
+$$
+\mathcal{L}(\bf{y} \ | \ \bf{\phi}) = |\Sigma|^{-\frac{1}{2}} \ . \ e^{- \frac{1}{2} \ (\bf{y} - \mu). \ \Sigma^{-1}.\ (\bf{y} - \mu)^T} 
+$$
+
+Where $|\Sigma|$ and $\Sigma^{-1}$ are the determinant and inverse of the full covariance matrix. 
+
+### 3.3 Conditional Psterior Distribution of Parameters:
+
+Given the joint prior distribution of the parameters and conditional likelihood of the response, the posterior distribution of the parameters given the full response can be characterized using the following relationship.
+ 
+$$
+\mathcal{P} [\phi \ | \ \bf{y}] \ \propto \ \mathcal{L}(\bf{y} | \phi) \ .  \ \mathcal{P} [\phi]     
+$$
+
+Taking the log from both sides will decrease computational load and increase speed.
 
 
 $$
-\mathcal{P} [\phi | \mathcal{D}]      \ \propto \ L(\mathcal{D} | \phi) \ .  \ \mathcal{P} [\phi]     
+\begin{aligned}
+\log(\mathcal{P}[\bf{\phi} \ | \ \bf{y}]) \ 
+       &\propto \ \log(\mathcal{L}(\bf{y} \ | \ \bf{\phi})) \ + \ 
+              \log(\mathcal{P}[\bf{\phi}]) \\ \\
+       &= -\frac{1}{2} \log(|\Sigma|) - \frac{1}{2} (\bf{y} - \mu) . \Sigma^{-1}.(\bf{y} - \mu)^T   
+              &\text{(log liklihood given full response)} \\ \\
+       &+ \ \sum_{i=1}^q \mathcal{P}[\kappa_i]  
+              &\text{(priors for calibration parameters)}\\ \\ 
+       &+ \ \sum_{i=1}^{p+q} \mathcal{P}[\theta_{si}] + \sum_{i=1}^{p+q} 
+              \mathcal{P}[\alpha_{si}] \ + \  \mathcal{P}[\sigma_s^2] \ 
+              &\text{(priors for} \ \eta(.) \ \text{GP)} \\ \\
+       &+ \ \sum_{i=1}^{p} \mathcal{P}[\theta_{bi}] + \sum_{i=1}^{p} \mathcal{P}[\alpha_{bi}] \ + \                     \mathcal{P}[\sigma_b^2] + \mathcal{P}[\mu_b]
+              &\text{(priors for} \ \delta_{\kappa}(.) \ \text{GP)}\\ \\
+       &+ \ \mathcal{P}[\sigma_{\epsilon}^2] 
+              &\text{(prior for measurement error variance)}\\ 
+\end{aligned}
 $$
 
-Where $\mathcal{D}$ represent full data (field and simulation). However, the above formulation is intractable and thus we need a simulation-based method to sample from joint posterior distribution. `FBC` implements a version of Markov Chain Monte Carlo (MCMC) simulation.
+In order to find the unconditional posterior distribution of the parameters, above equation must be integrated. However, this equation is intractable and thus a numerical method must be employed to sample from the posterior distribution. 
 
-### 3.2 MCMC Simulation
+### 3.4 MCMC Simulation:
 
-MCMC simulation algorithm is used to draw samples from joint posterior distribution of the parameter space and build `Phi` matrix 
-row by row. MCMC algorithm creates a Markov chain by updating parameters in each iteration according to a proposal scheme. Then given this parameter vector ($\phi^{(i)}$) and data ($\mathcal{D}$), the posterior likelihood can be computed. If posterior probability density of the parameters is larger than the density of a random draw from standard uniform distribution, the algorithm keeps the that parameter configuration by writing the next row of matrix `Phi`, otherwise updates the new row by last parameter vector. In either case, the new row will be used to generate the next proposal. Note that the first row of `Phi`, which is needed to start the algorithm, is supplied by user through initial values for the parameters. The detailed algorithm is presented in the Appendix.
+The numerical method used in `FBC` is a version Markov Chain Monte Carlo (MCMC) algorithm to draw samples from the joint posterior distribution of the parameter space. In current implementation of `FBC` Metropolis-Within-Gibbs MCMC algorithm is used with adaptive proposal to build `Phi` matrix row by row. The first row of matrix `Phi` (the initial vector $\bf{\phi}$) is given by user to start the MCMC algorithm. Then, the algorithm creates a Markov chain by updating parameters in each iteration according to a proposal scheme. Next, given the updated parameter vector and data, the posterior log likelihood can be computed according to above equation. If joint posterior density is larger than the density of a random draw from standard uniform distribution, the algorithm keeps the given parameter configuration by updating the matrix `Phi` [^25], otherwise updates the `Phi` matrix by last value of that parameter [^26]. After updating the parameters one by one, either accepting or rejecting the new updates, an iteration of MCMC is complete which corresponds to a row in matrix `Phi`. The detailed MCMC algorithm is presented in the Appendix A.2.
 
+[^25]: *Assuming iteration $i$ in MCMC algorithm, the updated parameter in the current row is updated.*
 
+[^26]: *Note that MCMC algorithm starts from the second iteration and first row of `Phi` is supplied by user through initial values for the parameters. This will enable the algorithm to use the values in the previous rows.*
 
-### 3.3 Parameter Posterior Distributions
+In the end, each row of matrix `Phi` represents a draw from joint distribution of parameters and each column represents a parameter in the model. The matrix represents joint samples of the parameters and any given column represents a sample from marginal posterior distribution of the corresponding parameter, which can be used further for inference [^27] or calibrated predictions. 
 
-At the end of the MCMC run, sample of the joint posterior distribution for each parameter (a column in matrix `Phi`) can be used as an approximation of marginal posterior distribution. Center measures such as mean, mode, or median are provided as parameter estimate depending on the application and distribution shape. Furthermore, 50% and 80% credible sets are formed for each parameters to quantify the uncertainty in estimation. These statistics are provided in `summary` element in the output of `calibrate()` and additionally. (TODO: fix estimate->summary)
+[^27]: *Summary statistics of the sample of marginal distributions are provided by `FBC` to facilitate inference about a given parameter.*
 
-
-```{r parameter estimates}
-calMod$estimates
-```
-
-Alternatively, posterior density kernels can be visualized over their assumed prior to investigate the effect of data on priors for each parameter. 
-
-
-```{r plots}
-plot(calMod)
-```
-
-
-## 4. Prediction
+## 4. Calibrated Prediction
 
 As mentioned earlier, building a calibration model results in a `fbc` object, which contains matrix `Phi` as a MCMC-based sample from joint posterior distribution of all parameters of the model. This sample can be used to to predict the physical response, simulator response, and bias for new input configurations. in `FBC`, two methods have been implemented for prediction. In the first method `Bayesian`, which is the default value of `method` argument in `predict()` function, all joint samples (all rows of matrix `Phi`) are used to form a sample distribution for the new input configuration. Using the distribution, a point prediction is made along with the uncertainty associated with it. In the second method "MAP", the row of matrix `Phi` that results in maximum posterior log likelihood, is chosen to form the point prediction.
 
@@ -638,28 +631,18 @@ E(y_f(\bf{x_f}^*) | \phi) = \mu_b + \begin{bmatrix}
 $$
 
 
-$$
-\begin{aligned}
-\bf{y} \  &=
- = 
-(y_1, \ ... \ , \ y_{n+m})^T
-\ \ &\text{(joint vector of responses)}  \\ \\
-\bf{X}   &=
-\begin{bmatrix}
-\bf{X_{\kappa}}  \\
-\bf{X_s} \\
-\end{bmatrix} =
-\begin{bmatrix}
-\bf{x_1} \ \bf{x_2}  \ ... \ \bf{x_{p+q}} \\
-\end{bmatrix}
-\ \ &\text{(joint input matrix)}  \\ \\
-\bf{x_i} &= (x_1, x_2, ..., x_{n+m}) \ \ \ \ \forall i \in \{1, 2, ..., p+q\} \ 
-\end{aligned}
-$$
+
 ### 4.3 MAP Method
 
 ## 5. Implementation
 
+### 5.1 Metropolis-Within-Gibbs Algorithm Imlementation
+
+### 5.2 Adaptive Proposal
+
+Furthermore, input matrix is scaled according to mean and standard deviation of
+columns of the input matrix (consisting of experimental and calibration values)
+such that $X_s$ columns span $[0, 1]$.
 
 ## 6. Application
 
@@ -669,10 +652,6 @@ $$
 
 ### 6.3 Spot Weld Example:
 
-##### Description:
-
-##### Experimental Input:
-
 The physical model has three inputs: gauge ($G$), load ($L$), and current ($C$):
 
 - Gauge ($G$):
@@ -680,16 +659,12 @@ The physical model has three inputs: gauge ($G$), load ($L$), and current ($C$):
 - Current ($C$):
 
 
-##### Calibration Input:
-
 The simulation model has one additional input, $\tau$ that affects the amount of
 heat produced in the metal sheets. $\tau$ cannot be controlled in the physical
 experiment and its value is unknown. However it has to be specified for the 
 simulation model as calibration input $t$:
 
 - Heat generation factor $\tau$: Factor affecting amount of heat produced
-
-##### Mapping Parameters:
 
 To map the spot weld data (both field and simulation data) and parameters to 
 `FBC` input configuration, we use the dagger $\dagger$ superscript to distinguish process
@@ -705,13 +680,24 @@ $$
 $$
 
 
-
 ### 6.4 Kinetic Example
 
 
 ## Appendix
 
-### A.1 MCMC Algorithm:
+### A.1 Prior Specification in `FBC`:
+
+Nevertheless, prior for calibration parameters is defaulted to Beta(1.1, 1.1) distribution [^65]. It is close to standard uniform distribution (U(0, 1)) but densities approach to zero sharply as samples approach boundaries. This default choice has been made to ensure a somewhat non-informative prior while de-emphasizing on boundary values[^60]. For all other classes of parameters reasonable priors have been specified using default values. Priors for correlation scale parameters (vectors $\theta_s$ and $\theta_b$) have been set to Gamma(1.1, 0.1) distribution. Similarly, the priors for correlation smoothness parameters (vectors $\alpha_s$ and $\alpha_b$) have been set to Beta(5, 2) distribution that is shifted one unit to right to span [1, 2] as is the acceptable range for moothness parameters. This choice emphasizes higher (closer to 2 than 1) smoothness parameters. Finally, the priors for marginal simulator and  bias-correction and measurement error variances (scalers $\sigma^2_s$, $\sigma^2_b$, and $\sigma^2_{\epsilon}$) are set to be Inverse Gamma(1.5, 1.5). This emphasizes very low variances and de-emphasizes higher values.
+
+[^65]: *Note that the range of Beta distribution is the span of [0, 1], which is the range of calibration inputs for simulator after scaling* </em>.
+[^60]: *Boundary values of [0, 1] corresponds to $-\infty$ and $\infty$ in the original scale of calibration parameters.* </em>.
+
+For calibration parameters, often non-informative uniform prior is used over 
+wide but finite domain, unless expert opinion is available in the form of prior
+distributions. An alternative choice can be a regularizing prior that prevent 
+from over-concentration of posterior density on boundaries of domain.
+
+### A.2 MCMC Algorithm:
 
 \rule{\linewidth}{1pt}
 $$\textbf{Implementation of Metropolis within Gibbs algorithm}$$
@@ -791,303 +777,10 @@ quantification (credible interval).
 \rule{\linewidth}{2pt}
 
 
-### A.2 Bayesian Analysis:
-
-In the Bayesian framework, the joint probability distribution of all parameters
-and hyperparameters of the calibration model given data 
-($\mathcal{P}[\phi|\text{y}]$) can be derived:
-
-$$
-\begin{aligned}
-L(\text{y} | \phi)                   &=       \ |C|^{-\frac{1}{2}} \ . \ e^{- \frac{1}{2} \text{y}. C^{-1}.\text{y}^T} \\ \\
-\mathcal{P} [\phi | \text{y}]      \ &\propto \ L(\text{y} | \phi) \ .  \ \mathcal{P} [\phi]                         \\ \\
-\end{aligned}
-$$
-
-Taking the log from both sides will decrease computational load and increase speed:
-
-
-$$
-\begin{aligned}
-\ln(L(\text{y} | \phi))             &= -\frac{1}{2} \ln(|C|) - \frac{1}{2} \text{y}. C^{-1}.\text{y}^T \\ \\
-\ln(\mathcal{P}[\phi | \text{y}])\  &\propto   \ln(L(\text{y} | \phi)) + \ln(\mathcal{P}[\phi) \\ \\
-&= -\frac{1}{2} \ln(|C|) - \frac{1}{2} \text{y}. C^{-1}.\text{y}^T   &\text{(log liklihood given full data: X, y)} \\ \\
-&+ \ \sum_{i=1}^q \mathcal{P}[\kappa_i]  &\text{(priors for calibration parameters)}\\ \\ 
-&+ \ \sum_{i=1}^{p+q} \mathcal{P}[\theta_{si}] + \sum_{i=1}^{p+q} \mathcal{P}[\alpha_{si}] \ + \ \mathcal{P}[\sigma_s^2] \ &\text{(priors for} \ \eta(.) \ \text{hyperparameters)} \\ \\
-&+ \ \sum_{i=1}^{p} \mathcal{P}[\theta_{bi}] + \sum_{i=1}^{p} \mathcal{P}[\alpha_{bi}] \ + \ \mathcal{P}[\sigma_b^2] &\text{(priors for} \ \delta_{\kappa}(.) \ \text{hyperparameters)}\\ \\
-&+ \ \mathcal{P}[\sigma_{\epsilon}^2] &\text{(prior for measurement error variance)}\\ 
-\end{aligned}
-$$
-
-Above equation is intractable and thus a simulation-based method must be used to
-sample from posterior distribution. `FBC` implements a version Markov Chain 
-Monte Carlo (MCMC) simulation. 
-
-
-### Full Model
-
-KOH model combines simulation and field data to form a joint model
-using joint dataset:
-
-
-
-$$
-\begin{aligned}
-\bf{y} \  &=
-\begin{bmatrix}
-\bf{y}_f  \\
-\bf{y}_s \\ 
-\end{bmatrix} = 
-(y_1, \ ... \ , \ y_{n+m})^T
-\ \ &\text{(joint vector of responses)}  \\ \\
-\bf{X}   &=
-\begin{bmatrix}
-\bf{X_{\kappa}}  \\
-\bf{X_s} \\
-\end{bmatrix} =
-\begin{bmatrix}
-\bf{x_1} \ \bf{x_2}  \ ... \ \bf{x_{p+q}} \\
-\end{bmatrix}
-\ \ &\text{(joint input matrix)}  \\ \\
-\bf{x_i} &= (x_1, x_2, ..., x_{n+m}) \ \ \ \ \forall i \in \{1, 2, ..., p+q\} \ 
-\end{aligned}
-$$
-
-
-Since $\bf{X_f}$ is a sub-matrix of $\bf{X}$, we can represent the functional
-relationship between input and response for full model with $\zeta(.)$, which
-is considered to be realization of a random function and derived from $\eta(.)$
-and $\delta_{\kappa}(.)$:
-
-$$
-\bf{y} \  = \zeta(\bf{X}) 
-$$
-
-
-
-Because both $\eta(.)$ and $\delta_{\kappa}(.)$ are GPs, $\zeta(.)$ can also be
-considered a zero mean GP:
-
-$$
-\zeta(.) \sim GP \ (0, \ C(., .))
-$$
-
-Where covariance matrix $C$ is dependent to full input matrix $\bf{X}$ and 
-hyperparameters of $\eta(.)$ and $\delta_{\kappa}(.)$, which in turn are 
-dependent to model hyperparameters.
-
-
-Using matrix notation, input/output relationship of both experiments is 
-presented below in matrix notation. This relations can be used to derive a 
-relationship for joint data:
-
-$$
-\text{y} \  = \zeta(X) = \eta(X) + 
-\begin{bmatrix}
-\delta_{\kappa}(X_f) +\mathcal{E} & 0 \\
-0 & 0  \\
-\end{bmatrix} \\ \\
-$$
-
-Since $X_f$ is a subset of matrix $X$, the joint response $\text{y}$ can be 
-modeled as a random function $\zeta(X)$. In the ball example, the full input 
-matrix $X$ is a $(163 \times 2)$ matrix by stacking $X_{\kappa}$ on $X_s$ Note 
-that since $\kappa$ is unknown, the initial value `c0` is used internally to 
-build $X_{\kappa}$.
-
-
-
-
-
-
-Where, $C_{\eta}$ and $C_{\delta}$ are covariance matrices of full input matrix 
-$X$ and original field input matrix $X_f$. And $C$ is characterized as:
-
-
-$$
-\begin{aligned}
-C(X, X) &=  C_{\eta}(X, X) + 
-\begin{bmatrix} 
-C_{\delta}(X_f, X_f) + \sigma^2_{\epsilon}.I_n   &   0  \\
-0                               &   0 \\
-\end{bmatrix} \\ \\ 
-&= 
-\begin{bmatrix} 
-C_{\eta}(X_f, X_f) + C_{\delta} + \sigma^2_{\epsilon}.I_n & C_{\eta}(X_s, X_f)  \\ 
-C_{\eta}(X_f, X_s)                                & C_{\eta}(X_s, X_s)  \\
-\end{bmatrix}
-\end{aligned}
-$$
-
-Note that $C_s$ covariance matrix of the full data $X$ is further divided to
-components $C_{\eta}(X_f, X_f)$, $C_{\eta}(X_s, X_f)$, $C_{\eta}(X_f, X_s)$, and
-$C_{\eta}(X_s, X_s)$ to optimize the computation. 
-
-
-
 ## References
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
 
 
 McKay, M.D.; Beckman, R.J.; Conover, W.J. (May 1979). "A Comparison of Three Methods for Selecting Values of Input Variables in the Analysis of Output from a Computer Code". Technometrics. American Statistical Association. 21 (2): 239–245. doi:10.2307/1268522. ISSN 0040-1706. JSTOR 1268522. OSTI 5236110.
-
-
-
-
-
-
-
-### KOH Calibration Model
-
-Kennedy and O'Hagan (KOH) proposed a Bayesian calibration model to integrate the 
-information from field observations, $y_f$, (and its corresponding matrix of 
-experimental input, $X_f$) and computer simulation, $y_s$ (and its corresponding 
-matrix of experimental/calibration input, $X_s$). Often, in computer simulation
-there are extra parameters that are either are unkwon in the field setting or
-are tuning parameters specific to simulation without physical interpretation. 
-These inputs are calibration parameters and tuning them for the computer model is
-one of the main objective of calibration. 
-
-Moreover, KOH assumes both field and simulation results are realization of real 
-process, $Y$, while admitting to a systemic bias in simulation models, and 
-measurement error in the form of independent zero-mean Gaussian error terms with
-variance $\sigma^2_{\epsilon}$.:  
-
-
-$$
-\begin{eqnarray}
-Y|_{X_f} : y(x) &=& y_f(x_f) +  \epsilon \ \ &, \text{where} \ x_f: 1 \times p \ \text{vector of experimental inputs} \\
-Y|_{X_s} : y(x) &=& y_s(x_s) + y_b(x_b) + \epsilon \ \ &, \ \text{where} \ x_s: 1 \times p+q \ \text{vector of experimental + calibration inputs}
-\end{eqnarray}
-$$
-
-In this formulation, $x_f$ is in fact $1 \times p+q$ vector, similar to $x_s$, 
-because it is realization of the same real process. However, calibration 
-parameters are set (fixed or variable) at their best value but their value is 
-not known. Since all field observation have the same calibration parameters,
-they are removed from notation. The current text uses $(1 \times p+q)$ vector 
-$x_s$ for simulation input, $(1 \times p+q)$ vector $x_f$ for field data 
-augmented with calibration parameters (at their current updated value and same 
-for all field observations), and $(1 \times p)$ vector $x_b$ for field data 
-without augmenting calibration parameters. The subscript $b$ is chosen to 
-indicate that it is only input to bias term. Stacking the two data, we can write
-the KOH calibration model in a single expression:
-
-$$
-Y|_{X} : y(x) = y_s(x) + y_b(x) + \epsilon \ \ , \ \text{where} \ x: 1 \times p+q \ \text{vector of experimental + calibration inputs}
-$$
-
-this formulation, emphasizes that model has systemic bias, even under best 
-calibration parameters. However, KOH postulates that reasonable correction can
-be made through $y_b(.)$ 
-
-Above specification leads to three unknowns: calibration parameters (denoted by
-$\kappa$), variance of measurement error ($\sigma^2_{\epsilon}$) and functional
-form of bias correction term (denoted by $y_b(.)$ noting that the actual bias is
-$-y_b(.)$). Moreover, KOH assumes a Gaussian Process (GP) for both simulation
-term (often the simulation is also expensive leading to limited runs. Fitting a 
-GP as a surrogate to couble bias-correction GP) and bias-correction term, which 
-introduces new hyper-parameters to the model. 
-
-Specifically, assuming a generalized correlation structure such as power 
-exponential correlation family, the scale (denoted by $\theta_s$ and $\theta_b$),
-smoothness (denoted by $\alpha_s$ and $\alpha_b$), and their marginal variance
-(denoted by $\sigma_s^2$ and $\sigma_b^2$) are added to the model. 
-
-$$
-\Omega = (Y_s(.), \Delta_b(.), \kappa, \sigma_{\epsilon}^2 ) = (\kappa, \theta_s, \alpha_s, \sigma_s^2, \theta_b, \alpha_b, \sigma^2_b, \sigma_{\epsilon}^2)
-$$
-
-After loading of the data (either toy data or user data), the combined 
-observation vector is scaled by mean and standard deviation of simulation runs 
-such that $y_s$ terms have mean zero and standard deviation of 1 after scaling.
-Furthermore, input matrix is scaled according to mean and standard deviation of
-columns of the input matrix (consisting of experimental and calibration values)
-such that $X_s$ columns span $[0, 1]$. These scaling removes the need for 
-parametrization of the mean of the GPs as they will be considered zero. 
-Following the results from Chen et al. (2016), the fitting a linear regression
-model does not necessarily improve the performance as the GP models are flexible.
-Therefore current package does not consider fitting regression model on the mean
-GPs.
-
-### Bayesian Inference
-
-The framework of KOH model is Bayesian. Prior information and restrictions about
-model parameters and hyperparameters can be specified through informative or
-non-informative priors. 
-
-For calibration parameters, often non-informative uniform prior is used over 
-wide but finite domain, unless expert opinion is available in the form of prior
-distributions. An alternative choice can be a regularizing prior that prevent 
-from over-concentration of posterior density on boundaries of domain.
-
-... other pror specification
-
-The likelihood for posterior density is in following form along with its log 
-form (where both sides are log transformed for computational efficiency):
-
-
-$$
-\begin{align}
-&L(\Omega \mid Y) = 
-\end{align}
-$$
-where augmented covariance matrix is given by:
-
-$$
-\Sigma \mid \Omega = 
-$$
-
-This expression is interactable and must be solved through optimization methods
-or it can be used to sample from its joint posterior.
-
-
-### Monte Carlo Markov Chain Sampling
-
-### Metropolis-Within-Gibbs Algorithm Imlementation
-
-### Adaptive Proposal
-
-### Parameter Estimation
-
-### Prediction
-
-### Toy Example
-
-##### Data
-
-##### Model
-
-##### MCMC Runs
-
-##### Parameter Estimation
-
-##### Prediction
-
-##### Diagnostics
-
-### Future Development
-
-### Consclusion
-
-
-
-
-
-
-(denoted by $\alpha$) and marginal variance
-
-
-
-
-
-
-
-
-
-
 
 
 
