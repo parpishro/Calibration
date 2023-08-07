@@ -95,11 +95,11 @@
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 #' @export
-calibrate <- function(sim, field,                                                       # Data
-                      nMCMC  = 2200, nBurn = 200, thinning = 20,                        # MCMC
-                      kappaDist = "beta", kappaInit = NA, kappaP1 = 1.1, kappaP2 = 1.1, # Priors
-                      hypers = set_hyperPriors(),
-                      showProgress = FALSE) {                  # Hyperparameter Priors
+calibrate <- function(sim, field,                                                      # Data
+                      nMCMC  = 2200, nBurn = 200, thinning = 20,                       # MCMC
+                      kappaDist = "uniform", kappaInit = NA, kappaP1 = 0, kappaP2 = 1, # Priors
+                      hypers = set_hyperPriors(),                       # Hyperparameter Priors
+                      showProgress = FALSE) {
   stopifnot((is.matrix(sim) || is.data.frame(sim)),
             (is.matrix(field) || is.data.frame(field)),
             ncol(sim) > 1, ncol(field) > 0)

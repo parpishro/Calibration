@@ -10,10 +10,10 @@ calibrate(
   nMCMC = 2200,
   nBurn = 200,
   thinning = 20,
-  kappaDist = "beta",
+  kappaDist = "uniform",
   kappaInit = NA,
-  kappaP1 = 1.1,
-  kappaP2 = 1.1,
+  kappaP1 = 0,
+  kappaP2 = 1,
   hypers = set_hyperPriors(),
   showProgress = FALSE
 )
