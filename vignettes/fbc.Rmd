@@ -753,6 +753,11 @@ $$
 
 ## 5. Implementation
 
+- Updating correlation matrices
+- Computing Cholesky decomposition
+- Computing posterior density
+- Only changing parts are updated
+
 ### 5.1 Metropolis-Within-Gibbs Algorithm Imlementation
 
 ### 5.2 Adaptive Proposal
