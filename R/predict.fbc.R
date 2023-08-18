@@ -22,8 +22,6 @@
 #' @export
 predict.fbc <- function(object, newdata, method = "Bayesian", ...) {
   Phi                 <- object$Phi
-  estimates           <- object$estimates
-  priorFns            <- object$priorFns
   indices             <- object$indices
   scale               <- object$scale
 

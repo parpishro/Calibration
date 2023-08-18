@@ -26,7 +26,7 @@ plot.fbc <- function(x, parameter = "kappa", type = "density", xlab = NULL, ...)
   obj       <- x
   Phi       <- obj$Phi
   estimates <- obj$estimates
-  priorFns  <- obj$priorFns
+  priorFns  <- obj$priors$fun
   indices   <- obj$indices
   scale     <- obj$scale
   ind       <- indices[paste0("i", parameter)][[1]]
@@ -59,7 +59,7 @@ plot.fbc <- function(x, parameter = "kappa", type = "density", xlab = NULL, ...)
       posX     <- density(Phi[ ,label], from = min(prX), to = max(prX))$x
       posY     <- density(Phi[ ,label], from = min(prX), to = max(prX))$y
       xlimit   <- c(min(c(prX, posX)), max(c(prX, posX))) * c(0.95, 1.05)
-      ylimit   <- c(0, min(max(c(prY, posY)), 100)) * 1.2
+      ylimit   <- c(0, min(max(c(prY, posY)), 100)) * 1.1
       pMode    <- estimates[label, 'mode']
       plot(posX, posY,
            main = "Density Plot", xlab = label, ylab = "density", xlim = xlimit, ylim = ylimit,
