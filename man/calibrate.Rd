@@ -7,13 +7,12 @@
 calibrate(
   sim,
   field,
-  nMCMC = 2200,
-  nBurn = 200,
-  thinning = 20,
-  kappaDist = "uniform",
-  kappaInit = NA,
-  kappaP1 = 0,
-  kappaP2 = 1,
+  nMCMC = 1100,
+  nBurn = 100,
+  thinning = 10,
+  kappaDist = "beta",
+  kappaP1 = 1.1,
+  kappaP2 = 1.1,
   hypers = set_hyperPriors(),
   showProgress = FALSE
 )
@@ -42,10 +41,6 @@ auto-correlation.
 \item{kappaDist}{string (vector of strings) to specify the prior distribution type(s) for
 calibration parameters.}
 
-\item{kappaInit}{double (vector of doubles) that represent initial value(s) of calibration
-parameters to start the MCMC. The default(NA) automates choosing initial value
-for calibration parameters based on their range in simulation}
-
 \item{kappaP1}{double (vector of doubles) representing the first parameter(s) of the chosen
 distribution(s)}
 
@@ -55,7 +50,7 @@ distribution(s)}
 \item{hypers}{nested list containing the priors and initial values for all
 hyperparameters. The notation for the list members are explained
 below. Each member contains four fields (similar to \code{kappa}): the
-distribution type (\code{dist}), the initial value (\code{init}), first
+distribution type (\code{dist}), first
 distribution parameter (\code{p1}), and second distribution parameter
 (\code{p2}). The default is a call to \code{set_hyperPriors()} without
 argument to build the nested list. All arguments of
@@ -79,7 +74,7 @@ approximates the marginal distribution of that parameter.
 their uncertainty
 \item logPost:        a numeric vector of same length as Phi rows representing the log of
 posterior likelihood
-\item priors:         prior specifications of all parameters
+\item priorFamilies:  prior specifications of all parameters
 \item acceptance:     acceptance rate of MH MCMC algorithm
 \item vars:           name of all parameters (based on below notation)
 \item cache:          an environment containing original datasets and indexing variables
@@ -89,20 +84,20 @@ that is used in \code{predict()} function.
 \description{
 \code{calibrate} uses a Bayesian framework to estimate the posterior density distribution of
 calibration model parameters. It takes in simulator data, and field data, and parameter
-priors as arguments, and forms a numeric joint distribution of all parameters as output.
+prior specifications as arguments, and forms a numeric joint distribution of all parameters as
+output.
 }
 \details{
-Both simulation and field data are required to be dataframe or matrix. The first column
-in both datasets is the response. In field data rest of columns are experimental inputs
-and in simulation data there are additional columns at the end that represent
-calibration inputs.
+Both simulation and field data are required to be dataframe or matrix. The first column in both
+datasets is the response. In field data rest of columns are experimental inputs and in simulation
+data there are additional columns at the end that represent calibration inputs.
 
-Posterior distribution of a parameters often do not correspond to well-known
-distributions. A MCMC algorithm, and especially Metropolis-Hastings (MH)
-algorithm with adaptive proposal is used to draw from joint posterior distribution of
-parameters. The full Bayesian approach of \code{calibrate} enables both point estimates and
-inference about the uncertainty in parameter estimates. More information about
-calibration model and package functionality can be found in package vignette.
+Posterior distribution of a parameters often do not correspond to a well-known distributions. A
+version of MCMC algorithm, called Metropolis-Within-Gibbs algorithm, with adaptive proposal is
+used to draw from joint posterior distribution of parameters. The full Bayesian approach of
+\code{calibrate} provides a measure of uncertainty quantification as well as point estimates for the
+parameters. More information about calibration model and package functionality can be found in
+package vignette.
 \subsection{Notation}{
 
 parameters of FBC model include all of calibration parameters and will be
@@ -120,9 +115,9 @@ inputs (determined internally by subtracting the number of columns in \code{sim}
 }
 }
 \examples{
-cal1    <- calibrate(sim = Ds1, field = Df1,
+cal1    <- calibrate(sim = analytic11S, field = analytic11F,
                      nMCMC = 5, nBurn = 0, thinning = 1,
-                     kappaDist = "gaussian", kappaInit = 0.5, kappaP1 = 0.5, kappaP2 = 0.25)
+                     kappaDist = "normalTr", kappaP1 = 0.5, kappaP2 = 0.25)
 summary(cal1)
 
 cal2    <- calibrate(sim = Ds2, field = Df2, nMCMC = 20, nBurn = 0, thinning = 1)
