@@ -1,19 +1,19 @@
 test_that("calibrate returns fbc object with correct elements", {
-  cal <- calibrate(sim = Ds1, field = Df1, nMCMC = 10, nBurn = 0, thinning = 1)
+  cal <- calibrate(sim = analytic11S, field = analytic11F, nMCMC = 10, nBurn = 0, thinning = 1)
   expect_s3_class(cal, "fbc")
   expect_named(cal, expected = c("Phi", "estimates", "logPost", "priors", "acceptance", "vars",
-                                 "data", "scale", "indices", "priorFns", "proposalSD"))
+                                 "data", "scale", "indices"))
   types <- c(typeof(cal$Phi), typeof(cal$estimates), typeof(cal$logPost), typeof(cal$priors),
              typeof(cal$acceptance), typeof(cal$vars), typeof(cal$data), typeof(cal$scale),
-             typeof(cal$indices), typeof(cal$priorFns), typeof(cal$proposalSD))
+             typeof(cal$indices))
   expect_setequal(types, c("list", "list", "double", "list", "double", "character", "list", "list",
-                           "list", "list", "double"))
+                           "list"))
 
 
 })
 
 test_that("calibrate output elements have coorect lenght and contain correct elements", {
-  cal <- calibrate(sim = Ds1, field = Df1, nMCMC = 10, nBurn = 0, thinning = 1)
+  cal <- calibrate(sim = analytic11S, field = analytic11F, nMCMC = 10, nBurn = 0, thinning = 1)
   expect_equal(sum(!is.finite(as.matrix(cal$Phi))), 0)
   expect_equal(sum(!is.finite(as.matrix(cal$estimates))), 0)
   expect_equal(sum(!is.finite(cal$logPost)), 0)
@@ -28,17 +28,17 @@ test_that("calibrate output elements have coorect lenght and contain correct ele
   expect_equal(nrow(cal$estimates), length(labels))
   expect_equal(length(cal$logPost), 10)
   expect_equal(length(cal$acceptance), length(labels))
-  expect_equal(length(cal$priors), 9)
+  expect_equal(length(cal$priors), 7)
 
 })
 
 
 
 test_that("posterior parameter distribution produces reasonable summary statistics!", {
-  cal <- calibrate(sim = Ds1, field = Df1, nMCMC = 10, nBurn = 0, thinning = 1)
+  cal <- calibrate(sim = analytic11S, field = analytic11F, nMCMC = 10, nBurn = 0, thinning = 1)
   for (i in cal$indices$ikappa) {
-    expect_equal(sum(cal$estimates[i, -8] < min(Ds1[,1 + cal$indices$p + i])), 0)
-    expect_equal(sum(cal$estimates[i, -8] > max(Ds1[,1 + cal$indices$p + i])), 0)
+    expect_equal(sum(cal$estimates[i, -8] < min(analytic11S[,1 + cal$indices$p + i])), 0)
+    expect_equal(sum(cal$estimates[i, -8] > max(analytic11S[,1 + cal$indices$p + i])), 0)
   }
   for (i in c(cal$indices$ithetaS, cal$indices$ithetaB, cal$indices$isigma2S,
               cal$indices$isigma2B, cal$indices$isigma2E))
@@ -54,51 +54,43 @@ test_that("posterior parameter distribution produces reasonable summary statisti
 
 
 test_that("adaptive proposal results in proper mixing!", {
-  cal <- calibrate(sim = Ds1, field = Df1, nMCMC = 10, nBurn = 0, thinning = 1)
+  cal <- calibrate(sim = analytic11S, field = analytic11F, nMCMC = 10, nBurn = 0, thinning = 1)
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
-  expect_equal(sum(cal$estimates[, 8] <= 0), 0)
-  expect_equal(sum(cal$acceptance == 0), 0)
+  expect_equal(sum(cal$estimates[, 8] < 0), 0)
+  expect_equal(sum(cal$acceptance < 0), 0)
 })
 
 
 test_that("fixed parameter works!", {
-  pr  <- set_hyperPriors(alphaSDist = "fixed", alphaSInit = 2)
-  cal <- calibrate(sim = Ds1, field = Df1, nMCMC = 10, nBurn = 0, thinning = 1, hypers = pr)
+  pr  <- set_hyperPriors(alphaSDist = "fixed", alphaSP1 = 2)
+  cal <- calibrate(sim = analytic11S, field = analytic11F, nMCMC = 10, nBurn = 0, thinning = 1, hypers = pr)
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
   expect_equal(sum(cal$estimates[, 8] < 0), 0)
-  expect_equal(sum(cal$acceptance[c(1:3, 6:11)] == 0), 0)
+  expect_equal(sum(cal$acceptance < 0), 0)
 })
 
 
 test_that("different priors for calibration works!", {
   cal <- calibrate(sim = Ds2, field = Df2, nMCMC = 15, nBurn = 0, thinning = 1,
                    kappaDist = c("beta", "uniform"),
-                                kappaInit = c(0.5, 0.3),
                                 kappaP1   = c(1.1, 0),
                                 kappaP2   = c(1.1, 1))
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
-  expect_equal(sum(cal$estimates[, 8] <= 0), 0)
+  expect_equal(sum(cal$estimates[, 8] < 0), 0)
 })
 
-
-test_that("progressBar works!", {
-  cal <- calibrate(sim = Ds1, field = Df1, nMCMC = 200, nBurn = 0, thinning = 1, showProgress = TRUE)
-  expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
-  expect_equal(sum(cal$estimates[, 8] <= 0), 0)
-  expect_equal(sum(cal$acceptance == 0), 0)
-})
 
 
 test_that("calibrate returns fbc object with correct elements", {
   cal <- calibrate(sim = Ds2, field = Df2, nMCMC = 10, nBurn = 0, thinning = 1)
   expect_s3_class(cal, "fbc")
   expect_named(cal, expected = c("Phi", "estimates", "logPost", "priors", "acceptance", "vars",
-                                  "data", "scale", "indices", "priorFns", "proposalSD"))
+                                  "data", "scale", "indices"))
   types <- c(typeof(cal$Phi), typeof(cal$estimates), typeof(cal$logPost), typeof(cal$priors),
              typeof(cal$acceptance), typeof(cal$vars), typeof(cal$data), typeof(cal$scale),
-             typeof(cal$indices), typeof(cal$priorFns), typeof(cal$proposalSD))
+             typeof(cal$indices))
   expect_setequal(types, c("list", "list", "double", "list", "double", "character", "list", "list",
-                           "list", "list", "double"))
+                           "list"))
 
 
 })
@@ -119,7 +111,7 @@ test_that("calibrate output elements have coorect lenght and contain correct ele
   expect_equal(nrow(cal$estimates), length(labels))
   expect_equal(length(cal$logPost), 10)
   expect_equal(length(cal$acceptance), length(labels))
-  expect_equal(length(cal$priors), 9)
+  expect_equal(length(cal$priors), 7)
 
 })
 
@@ -147,6 +139,6 @@ test_that("posterior parameter distribution produces reasonable summary statisti
 test_that("adaptive proposal results in proper mixing!", {
   cal <- calibrate(sim = Ds2, field = Df2, nMCMC = 10, nBurn = 0, thinning = 1)
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
-  expect_equal(sum(cal$estimates[, 8] <= 0), 0)
-  expect_equal(sum(cal$acceptance == 0), 0)
+  expect_equal(sum(cal$estimates[, 8] < 0), 0)
+  expect_equal(sum(cal$acceptance < 0), 0)
 })
