@@ -237,7 +237,7 @@ reasonable default values for ball example [^6].
 ``` r
 calMod <- calibrate(sim = ballSim, field = ballField,                                 # Data 
                     nMCMC = 11000, nBurn = 1000, thinning = 50,                       # MCMC
-                    kappaDist = "beta", kappaInit = NA, kappaP1 = 1.1, kappaP2 = 1.1, # Priors
+                    kappaDist = "beta", kappaP1 = 1.1, kappaP2 = 1.1, # Priors
                     hypers = set_hyperPriors(),
                     showProgress = FALSE) 
 ```
@@ -296,16 +296,15 @@ For each class of parameters, there are four associated arguments. 1)
 distribution type, which is a character string determining the prior
 distribution family (suffixed with “dist” in argument names). Currently,
 `FBC` supports almost all common distributions and can be chosen from
-“uniform”, “gaussian”, “gamma”, “beta”, “lognormal”, “logistic”,
-“betashift”, “exponential”, “inversegamma”, “jeffreys”, and “fixed”
-[^7]. 2) Initial value, which is double representing starting point of
-the parameter in MCMC algorithm (suffixed with “init” in argument
-names). 3) First distribution parameter (suffixed with “p1” in argument
-names) and 4) second distribution parameter (suffixed with “p2” in
-argument names) are doubles representing the two parameters of the
-chosen distribution [^8], [^9]. Table 1 summarizes all classes of
-parameters along with their corresponding argument names for prior
-specifications.
+“uniform”, “normal”, “normalTr”, “lognormal”, “gamma”, “inversegamma”,
+“beta”, “betashift”, “logbeta”, “logistic”,“exponential”, “fixed” [^7].
+2) Initial value, which is double representing starting point of the
+parameter in MCMC algorithm . 3) First distribution parameter (suffixed
+with “p1” in argument names) and 4) second distribution parameter
+(suffixed with “p2” in argument names) are doubles representing the two
+parameters of the chosen distribution [^8], [^9]. Table 1 summarizes all
+classes of parameters along with their corresponding argument names for
+prior specifications.
 
 **Table 1:** *Argument names to specify priors for each parameter
 class.*
@@ -361,9 +360,8 @@ the a `fbc` object is displayed.
 names(calMod)
 ```
 
-    ##  [1] "Phi"        "estimates"  "logPost"    "priors"     "acceptance"
-    ##  [6] "vars"       "data"       "scale"      "indices"    "priorFns"  
-    ## [11] "proposalSD"
+    ## [1] "Phi"        "estimates"  "logPost"    "priors"     "acceptance"
+    ## [6] "vars"       "data"       "scale"      "indices"
 
 The first and main component of the `calMod` is matrix `Phi` whose
 columns represent the sample of posterior densities for each unknown
@@ -383,13 +381,13 @@ head(calMod$Phi, 3)
 ```
 
     ##   kappa1 thetaS1 thetaS2 alphaS1 alphaS2 thetaB1 alphaB1 sigma2S sigma2B
-    ## 1   6.16    5.14    0.69    1.94    1.84    0.68    1.90    0.09    0.30
-    ## 2   8.72    4.92    1.04    1.94    1.97    0.17    1.81    0.09    0.66
-    ## 3  13.70    4.35    0.76    1.90    1.93    0.43    1.79    0.10    0.44
-    ##   sigma2E   muB
-    ## 1    0.09 -0.35
-    ## 2    0.09  0.24
-    ## 3    0.08  0.15
+    ## 1 0.5783  0.6744  0.1233  1.9794  1.9607  0.6394  1.6308  3.2139  0.1689
+    ## 2 0.1822  0.6744  0.1160  1.9826  1.9743  0.6493  1.5982  4.1193  0.1662
+    ## 3 0.3921  1.0425  0.1449  1.9851  1.9850  0.9704  1.5978  2.8183  0.1150
+    ##   sigma2E     muB
+    ## 1  0.0985 -0.2902
+    ## 2  0.0984  0.9832
+    ## 3  0.0984  0.2554
 
 Table 2 provides an overview of the model parameters and the notation to
 represent them in ball example. Later sections will explain in detail
@@ -465,20 +463,20 @@ predsMAP
 ```
 
     ## $pred
-    ## [1] 0.6922523 0.7301342
+    ## [1] 0.6968523 0.7319061
     ## 
     ## $se
-    ## [1] 0.077 0.077
+    ## [1] 0.0801 0.0801
 
 ``` r
 predsBayes
 ```
 
     ## $pred
-    ## [1] 0.695 0.733
+    ## [1] 0.697 0.732
     ## 
     ## $se
-    ## [1] 0.071 0.071
+    ## [1] 0.0746 0.0746
 
 In “Bayesian” method, which is the default value of `method` argument,
 MCMC draws of calibration model parameters are used to form a
@@ -532,18 +530,18 @@ calModSum <- summary(calMod)
 print(calMod)
 ```
 
-    ##           mean median   mode  lwr50  upr50  lwr80  upr80    sd
-    ## kappa1   9.118  8.594  7.221  7.521 10.233  6.914 12.316 1.995
-    ## thetaS1  4.120  4.044  3.728  3.545  4.576  3.049  5.223 0.837
-    ## thetaS2  0.741  0.710  0.610  0.599  0.839  0.510  1.017 0.210
-    ## alphaS1  1.896  1.906  1.921  1.865  1.927  1.837  1.946 0.046
-    ## alphaS2  1.862  1.862  1.817  1.817  1.911  1.780  1.946 0.065
-    ## thetaB1  0.601  0.520  0.196  0.287  0.791  0.170  1.190 0.418
-    ## alphaB1  1.793  1.824  1.772  1.719  1.905  1.572  1.961 0.147
-    ## sigma2S  0.091  0.089  0.082  0.082  0.098  0.076  0.107 0.012
-    ## sigma2B  0.785  0.611  0.280  0.354  0.984  0.267  1.545 0.627
-    ## sigma2E  0.100  0.100  0.103  0.089  0.109  0.081  0.120 0.016
-    ## muB     -0.119 -0.118 -0.140 -0.257  0.021 -0.349  0.136 0.192
+    ##       mean  median    mode   lwr50  upr50   lwr80   upr80     sd
+    ## 1   0.3154  0.2803  0.2885  0.1710 0.4453  0.0930  0.6058 0.1990
+    ## 2   1.3368  1.3245  1.1670  1.1384 1.5366  0.9934  1.7134 0.2925
+    ## 3   0.3443  0.3019  0.2735  0.2560 0.4280  0.1930  0.4892 0.1304
+    ## 4   1.9972  1.9978  1.9980  1.9971 1.9985  1.9959  1.9991 0.0030
+    ## 5   1.9980  1.9995  1.9996  1.9980 2.0000  1.9957  2.0000 0.0051
+    ## 6   0.8740  0.8477  0.8390  0.6629 1.0787  0.5160  1.2629 0.2801
+    ## 7   1.8164  1.8625  1.9446  1.7202 1.9419  1.5982  1.9624 0.1464
+    ## 8   7.2093  6.8783  4.8156  4.8918 9.1035  3.9589 11.8601 2.9346
+    ## 9   0.1727  0.1704  0.1796  0.1262 0.2010  0.1048  0.2448 0.0540
+    ## 10  0.1130  0.1127  0.1239  0.0997 0.1246  0.0965  0.1302 0.0133
+    ## 11 -0.1727 -0.3197 -0.5427 -0.6788 0.3548 -0.8869  0.7469 0.5987
 
 ### Visualization of Calibration Model
 
@@ -676,21 +674,22 @@ and distribution parameters. The function arguments are `prior`, which
 characterize the distribution family of the prior and two other the
 arguments, `p1` and `p2` that characterize the parameters of the chosen
 distribution. The `prior` argument can take a character string value
-from “uniform”, “gaussian”, “gamma”, “beta”, “lognormal”, “logistic”,
-“betashift”, “exponential”, “inversegamma”, “jeffreys”, “fixed”. For
-example for `prior = "gamma"`, `p1` and `p2` determine shape and scale
-of the gamma distribution, or for Gaussian distribution, `p1` and `p2`
-determine mean and standard deviation of the Gaussian distribution. When
-“fixed” is used for `prior`, the prior function is simply `x = 1`. The
-output of `prior_builder()` is a function that given a value, computes
-the probability density of the chosen distribution. To reduce the load
-of internal computation during creation of the calibration model,
-`prior_builder()` computes the log of density and if used externally
-must be transformed.
+from “uniform”, “normal”, “normalTr”, “lognormal”, “gamma”,
+“inversegamma”, “beta”, “betashift”, “logbeta”,
+“logistic”,“exponential”, “fixed”. For example for `prior = "gamma"`,
+`p1` and `p2` determine shape and scale of the gamma distribution, or
+for Gaussian distribution, `p1` and `p2` determine mean and standard
+deviation of the Gaussian distribution. When “fixed” is used for
+`prior`, the prior function is simply `x = 1`. The output of
+`build_prior()` is a function that given a value, computes the
+probability density of the chosen distribution. To reduce the load of
+internal computation during creation of the calibration model,
+`build_prior()` computes the log of density and if used externally must
+be transformed.
 
 ``` r
 # create a prior function for beta(2, 5). Note that the function compute log of priors and must be transformed
-pr_fun <- prior_builder(prior = "beta", p1 = 2, p2 = 5)
+pr_fun <- build_prior(dist = "beta", p1 = 2, p2 = 5)$fun
 round(exp(pr_fun(c(-1, 0, 0.1, 0.5, 0.9, 1, 2))), 3)
 ```
 
@@ -698,7 +697,7 @@ round(exp(pr_fun(c(-1, 0, 0.1, 0.5, 0.9, 1, 2))), 3)
 
 ``` r
 # create a prior function for a Uniform distribution with lower bound of -10, and upper bound of 10
-pr_fun <- prior_builder(prior = "uniform", p1 = -10, p2 = 10)
+pr_fun <- build_prior(dist = "uniform", p1 = -10, p2 = 10)$fun
 round(exp(pr_fun(c(-11, -5, 0, 4, 10, 12))), 3)
 ```
 
@@ -706,7 +705,7 @@ round(exp(pr_fun(c(-11, -5, 0, 4, 10, 12))), 3)
 
 ``` r
 # create a prior function for Gaussian distribution with mean of 1 and standard deviation of 2
-pr_fun <- prior_builder(prior = "gaussian", p1 = 1, p2 = 2)
+pr_fun <- build_prior(dist = "normal", p1 = 1, p2 = 2)$fun
 round(exp(pr_fun(c(-9, -5, -3, -1, 1, 3, 5, 7, 11))), 3)
 ```
 
@@ -730,13 +729,13 @@ vec <- runif(100, 0, 10)
 pmode(vec) 
 ```
 
-    ## [1] 5.772026
+    ## [1] 5.596472
 
 ``` r
 pmode(vec, breaks = 10)
 ```
 
-    ## [1] 7.524808
+    ## [1] 7.317986
 
 [^1]: *Field experiments, which are sometimes called physical
     experiments in other texts, will be represented by f subscript (for
@@ -776,7 +775,7 @@ pmode(vec, breaks = 10)
     sampling. In this case, the given initial value will be used as
     fixed parameter value and p1 and p2 arguments will be used.*
 
-[^8]: *For example, if “gaussian” distribution is used, p1 and p2
+[^8]: *For example, if “normal” distribution is used, p1 and p2
     represent mean and variance of the distribution and if “uniform”
     distribution is used, p1 and p2 represent lower and upper bound of
     the distribution.*
