@@ -14,19 +14,18 @@
 #' @param iparam     index of parameter in parameter vector
 #' @param iteration  number of MCMC iterations so far
 #' @param accepRate  rate of acceptance so far
-#' @param sdLast     the last proposal sd used
 #'
 #' @noRd
 #' @importFrom stats rnorm
 #' @return a list consisting of the proposed value of the parameter and the proposal sd used
-proposal <- function(param, iparam, iteration, accepRate, sdLast) {
-  init <- cache$sdRates[iparam]
+proposal <- function(param, iparam, iteration, accepRate) {
+  sdLast <- cache$sdRates[iparam]
   if (iteration <= 5)
-    sdNew <- init
-  else if (iteration %% 10 == 6 && accepRate > 0.44)
-    sdNew <- exp(log(sdLast) + (init/sqrt(iteration)))
-  else if (iteration %% 10 == 6 && accepRate < 0.44)
-    sdNew <- exp(log(sdLast) - (init/sqrt(iteration)))
+    sdNew <- sdLast
+  else if (iteration %% 20 == 6 && accepRate > 0.44)
+    sdNew <- exp(log(sdLast) + cache$priors$sd[iparam]/sqrt(iteration))
+  else if (iteration %% 20 == 6 && accepRate < 0.44)
+    sdNew <- exp(log(sdLast) - cache$priors$sd[iparam]/sqrt(iteration))
   else
     sdNew <- sdLast
 
@@ -38,7 +37,9 @@ proposal <- function(param, iparam, iteration, accepRate, sdLast) {
     proposed   <- exp(rnorm(1, mean = log(param), sd = sdNew))
 
   else if (iparam %in% c(cache$ialphaS, cache$ialphaB))
-    proposed   <- 1 + (1/(1+exp(-rnorm(1, mean = log(param-1) - log(2-param), sd = sdNew))))
-  return(list(proposed = proposed, sd = sdNew))
+    proposed   <- 1 + (1/(1 + exp(-rnorm(1, mean = log(param - 1) - log(2 - param), sd = sdNew))))
+
+  cache$sdRates[iparam] <- sdNew
+  return(proposed)
 }
 
