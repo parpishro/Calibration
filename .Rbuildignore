@@ -11,3 +11,4 @@
 ^LICENSE\.md$
 ^README_files/
 ^README\.Rmd$
+^\.Rproj\.user$

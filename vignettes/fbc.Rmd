@@ -124,7 +124,7 @@ The `calibrate()` function takes three sets of arguments from user: data, MCMC, 
 ```{r calibrate, eval=FALSE}
 calMod <- calibrate(sim = ballSim, field = ballField,                                 # Data 
                     nMCMC = 11000, nBurn = 1000, thinning = 50,                       # MCMC
-                    kappaDist = "beta", kappaInit = NA, kappaP1 = 1.1, kappaP2 = 1.1, # Priors
+                    kappaDist = "beta", kappaP1 = 1.1, kappaP2 = 1.1, # Priors
                     hypers = set_hyperPriors(),
                     showProgress = FALSE) 
 ```
@@ -152,11 +152,11 @@ The second set of arguments consists of MCMC parameters: `nMCMC` represents the 
 
 The third and last set of arguments consists of prior specification for each parameter of the model. The main goal of calibration is to estimate the calibration parameters ($g$ in ball example). However, employing KOH calibration model introduces eight additional classes of hyperparameters to the model. The parameters in all eight classes are not known in advance and must be estimated. As `FBC` employs a full Bayesian framework, the priors for all model parameters must be specified in advance. Throughout the package implementation and current guide a consistent notation is used to denote parameters: $\bf{\kappa}$, $\bf{\theta_s}$, $\bf{\alpha_s}$, $\bf{\theta_b}$,  $\bf{\alpha_b}$, $\sigma^2_s$, $\sigma^2_b$, $\sigma^2_e$, and $\mu_b$ denote calibration parameters, correlation scale parameters of simulator GP, correlation smoothness parameters of simulator GP, correlation scale parameters of bias-correction GP, correlation smoothness parameters of bias-correction GP, marginal variance of  simulator GP, marginal variance of bias-correction GP, measurement error variance, and mean of bias-correction GP respectively.
 
-For each class of parameters, there are four associated arguments. 1) distribution type, which is a character string determining the prior distribution family (suffixed with "dist" in argument names). Currently, `FBC` supports almost all common distributions and can be chosen from "uniform", "gaussian", "gamma", "beta", "lognormal", "logistic", "betashift", "exponential", "inversegamma", "jeffreys", and "fixed" [^7]. 2) Initial value, which is double representing starting point of the parameter in MCMC algorithm (suffixed with "init" in argument names). 3) First distribution parameter (suffixed with "p1" in argument names) and 4) second distribution parameter (suffixed with "p2" in argument names) are doubles representing the two parameters of the chosen distribution [^8], [^9]. Table 1 summarizes all classes of parameters along with their corresponding argument names for prior specifications.
+For each class of parameters, there are four associated arguments. 1) distribution type, which is a character string determining the prior distribution family (suffixed with "dist" in argument names). Currently, `FBC` supports almost all common distributions and can be chosen from "uniform", "normal", "normalTr", "lognormal", "gamma", "inversegamma", "beta", "betashift", "logbeta", "logistic","exponential", "fixed" [^7]. 2) Initial value, which is double representing starting point of the parameter in MCMC algorithm (suffixed with "init" in argument names). 3) First distribution parameter (suffixed with "p1" in argument names) and 4) second distribution parameter (suffixed with "p2" in argument names) are doubles representing the two parameters of the chosen distribution [^8], [^9]. Table 1 summarizes all classes of parameters along with their corresponding argument names for prior specifications.
 
 [^7]: *"betashift" refers to a beta distribution that is shifted one unit to right to cover [1 2] interval and it is used to specify the priors for correlation smoothness parameters which must be constrained to [1 2] interval. Moreover, choosing "fixed" as distribution will exclude that class of parameters from the MCMC sampling. In this case, the given initial value will be used as fixed parameter value and p1 and p2 arguments will be used.*
 
-[^8]: *For example, if "gaussian" distribution is used, p1 and p2 represent mean and variance of the distribution and if "uniform" distribution is used, p1 and p2 represent lower and upper bound of the distribution.*
+[^8]: *For example, if "normal" distribution is used, p1 and p2 represent mean and variance of the distribution and if "uniform" distribution is used, p1 and p2 represent lower and upper bound of the distribution.*
 
 [^9]: *Not all distribution types require two arguments. In particular, "exponential" distribution only requires rate parameter (p1) and "jeffreys" requires none. In these cases the unused arguments are ignored.*
 
@@ -339,19 +339,19 @@ round(correlation(X, Y, theta = sc, alpha = sm), 5)
 
 ### 1.9 Building Prior Functions:
 
-This function will create a prior function based on given distribution and distribution parameters. The function arguments are `prior`, which characterize the distribution family of the prior and two other the arguments, `p1` and `p2` that characterize the parameters of the chosen distribution. The `prior` argument can take a character string value from "uniform", "gaussian", "gamma", "beta", "lognormal", "logistic", "betashift", "exponential", "inversegamma", "jeffreys", "fixed". For example for `prior = "gamma"`, `p1` and `p2` determine shape and scale of the gamma distribution, or for Gaussian distribution, `p1` and `p2` determine mean and standard deviation of the Gaussian distribution. When "fixed" is used for `prior`, the prior function is simply `x = 1`. The output of `prior_builder()` is a function that given a value, computes the probability density of the chosen distribution. To reduce the load of internal computation during creation of the calibration model, `prior_builder()` computes the log of density and if used externally must be transformed.
+This function will create a prior function based on given distribution and distribution parameters. The function arguments are `prior`, which characterize the distribution family of the prior and two other the arguments, `p1` and `p2` that characterize the parameters of the chosen distribution. The `prior` argument can take a character string value from "uniform", "normal", "normalTr", "lognormal", "gamma", "inversegamma", "beta", "betashift", "logbeta", "logistic","exponential", "fixed". For example for `prior = "gamma"`, `p1` and `p2` determine shape and scale of the gamma distribution, or for Gaussian distribution, `p1` and `p2` determine mean and standard deviation of the Gaussian distribution. When "fixed" is used for `prior`, the prior function is simply `x = 1`. The output of `build_prior()` is a function that given a value, computes the probability density of the chosen distribution. To reduce the load of internal computation during creation of the calibration model, `build_prior()` computes the log of density and if used externally must be transformed.
 
-```{r  prior_builder}
+```{r  build_prior}
 # create a prior function for beta(2, 5). Note that the function compute log of priors and must be transformed
-pr_fun <- prior_builder(prior = "beta", p1 = 2, p2 = 5)
+pr_fun <- build_prior(dist = "beta", p1 = 2, p2 = 5)$fun
 round(exp(pr_fun(c(-1, 0, 0.1, 0.5, 0.9, 1, 2))), 3)
 
 # create a prior function for a Uniform distribution with lower bound of -10, and upper bound of 10
-pr_fun <- prior_builder(prior = "uniform", p1 = -10, p2 = 10)
+pr_fun <- build_prior(dist = "uniform", p1 = -10, p2 = 10)$fun
 round(exp(pr_fun(c(-11, -5, 0, 4, 10, 12))), 3)
 
 # create a prior function for Gaussian distribution with mean of 1 and standard deviation of 2
-pr_fun <- prior_builder(prior = "gaussian", p1 = 1, p2 = 2)
+pr_fun <- build_prior(dist = "normal", p1 = 1, p2 = 2)$fun
 round(exp(pr_fun(c(-9, -5, -3, -1, 1, 3, 5, 7, 11))), 3)
 ```
 
@@ -768,7 +768,21 @@ such that $X_s$ columns span $[0, 1]$.
 
 ## 6. Application
 
-### 6.1 Analytic Example:
+### 6.1 Analytic Example with 1 Calibration Parameter:
+
+```{r analytic11}
+# priors    <- set_hyperPriors(thetaSDist  = "logbeta",      thetaSP1  = 5,  thetaSP2 = 5,
+#                              alphaSDist  = "fixed",        alphaSP1  = 2,
+#                              thetaBDist  = "logbeta",      thetaBP1  = 5,  thetaBP2 = 5,
+#                              alphaBDist  = "fixed",        alphaBP1  = 2,
+#                              sigma2SDist = "inversegamma", sigma2SP1 = 5,  sigma2SP2 = 0.2,
+#                              sigma2BDist = "inversegamma", sigma2BP1 = 12, sigma2BP2 = 0.5,
+#                              sigma2EDist = "inversegamma", sigma2EP1 = 5,  sigma2EP2 = 100,
+#                              muBDist     = "fixed",        muBP1     = 0)
+# analytic1 <- calibrate(analytic11S, analytic11F, nMCMC = 15000, nBurn = 5000, 
+#                        kappaDist = "normal", kappaP1 = 0.5, kappaP2 = 0.25, hypers = priors)
+```
+
 
 ### 6.2 Ball Example:
 
