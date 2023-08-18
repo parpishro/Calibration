@@ -10,6 +10,6 @@
 fbc <- function(x) {
   stopifnot(identical(names(x),
                       c("Phi", "estimates", "logPost", "priors", "acceptance", "vars", "data",
-                        "scale", "indices", "priorFns", "proposalSD")))
+                        "scale", "indices")))
   return(structure(x, class = "fbc"))
 }
