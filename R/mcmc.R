@@ -27,21 +27,19 @@
 mcmc <- function(init, nMCMC, inds, showProgress) {
   Phi        <- init$Phi
   logPost    <- init$logPost
-  priorFns   <- cache$priorFns
+  priorFns   <- cache$priors$fun
   l          <- cache$l
   ifixed     <- cache$ifixed
+  inotFixed  <- cache$inotFixed
   accepLast  <- double(l)
   accepted   <- double(l)
   accepRate  <- double(l)
-  sdProp     <- double(l)
   res        <- cache$y - Phi[1, cache$imuB]
   for (i in 2:nMCMC) {
     logPost[i]  <- logPost[i - 1]
     for (j in 1:l) {
       if (j %in% ifixed) next
-      out       <- proposal(Phi[i - 1, j], j, i, accepRate[j], sdProp[j])
-      changed   <- out$proposed
-      sdProp[j] <- out$sd
+      changed       <- proposal(Phi[i - 1, j], j, i, accepRate[j])
 
       if (j == 1) {
         params <- c(changed, Phi[i - 1, 2:l])
@@ -54,6 +52,10 @@ mcmc <- function(init, nMCMC, inds, showProgress) {
         update_cov(params, ichanged = j)
       }
 
+      if (cache$logDetCov == 0) {
+        Phi[i, j]      <- Phi[i - 1, j]
+        next
+      }
       logPrior       <- 0
       for (h in 1:l)
         logPrior     <- logPrior + priorFns[[h]](params[h])
@@ -73,8 +75,8 @@ mcmc <- function(init, nMCMC, inds, showProgress) {
       accepRate  <- (accepted - accepLast)/4
       accepLast  <- accepted
     }
-    if (i > 5 && i %% 10 == 5) {
-      accepRate  <- (accepted - accepLast)/10
+    if (i > 5 && i %% 20 == 5) {
+      accepRate  <- (accepted - accepLast)/20
       accepLast  <- accepted
     }
 
@@ -82,16 +84,23 @@ mcmc <- function(init, nMCMC, inds, showProgress) {
     if (showProgress && i %% floor(nMCMC/100) == 0 && i/floor(nMCMC/100) <= 100) {   #
       cat("------------------------------------------------------------------------", "\n")
       cat("finished ",  (i/floor(nMCMC/100)), "% of MCMC runs...", "\n")
-      cat("acceptance ratio in the last batch:   ", round(accepRate, 2), "\n")
-      cat("parameter sample:                     ", round(Phi[i, ], 2), "\n")
-      cat("proposal sd:                          ", round(sdProp, 2), "\n")
-      cat("total acceptance ratio:               ", round(accepted/i, 2), "\n")
+      report            <- rbind(round(accepRate[inotFixed], 3),
+                                 round(Phi[i, inotFixed], 3),
+                                 round(cache$sdRates[inotFixed], 3),
+                                 round(accepted[inotFixed]/i, 3))
+      colnames(report)  <- cache$priors$param[inotFixed]
+      row.names(report) <- c("current acceptance rate", "current parameter sample",
+                             "current proposal sd", "total acceptance rate")
+      print(report)
     }
   }
   if (showProgress) {
     cat("------------------------------------------------------------------------", "\n")
     cat("Completed MCMC runs.", "\n")
-    cat("total acceptance ratio ", round(accepted/nMCMC, 2), "\n")
+    report            <- data.frame(matrix(round(accepted[inotFixed]/nMCMC, 2), nrow = 1))
+    colnames(report)  <- cache$priors$param[inotFixed]
+    row.names(report) <- c("total acceptance rate")
+    print(report)
   }
 
   cache$Params     <- Phi[inds, ]
