@@ -2,6 +2,7 @@
 
 codecov:
   require_ci_to_pass: yes
+  token: ea6efa89-bf95-4dcb-bd27-b6050ad09b1a
 
 coverage:
   precision: 2
@@ -13,3 +14,6 @@ comment:
   layout: "reach, diff, flags, files"
   behavior: "default"
   require_changes: yes
+
+
+

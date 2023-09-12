@@ -29,7 +29,7 @@
 #' }
 "ballSim"
 
-#' @title Df1
+#' @title analytic11F
 #'
 #' @description A simple analytic example with random simulated data, known functional
 #'              components, and specified error terms. It has two columns. The first
@@ -37,10 +37,10 @@
 #'              experimental input.
 #' @format      Matrix with 5 rows that represent simulation runs and two columns that
 #'              represent field response and a single experimental input.
-"Df1"
+"analytic11F"
 
 
-#' @title Ds1
+#' @title analytic11S
 #'
 #' @description A simple analytic example with random simulated data, known functional
 #'              components, and specified error terms. It has two columns. The first
@@ -50,7 +50,7 @@
 #'
 #' @format      Matrix with 15 rows that represent simulation runs and three columns that
 #'              represent code response, experimental input, and calibration input.
-"Ds1"
+"analytic11S"
 
 
 #' @title Df2

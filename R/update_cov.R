@@ -13,7 +13,7 @@
 #' @noRd
 update_cov <- function(phi, ichanged) {
   if (ichanged %in% cache$ikappa) {
-    cache$Xk     <- Xk <-  cbind(cache$Xf, matrix(replicate(cache$n, phi[cache$ikappa]), nrow=cache$n, byrow=T))
+    cache$Xk     <- Xk <-  cbind(cache$Xf, matrix(replicate(cache$n, phi[cache$ikappa]), nrow = cache$n, byrow = T))
     cache$CorKK  <- correlation(Xk, theta = phi[cache$ithetaS], alpha = phi[cache$ialphaS])
     cache$CorKS  <- correlation(Xk, cache$Xs, phi[cache$ithetaS], phi[cache$ialphaS])
     cache$CorSK  <- t(cache$CorKS)
@@ -29,13 +29,16 @@ update_cov <- function(phi, ichanged) {
   }
 
   AugCov          <- rbind(cbind(phi[cache$isigma2S]*cache$CorKK +
-                                   phi[cache$isigma2B]*cache$CorFF +
-                                   phi[cache$isigma2E]*cache$Inn ,
+                                 phi[cache$isigma2B]*cache$CorFF +
+                                 phi[cache$isigma2E]*cache$Inn ,
                                  phi[cache$isigma2S]*cache$CorKS),
                            cbind(phi[cache$isigma2S]*cache$CorSK,
                                  phi[cache$isigma2S]*cache$CorSS))
-
-  CholCov         <- chol(AugCov)
-  cache$InvCov    <- chol2inv(CholCov)
-  cache$logDetCov <- 2 * sum(log(diag(CholCov)))
+  tryCatch({
+    CholCov         <- chol(AugCov)
+    cache$InvCov    <- chol2inv(CholCov)
+    cache$logDetCov <- 2 * sum(log(diag(CholCov)))
+  }, error = function(e) {
+    cache$logDetCov <- 0
+  })
 }

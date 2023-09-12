@@ -2,22 +2,22 @@
 #'
 #' `calibrate` uses a Bayesian framework to estimate the posterior density distribution of
 #' calibration model parameters. It takes in simulator data, and field data, and parameter
-#' priors as arguments, and forms a numeric joint distribution of all parameters as output.
+#' prior specifications as arguments, and forms a numeric joint distribution of all parameters as
+#' output.
 #'
 #'
 #' @details
 #'
-#' Both simulation and field data are required to be dataframe or matrix. The first column
-#' in both datasets is the response. In field data rest of columns are experimental inputs
-#' and in simulation data there are additional columns at the end that represent
-#' calibration inputs.
+#' Both simulation and field data are required to be dataframe or matrix. The first column in both
+#' datasets is the response. In field data rest of columns are experimental inputs and in simulation
+#' data there are additional columns at the end that represent calibration inputs.
 #'
-#' Posterior distribution of a parameters often do not correspond to well-known
-#' distributions. A MCMC algorithm, and especially Metropolis-Hastings (MH)
-#' algorithm with adaptive proposal is used to draw from joint posterior distribution of
-#' parameters. The full Bayesian approach of `calibrate` enables both point estimates and
-#' inference about the uncertainty in parameter estimates. More information about
-#' calibration model and package functionality can be found in package vignette.
+#' Posterior distribution of a parameters often do not correspond to a well-known distributions. A
+#' version of MCMC algorithm, called Metropolis-Within-Gibbs algorithm, with adaptive proposal is
+#' used to draw from joint posterior distribution of parameters. The full Bayesian approach of
+#' `calibrate` provides a measure of uncertainty quantification as well as point estimates for the
+#' parameters. More information about calibration model and package functionality can be found in
+#' package vignette.
 #'
 #'
 #' ## Notation
@@ -53,7 +53,7 @@
 #' @param hypers      nested list containing the priors and initial values for all
 #'                    hyperparameters. The notation for the list members are explained
 #'                    below. Each member contains four fields (similar to `kappa`): the
-#'                    distribution type (`dist`), the initial value (`init`), first
+#'                    distribution type (`dist`), first
 #'                    distribution parameter (`p1`), and second distribution parameter
 #'                    (`p2`). The default is a call to `set_hyperPriors()` without
 #'                    argument to build the nested list. All arguments of
@@ -65,9 +65,6 @@
 #'                    Default is False.
 #' @param kappaDist  string (vector of strings) to specify the prior distribution type(s) for
 #'                   calibration parameters.
-#' @param kappaInit  double (vector of doubles) that represent initial value(s) of calibration
-#'                   parameters to start the MCMC. The default(NA) automates choosing initial value
-#'                   for calibration parameters based on their range in simulation
 #' @param kappaP1    double (vector of doubles) representing the first parameter(s) of the chosen
 #'                   distribution(s)
 #' @param kappaP2    double (vector of doubles) representing the first parameter(s) of the chosen
@@ -83,7 +80,7 @@
 #'                    their uncertainty
 #'  * logPost:        a numeric vector of same length as Phi rows representing the log of
 #'                    posterior likelihood
-#'  * priors:         prior specifications of all parameters
+#'  * priorFamilies:  prior specifications of all parameters
 #'  * acceptance:     acceptance rate of MH MCMC algorithm
 #'  * vars:           name of all parameters (based on below notation)
 #'  * cache:          an environment containing original datasets and indexing variables
@@ -95,32 +92,44 @@
 #' *Journal of the Royal Statistical Society*, **Series B**, **63(3)**, 425–464
 #' <https://www2.stat.duke.edu/~fei/samsi/Oct_09/bayesian_calibration_of_computer_models.pdf>
 #' @export
-calibrate <- function(sim, field,                                                       # Data
-                      nMCMC  = 2200, nBurn = 200, thinning = 20,                        # MCMC
-                      kappaDist = "beta", kappaInit = NA, kappaP1 = 1.1, kappaP2 = 1.1, # Priors
-                      hypers = set_hyperPriors(),
-                      showProgress = FALSE) {                  # Hyperparameter Priors
-  stopifnot((is.matrix(sim) || is.data.frame(sim)),
-            (is.matrix(field) || is.data.frame(field)),
-            ncol(sim) > 1, ncol(field) > 0)
-  stopifnot(nMCMC > 1, nBurn >= 0, thinning > 0)
-  stopifnot(is.list(hypers), names(hypers) == c("thetaS", "alphaS", "thetaB", "alphaB",
-                                                "sigma2S", "sigma2B", "sigma2E", "muB"))
+calibrate <- function(sim, field,                                      # Data
+                      nMCMC  = 1100, nBurn = 100, thinning = 10,       # MCMC
+                      kappaDist = "beta", kappaP1 = 1.1, kappaP2 = 1.1, # Calibration Prior(s)
+                      hypers = set_hyperPriors(),                      # Hyperparameter Priors
+                      showProgress = FALSE) {
+  if (!is.matrix(sim) && !is.data.frame(sim))
+     stop("'sim' argument must be either matrix or data frame")
+  if (!is.matrix(field) && !is.data.frame(field))
+     stop("'field' argument must be either matrix or data frame")
+  if (ncol(sim) < 2 || ncol(field) < 1)
+     stop("'sim' and `field` arguments must have at least 2 & 1 columns respectively!")
+  if (nMCMC <= 1)
+     stop("'nMCMC' must be a integer and larger than 1!")
+  if (nBurn < 0)
+     stop("'nBurn' must be a non-negative integer!")
+  if (thinning <= 0)
+     stop("'thinning' must be a positive integer!")
+  if (!is.list(hypers) || sum(names(hypers) != c("thetaS", "alphaS", "thetaB", "alphaB", "sigma2S",
+                                             "sigma2B", "sigma2E", "muB")) != 0)
+     stop("'hyper' argument does not have the proper format. Use `set_hyperPriors()` function to
+          set hyperparameter priors!")
 
-  priors <- c(list(kappa = list(dist = kappaDist, init = kappaInit, p1 = kappaP1, p2 = kappaP2)), hypers)
-  for (param in names(priors))
-    stopifnot(is.character(priors[[param]][['dist']]))
-    stopifnot(priors[[param]][['dist']] %in% c("beta", "betashift", "logistic", "gamma",
-                                               "uniform", "gaussian", "inversegamma",
-                                               "exponential", "jeffreys","lognormal"))
-    stopifnot(is.double(priors[[param]][['init']]),
-              is.double(priors[[param]][['p1']]),
-              is.double(priors[[param]][['p2']]))
-    stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['init']]))
-    stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p1']]))
-    stopifnot(length(priors[[param]][['dist']]) == length(priors[[param]][['p2']]))
 
-  init   <- setup_cache(sim, field, priors, nMCMC, showProgress)
+  priorFamilies <- c(list(kappa = list(dist = kappaDist, p1 = kappaP1, p2 = kappaP2)), hypers)
+  for (fam in priorFamilies) {
+    if (!is.character(fam$dist))
+      stop("'dist' argument must be character string!")
+    if (sum(!(fam$dist %in% c("uniform", "normal", "normalTr", "lognormal", "gamma", "inversegamma",
+                              "beta", "betashift", "logbeta", "logistic","exponential", "fixed"))) > 0)
+      stop("'dist' argument must be one of 'uniform', 'normal', 'normalTr', 'lognormal', 'gamma',
+           'inversegamma', 'beta', 'betashift', 'logbeta', 'logistic','exponential', 'fixed'")
+    if (sum(!is.double(fam$p1)) + sum(!is.double(fam$p2)) > 0)
+      stop("Both 'p1' and `p2` arguments must be double!")
+    if (length(fam$dist) != length(fam$p1) || length(fam$dist) != length(fam$p2))
+      stop("Length of 'dist', 'p1', and 'p2' arguments must be same!")
+  }
+
+  init   <- setup_cache(sim, field, priorFamilies, nMCMC, showProgress)
   inds   <- seq(nBurn + 1, nMCMC, by = thinning)
   output <- mcmc(init, nMCMC, inds, showProgress)
   return(output)
