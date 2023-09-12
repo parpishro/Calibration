@@ -82,15 +82,16 @@ that is used in \code{predict()} function.
 }
 }
 \description{
-\code{calibrate} uses a Bayesian framework to estimate the posterior density distribution of
-calibration model parameters. It takes in simulator data, and field data, and parameter
-prior specifications as arguments, and forms a numeric joint distribution of all parameters as
-output.
+\code{calibrate} takes simulator data, field data, and priors for all parameters
+to produce a Markov Chain Monte Carlo (MCMC) sample from the
+Bayesian joint posterior density of all model parameters, including the calibration parameters.
 }
 \details{
-Both simulation and field data are required to be dataframe or matrix. The first column in both
-datasets is the response. In field data rest of columns are experimental inputs and in simulation
-data there are additional columns at the end that represent calibration inputs.
+The simulation data in \code{sim} and the field data in \code{field} must be data frames or matrices.
+The ordering of columns is important.
+In both datasets the first column is the response, which is followed by the  experimental inputs.
+\code{sim} has the response and the experimental inputs in the same order as \code{field},
+then further columns for the calibration-parameter settings.
 
 Posterior distribution of a parameters often do not correspond to a well-known distributions. A
 version of MCMC algorithm, called Metropolis-Within-Gibbs algorithm, with adaptive proposal is

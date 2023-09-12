@@ -2,11 +2,20 @@ Package: FBC
 Type: Package
 Title: Full Bayesian Calibration
 Version: 1.0
-Author: Parham Pishrobat
-Maintainer: The package maintainer <par.pishrobat@ubc.ca>
+Authors@R: c(
+   person(given = "Parham",
+           family = "Pishrobat",
+           role = c("aut", "cph", "cre"),
+           email = "par.pishrobat@ubc.ca"),
+    person(given = "William J.",
+           family = "Welch",
+           role = c("aut", "cph"),
+           email = "will@stat.ubc.ca",
+           comment = c(ORCID = "0000-0002-4575-3124"))
+     )
 Description: FBC provides employs a Full Bayesian Calibration method to calibrate the simulator 
              model using both field observations and simulator outputs. It is based on Kennedy and 
-             O'Hagan (2001) calibration model and used Metropolis-Within Gibbs MCMC algorithm with 
+             O'Hagan (2001) calibration model and uses Metropolis-Within Gibbs MCMC algorithm with 
              adaptive proposal.
 License: GPL (>= 3) + file LICENSE
 License_is_FOSS: TRUE
@@ -15,7 +24,7 @@ LazyData: true
 Depends: R (>= 2.10)
 RoxygenNote: 7.2.3
 Suggests: 
-    testthat (>= 3.0.0), knitr, rmarkdown
+    testthat (>= 3.5.0), knitr, rmarkdown
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
