@@ -73,8 +73,8 @@ test_that("fixed parameter works!", {
 test_that("different priors for calibration works!", {
   cal <- calibrate(sim = Ds2, field = Df2, nMCMC = 15, nBurn = 0, thinning = 1,
                    kappaDist = c("beta", "uniform"),
-                                kappaP1   = c(1.1, 0),
-                                kappaP2   = c(1.1, 1))
+                   kappaP1   = c(1.1, 0),
+                   kappaP2   = c(1.1, 1))
   expect_equal(sum(!is.finite(cal$estimates[, 8])), 0)
   expect_equal(sum(cal$estimates[, 8] < 0), 0)
 })
