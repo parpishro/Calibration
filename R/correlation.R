@@ -16,37 +16,29 @@
 #' @returns      a correlation matrix between the rows of given matrices
 #' @example      man/examples/ex_correlation.R
 #' @export
-correlation <- function(X, Y = NULL, theta = 1, alpha = 2) {
+correlation <- function(X, Y = NULL, theta, alpha) {
   nx <- nrow(X)
   if (is.null(Y)) {
     R  <- matrix(0, nrow = nx, ncol = nx)
     for (i in 1:(nx - 1)) {
       for (j in (i + 1):nx) {
-        R[i, j] <- exp(-sum(theta*(abs(X[i, ] - X[j, ])^alpha)))
+        R[i, j] <- -sum(theta*(abs(X[i, ] - X[j, ])^alpha))
       }
     }
-    R <- R + t(R) + diag(1, nrow = nx, ncol = nx)
+    R <- R + t(R) + diag(0, nrow = nx, ncol = nx)
   } else {
     ny <- nrow(Y)
     R  <- matrix(0, nrow = nx, ncol = ny)
     for (i in 1:nx) {
       for (j in 1:ny) {
-        R[i, j] <- exp(-sum(theta*(abs(X[i, ] - Y[j, ])^alpha)))
+        R[i, j] <- -sum(theta*(abs(X[i, ] - Y[j, ])^alpha))
       }
     }
   }
-  return(R)
+  return(exp(R))
 }
 
-# correlation <- function(X, Y = NULL, theta = 1, alpha = 2) {
-#   Y <- if (is.null(Y)) X else Y
-#   R <- matrix(nrow = nrow(X), ncol = nrow(Y))
-#   for (i in 1:nrow(X)) {
-#     R[i, ] <- crossprod(matrix(apply(Y, 1, function(y) abs(y - X[i, , drop=F])^alpha), ncol = nrow(Y)),
-#                                theta)
-#   }
-#   return(1/exp(R))
-# }
+
 
 
 

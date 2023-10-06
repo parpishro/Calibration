@@ -35,6 +35,7 @@ output <- function() {
   estimates     <- data.frame(mean  = paramMean,  median = paramMedian, mode = paramMode,
                               lwr50 = param50Lwr, upr50  = param50Upr,
                               lwr80 = param80Lwr, upr80  = param80Upr,  sd   = paramSd)
+  row.names(estimates) <- cache$priors$param
   Phi           <- round(as.data.frame(Params), 4)
   colnames(Phi) <- cache$priors$param
   obj           <- list(Phi        = Phi,

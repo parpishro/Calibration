@@ -17,6 +17,7 @@
 build_prior <- function(dist, p1, p2) {
   force(p1)
   force(p2)
+  force(dist)
 
   if (dist == "uniform") {
     mean <- (p1 + p2)/2
@@ -31,7 +32,7 @@ build_prior <- function(dist, p1, p2) {
   } else if (dist == "normalTr") {
     mean <- p1
     sd   <- p2
-    fun  <- function(x) dunif(x, min  = p1 - 2*p2, max = p1 + 2*p2, log = T) +
+    fun  <- function(x) dunif(x, min  = p1 - 2*p2, max = p1 + 2*p2, log = T) *
                         dnorm(x, mean = p1,        sd  = p2,        log = T)
 
   } else if (dist == "lognormal") {

@@ -46,14 +46,15 @@ setup_cache <- function(sim, field, priorFamilies, nMCMC, showProgress) {
   # setting up priors based on user-given specification
   Phi      <- matrix(nrow = nMCMC, ncol = l)
   ifixed   <- c()
-  priors   <- list()
+  priors   <- list(param = c(), dist = c(), p1  = c(),  p2 = c(),
+                   mean  = c(), sd   = c(), fun = list())
 
   for (i in 1:length(priorFamilies)) {
     iparam   <- indices[[i]]
-    prior    <- priorFamilies[[i]]
-    dist     <- prior$dist
-    p1       <- prior$p1
-    p2       <- prior$p2
+    priorFam <- priorFamilies[[i]]
+    dist     <- priorFam$dist
+    p1       <- priorFam$p1
+    p2       <- priorFam$p2
     for (j in iparam) {
       ind             <- j - iparam[1] + 1
       priors$param[j] <- if (i < 6) paste0(names(priorFamilies)[i], ind)
@@ -68,6 +69,7 @@ setup_cache <- function(sim, field, priorFamilies, nMCMC, showProgress) {
       if (priors$dist[j] == "fixed") ifixed <- c(ifixed, j)
     }
   }
+
 
   cache$inotFixed  <- inotFixed  <- if (!is.null(ifixed)) -ifixed else 1:l
   cache$ifixed     <- ifixed
