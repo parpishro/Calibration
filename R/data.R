@@ -56,25 +56,26 @@
 #' @title Df2
 #'
 #' @description A simple analytic example with random simulated data, known functional
-#'              components, and specified error terms. It has three columns. The first
-#'              column represent the field response, and the next two columns represent
-#'              two experimental inputs.
-#' @format      Matrix with 50 rows that represent simulation runs and three columns that
-#'              represent field response and two experimental inputs.
+#'              components, and specified error terms. It has two columns. The first
+#'              column represent the response, and second column represent a single
+#'              experimental input.
+#' @format      Matrix with 5 rows that represent simulation runs and two columns that
+#'              represent field response and a single experimental input.
 "Df2"
 
 
 #' @title Ds2
 #'
 #' @description A simple analytic example with random simulated data, known functional
-#'              components, and specified error terms. It has five columns. The first
-#'              column represents the the simulated code response, the next two columns
-#'              (second and third) represent two experimental inputs, and the last two
-#'              columns (fourth and fifth) represent two calibration inputs.
+#'              components, and specified error terms. It has two columns. The first
+#'              column represents the the simulated code response, second column
+#'              represents a single experimental input, and the third column represents a
+#'              single calibration input.
 #'
-#' @format      Matrix with 100 rows that represent simulation runs and five columns that
-#'              represent code response, 2 experimental inputs, and 2 calibration inputs.
+#' @format      Matrix with 15 rows that represent simulation runs and three columns that
+#'              represent code response, experimental input, and calibration input.
 "Ds2"
+
 
 
 #' @title swField

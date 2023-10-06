@@ -5,8 +5,8 @@
 \alias{Ds2}
 \title{Ds2}
 \format{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{ Matrix with 100 rows that represent simulation runs and five columns that
-         represent code response, 2 experimental inputs, and 2 calibration inputs.
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ Matrix with 15 rows that represent simulation runs and three columns that
+         represent code response, experimental input, and calibration input.
 }\if{html}{\out{</div>}}
 }
 \usage{
@@ -14,9 +14,9 @@ Ds2
 }
 \description{
 A simple analytic example with random simulated data, known functional
-components, and specified error terms. It has five columns. The first
-column represents the the simulated code response, the next two columns
-(second and third) represent two experimental inputs, and the last two
-columns (fourth and fifth) represent two calibration inputs.
+components, and specified error terms. It has two columns. The first
+column represents the the simulated code response, second column
+represents a single experimental input, and the third column represents a
+single calibration input.
 }
 \keyword{datasets}

@@ -5,8 +5,8 @@
 \alias{Df2}
 \title{Df2}
 \format{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{ Matrix with 50 rows that represent simulation runs and three columns that
-         represent field response and two experimental inputs.
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ Matrix with 5 rows that represent simulation runs and two columns that
+         represent field response and a single experimental input.
 }\if{html}{\out{</div>}}
 }
 \usage{
@@ -14,8 +14,8 @@ Df2
 }
 \description{
 A simple analytic example with random simulated data, known functional
-components, and specified error terms. It has three columns. The first
-column represent the field response, and the next two columns represent
-two experimental inputs.
+components, and specified error terms. It has two columns. The first
+column represent the response, and second column represent a single
+experimental input.
 }
 \keyword{datasets}

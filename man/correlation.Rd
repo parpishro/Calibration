@@ -4,7 +4,7 @@
 \alias{correlation}
 \title{Correlation Between Rows of Two Matrices.}
 \usage{
-correlation(X, Y = NULL, theta = 1, alpha = 2)
+correlation(X, Y = NULL, theta, alpha)
 }
 \arguments{
 \item{X}{matrix with at least two rows}
